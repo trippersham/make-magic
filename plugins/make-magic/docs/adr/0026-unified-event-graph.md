@@ -188,6 +188,18 @@ The one walk consumes **catalog edges + the runtime store-backed provisional edg
   `gauntlet__urza-lord-high-artificer`, `owned__ozai`), FULL_CORPUS `85eba970…→17e806fa…`.
   Reproduced deterministically across two oracle runs. NOT a version bump (Phase 5 owns the ship
   re-baseline).
+- **Phase 3b (built then DEFERRED, owner 2026-11-20 — see #90).** Two more combo-certified
+  families (self-mill `card-enters-graveyard`, extra-turn) were built and measured (commit
+  `b77da70`) but reverted (`883baff`) because the single-event **self-edge** representation they
+  required is **topology-erased** and **leaks a false positive**: (1) a real self-mill engine's
+  loop routes through its true carrier (Phenax's loop runs through `untap`), which the flat
+  certified-unbounded set collapses to a bare `card-enters-graveyard` self-loop — erasing the
+  mechanism; (2) Bruvac + Traumatize is a **one-shot full-mill** that the Spellbook combo DB
+  mislabels `near-infinite`, so the self-edge falsely flags a `recursive-engine`. Win-detection is
+  unaffected (only the engine-label families were reverted). A faithful re-add needs the #86
+  magnitude + topology work first, then lands in **#90**. The seven Phase-3 families are
+  unchanged; the P0 SHA triple is back at the Phase-3 values (ENGINE `8f45c628…`, RESOLVE
+  `6eed6ba7…`, FULL_CORPUS `17e806fa…`).
 - Substantiveness (ADR 0002/0004/0020) and centrality (ADR 0014) stay in their ADR-0021
   layers; this change is entirely in substantiveness.
 
