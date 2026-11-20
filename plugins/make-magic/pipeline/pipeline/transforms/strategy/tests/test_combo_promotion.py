@@ -29,11 +29,10 @@ import pytest
 
 from pipeline.transforms.strategy.combo_promotion import (
     FAMILY_RELAY_EDGES,
-    SELF_SUSTAINING_EVENTS,
     certified_family_pairs,
     combo_certified_event_edges,
 )
-from pipeline.transforms.strategy.combo_win import certified_unbounded_events, unbounded_intermediate_events
+from pipeline.transforms.strategy.combo_win import unbounded_intermediate_events
 from pipeline.transforms.strategy.strategy_graph import recursive_event_set
 
 # ---------------------------------------------------------------------------
@@ -54,13 +53,6 @@ FID_INF_LAND = 119  # "Infinite landfall triggers"
 FID_INF_LTB = 3  # "Infinite creature LTB"
 FID_FINITE_CAST = 107  # finite: "Opponents can only cast one non-artifact…"
 FID_FINITE_SAC = 135  # finite: "Opponents sacrifice all their creatures"
-# Phase 3b fixtures (the two self-sustaining families + their W5-style false carriers)
-FID_INF_EXTRA_TURN = 42  # "Infinite turns" (route turn-monopoly)
-FID_FINITE_EXTRA_TURN = 1742  # finite "Extra Turn Spell" (route oneshot) — must NOT close
-FID_INF_SELF_MILL = 10  # "Infinite self-mill" card-enters-graveyard (route intermediate)
-FID_FINITE_SELF_MILL = 1631  # finite "Mill all creature cards in your library" (oneshot)
-FID_INF_DECKOUT_OPP = 9  # "Infinite mill" library-depleted (route deckout-opp — a §4 terminal)
-FID_FINITE_SELF_DEPLETE = 88  # finite "Exile your library" (route self-deplete, finite)
 
 
 # ---------------------------------------------------------------------------
@@ -215,77 +207,6 @@ class TestSccClosure:
         # A single direction is not a cycle — nothing recurses.
         assert recursive_event_set([], {}, set(), None, [('untap', 'mana-produced')]) == set()
 
-    def test_self_edge_closes_single_event_loop(self):
-        # A 1-node SCC with a self-edge IS a cycle (Phase 3b extra-turn / self-mill).
-        assert recursive_event_set([], {}, set(), None, [('extra-turn', 'extra-turn')]) == {'extra-turn'}
-
-
-# ---------------------------------------------------------------------------
-# Phase 3b — the two self-sustaining families (extra-turn, self-mill) + their
-# extraction extension and W5-style regression
-# ---------------------------------------------------------------------------
-
-
-class TestCertifiedUnboundedEventsExtension:
-    """``certified_unbounded_events`` surfaces the turn-monopoly + self-mill carriers that
-    ``fid_route`` routes OUTSIDE ``intermediate`` — and ONLY the unbounded, non-terminal ones."""
-
-    def test_extra_turn_surfaced(self):
-        # extra-turn routes ``turn-monopoly`` (never ``intermediate``) — the superset sees it,
-        # the Phase-3 intermediate extractor does not.
-        assert certified_unbounded_events([FID_INF_EXTRA_TURN]) == {'extra-turn'}
-        assert unbounded_intermediate_events([FID_INF_EXTRA_TURN]) == set()
-
-    def test_self_mill_surfaced(self):
-        assert certified_unbounded_events([FID_INF_SELF_MILL]) == {'card-enters-graveyard'}
-
-    def test_finite_extra_turn_excluded(self):
-        # A single extra-turn spell routes ``oneshot`` — never certified unbounded.
-        assert certified_unbounded_events([FID_FINITE_EXTRA_TURN]) == set()
-
-    def test_finite_self_mill_excluded(self):
-        assert certified_unbounded_events([FID_FINITE_SELF_MILL]) == set()
-
-    def test_deckout_opp_excluded(self):
-        # Opponent library depletion (``deckout-opp``) is a §4 one-shot terminal, NOT a
-        # self-sustaining loop — it must never surface as a loop carrier.
-        assert certified_unbounded_events([FID_INF_DECKOUT_OPP]) == set()
-
-    def test_finite_self_deplete_excluded(self):
-        # Thassa's-Oracle-style finite self-deplete is a one-shot win, not a loop.
-        assert certified_unbounded_events([FID_FINITE_SELF_DEPLETE]) == set()
-
-    def test_superset_of_intermediate(self):
-        # The superset contains every intermediate carrier plus the new ones.
-        fids = [FID_INF_UNTAP, FID_INF_MANA, FID_INF_EXTRA_TURN]
-        assert certified_unbounded_events(fids) >= unbounded_intermediate_events(fids)
-        assert 'extra-turn' in certified_unbounded_events(fids)
-
-
-class TestSelfSustainingFamilies:
-    """extra-turn and self-mill are single self-sustaining events → self-edges."""
-
-    def test_spec_lists_both(self):
-        assert {ev for _fam, ev in SELF_SUSTAINING_EVENTS} == {'extra-turn', 'card-enters-graveyard'}
-
-    def test_extra_turn_self_edge(self):
-        assert combo_certified_event_edges([[FID_INF_EXTRA_TURN]]) == [('extra-turn', 'extra-turn')]
-
-    def test_self_mill_self_edge(self):
-        assert combo_certified_event_edges([[FID_INF_SELF_MILL]]) == [
-            ('card-enters-graveyard', 'card-enters-graveyard')
-        ]
-
-    def test_w5_finite_extra_turn_no_edge(self):
-        assert combo_certified_event_edges([[FID_FINITE_EXTRA_TURN]]) == []
-
-    def test_w5_one_shot_mill_no_edge(self):
-        assert combo_certified_event_edges([[FID_FINITE_SELF_MILL]]) == []
-
-    def test_w5_deckout_opp_no_edge(self):
-        # An opponent-deckout combo must NOT make card-enters-graveyard (or anything) recurse.
-        assert combo_certified_event_edges([[FID_INF_DECKOUT_OPP]]) == []
-
 
 # ---------------------------------------------------------------------------
 # W5 end-to-end on the real corpus (lake-gated) + per-family closes
@@ -374,9 +295,7 @@ class TestW5FalseCircuitsStayOpenOnCorpus:
 
 @pytest.mark.skipif(not _LAKE_AVAILABLE, reason='lake parquets not available')
 class TestFamilyLoopsCloseOnCorpus:
-    """Each family (7 Phase-3 + the Phase-3b self-mill) reports a ``recursive-engine`` on a
-    named corpus deck. (extra-turn is intentionally absent — it is never an engine unit in
-    the corpus, see the Phase-3b outbox; its mechanism is covered hermetically above.)"""
+    """Each of the 7 families reports a ``recursive-engine`` on a named corpus deck."""
 
     # (commander substring, family event that must become recursive)
     FAMILY_CLOSES: ClassVar[list[tuple[str, str]]] = [
@@ -389,8 +308,6 @@ class TestFamilyLoopsCloseOnCorpus:
         ('ezuri', 'counter-placed'),  # counter
         ('aesi', 'land-enters-battlefield'),  # landfall
         ('ral', 'discard'),  # draw-wheel
-        ('bruvac', 'card-enters-graveyard'),  # self-mill (Phase 3b)
-        ('phenax', 'card-enters-graveyard'),  # self-mill (Phase 3b)
     ]
 
     def test_family_loops_report_recursive(self):

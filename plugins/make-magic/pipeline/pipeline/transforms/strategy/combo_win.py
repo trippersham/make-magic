@@ -675,56 +675,6 @@ def unbounded_intermediate_events(fids: list[int]) -> set[str]:
     return events
 
 
-#: Non-``intermediate`` fid-route labels that are nonetheless SELF-SUSTAINING unbounded
-#: loop carriers (ADR 0026 §4, #83 Phase 3b): an infinite extra-turn chain (``turn-monopoly``)
-#: and an infinite SELF-mill (``self-deplete``, when genuinely unbounded) both recur without
-#: bound. They are NOT ``intermediate`` in :func:`fid_route` (extra-turn routes
-#: ``turn-monopoly``; self-mill routes ``self-deplete``), so :func:`unbounded_intermediate_events`
-#: misses them — :func:`certified_unbounded_events` surfaces them. The terminal routes are
-#: deliberately EXCLUDED: ``deckout-opp`` (one-shot OPPONENT library depletion — a §4 rule
-#: terminal, not a self-loop), ``terminal-win``/``sba-drain``/``combat``/``self-harm``/``state``/
-#: ``oneshot``. A FINITE self-deplete (Thassa's Oracle: ``library-depleted`` finite) is also
-#: excluded — a one-shot win, not a loop.
-_SELF_SUSTAINING_ROUTES: frozenset[str] = frozenset({'turn-monopoly', 'self-deplete'})
-
-
-def certified_unbounded_events(fids: list[int]) -> set[str]:
-    """Every event a combo certifies UNBOUNDED — the full loop-carrier set.
-
-    A superset of :func:`unbounded_intermediate_events`: it adds the self-sustaining
-    carriers that :func:`fid_route` routes OUTSIDE ``intermediate`` — the infinite
-    extra-turn chain (``turn-monopoly``) and the infinite self-mill (``self-deplete``,
-    unbounded only). This is the certified-event extraction the two additional Phase-3b
-    families (extra-turn, self-mill) consume. It still REUSES ``fid_route`` + the per-fid
-    magnitude (no re-derived arithmetic, no new combo detection) and still EXCLUDES the
-    one-shot/terminal routes (``deckout-opp`` opponent mill, ``terminal-win``, ``sba-drain``,
-    ``combat``, ``oneshot``, ``state``) and FINITE self-deplete — so a one-shot extra-turn
-    spell or a finite Thassa's-Oracle self-mill never becomes a loop carrier (the W5-style
-    guarantee for the new families).
-
-    The 7 Phase-3 families keep consuming :func:`unbounded_intermediate_events`; the Phase-3b
-    additions (and, harmlessly, the 7 — none of their events is a ``turn-monopoly``/
-    ``self-deplete`` carrier) read this superset.
-    """
-    events: set[str] = set()
-    for fid in fids:
-        r = fid_route(fid)
-        if r is None:
-            continue
-        ev = r.get('event')
-        if not isinstance(ev, str):
-            continue
-        route = r.get('route')
-        # ``intermediate`` is unbounded by construction; the self-sustaining routes
-        # (turn-monopoly / self-deplete) must be checked against the magnitude so a FINITE
-        # self-deplete (Thassa's Oracle) is excluded.
-        if route == 'intermediate' or (
-            route in _SELF_SUSTAINING_ROUTES and r.get('magnitude') in ('infinite', 'near-infinite')
-        ):
-            events.add(ev)
-    return events
-
-
 # ---------------------------------------------------------------------------
 # Name-to-fid resolution (for combos that lack fids in the lake)
 # ---------------------------------------------------------------------------

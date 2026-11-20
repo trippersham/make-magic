@@ -290,16 +290,10 @@ def recursive_event_set(
     the enabler cards alone, even when the gate attr is sub-threshold for identity.
 
     ``combo_event_edges`` are the per-deck combo-certified event→event edges (ADR 0026
-    §4 / #83 Phase 3 + 3b) for the resource-dependent families — promoted from loops
+    §4 / #83 Phase 3) for the 7 resource-dependent families — promoted from loops
     ``combo_win`` already certified unbounded, NOT from gate queries (see
     :mod:`.combo_promotion`). They close the genuine family loop so its endpoint events'
-    engine units flip from ``static-payoff`` to ``recursive-engine``. A single
-    self-sustaining family (Phase 3b extra-turn: infinite turns) arrives as an event
-    SELF-EDGE ``(e, e)``; a 1-node component with a self-edge is a cycle (see
-    ``_graph.strongly_connected_components``), so it is recognised below alongside the
-    ``>= 2`` components. Self-edges exist ONLY from this combo-certified channel — catalog
-    relays and attr legs never form an event-node self-edge — so this recognition is
-    scoped to the Phase-3b self-sustaining carriers and cannot flip anything else.
+    engine units flip from ``static-payoff`` to ``recursive-engine``.
     """
     graph_nodes, edges = unified_event_graph_edges(event_edges, events, nodes, relay_gate_carriers, combo_event_edges)
     recursive: set[str] = set()
@@ -309,11 +303,6 @@ def recursive_event_set(
         for tag, name in comp:
             if tag == 'e':
                 recursive.add(name)
-    # A certified single-event self-sustaining loop (Phase 3b: infinite extra-turns) is a
-    # 1-node SCC with a self-edge — a cycle the ``>= 2`` filter skips. Honour it explicitly.
-    for u, v in edges:
-        if u == v and u[0] == 'e':
-            recursive.add(u[1])
     return recursive
 
 
