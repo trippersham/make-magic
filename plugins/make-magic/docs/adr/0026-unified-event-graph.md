@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Accepted (framework). Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) + Phase 3 (combo-certified promotion of the 7 resource-dependent families) in force on branch `feat/83-unified-event-graph`; Phases 4–5 pending. Multi-phase, proof-carrying (ADR 0003); ship gate at Phase 5. |
+| Status | Accepted (framework). Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) + Phase 3 (combo-certified promotion of the 7 resource-dependent families) + Phase 3b (self-mill + extra-turn families) in force on branch `feat/83-unified-event-graph`; Phases 4–5 pending. Multi-phase, proof-carrying (ADR 0003); ship gate at Phase 5. |
 | Review | **owner-approved 2026-11-19 (relay placement = `produced_by`-only confirmed).** Agent-authored from the approved design (`~/.claude/plans/trippersham/magic-tools/2026-11-19-node-admission-thematic-vs-mechanical/design.md`) + the astra-5.2 drift pressure-test (`drift-pressure-test.md`, spike `spike/83-unified-event-drift`, throwaway). Owner reads this record before Phase 1. |
 | Test | Phase 0 (schema): from `plugins/make-magic/pipeline`: `uv run --extra dev pytest pipeline/transforms/strategy/tests/test_relay_schema.py pipeline/transforms/strategy/tests/test_event_ontology.py -q`. Parity gate: `uv run python -m pipeline.transforms.strategy.tests.engine_parity_oracle` — **the P0 SHA triple is UNCHANGED** (no relay families authored, no edges added). Later phases re-baseline under ADR 0003. |
 | Code paths | [`derive_card_events.py`](../../pipeline/pipeline/transforms/strategy/derive_card_events.py) (`RelayEntry`, `SEED_MAP`, `derive_card_events`, `validate_seed_map`), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (repurposed as the provisional-edge channel, Phase 1), [`strategy_graph.py`](../../pipeline/pipeline/transforms/strategy/strategy_graph.py) (the one walk; SCC; loop-aware admission, Phase 1; `combo_event_edges` threading, Phase 3), [`combo_win.py`](../../pipeline/pipeline/transforms/strategy/combo_win.py) (`unbounded_intermediate_events` — the certified-unbounded liveness filter, Phase 3), [`combo_promotion.py`](../../pipeline/pipeline/transforms/strategy/combo_promotion.py) (the 7-family combo-certified promotion, Phase 3) |
@@ -188,6 +188,19 @@ The one walk consumes **catalog edges + the runtime store-backed provisional edg
   `gauntlet__urza-lord-high-artificer`, `owned__ozai`), FULL_CORPUS `85eba970…→17e806fa…`.
   Reproduced deterministically across two oracle runs. NOT a version bump (Phase 5 owns the ship
   re-baseline).
+- **Phase 3b (DONE 2026-11-20): two more combo-certified families — self-mill + extra-turn.**
+  These carriers route OUTSIDE `intermediate` in `fid_route` (extra-turn → `turn-monopoly`,
+  self-mill → `self-deplete`), so `combo_win.certified_unbounded_events` extends the extraction
+  (a superset of `unbounded_intermediate_events`) to surface them, still within the
+  combo_win→promotion seam and still excluding the §4 terminals (`deckout-opp` opponent mill,
+  finite `self-deplete`). Both are single self-sustaining events (no co-unbounded partner), wired
+  as event self-edges that `recursive_event_set` recognises as 1-node cycles. self-mill
+  (`card-enters-graveyard`) flips 10 genuine infinite-mill / graveyard-recursion / Underworld-
+  Breach decks; extra-turn is corpus-inert at the engine-unit level (no deck has an `extra-turn`
+  consumer attr) but mechanically complete. Class A 26 → 23 (Bruvac/Phenax/Kess reconciled); the
+  10 Phase-3 false circuits + the new W5-style carriers (one-shot extra-turn, one-shot mill,
+  opponent deckout) all stay open. ENGINE `8f45c628…→fdfb558c…`, RESOLVE `6eed6ba7…→63d437d7…`
+  (both via 1 fixture, `gauntlet__kess-dissident-mage`), FULL_CORPUS `17e806fa…→e89bfe48…`.
 - Substantiveness (ADR 0002/0004/0020) and centrality (ADR 0014) stay in their ADR-0021
   layers; this change is entirely in substantiveness.
 

@@ -470,7 +470,25 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   FULL_CORPUS 85eba970fe1f0934… -> 17e806fa5692f255…
 #   ENGINE      80d0116a653ffb31… -> 8f45c628b2be503b…
 #   RESOLVE     3ebb33fd9b469926… -> 6eed6ba71c308f80…
-FULL_CORPUS_SHA = '17e806fa5692f255c4fd55f6a099a3ebde78b1263a5776ea7066a3c06989de9b'
+# Re-baselined 2026-11-20 (#83 Phase 3b — two more combo-certified families: self-mill +
+# extra-turn). ``combo_win.certified_unbounded_events`` extends the certified-event extraction
+# to surface the carriers ``fid_route`` routes OUTSIDE ``intermediate``: ``extra-turn``
+# (turn-monopoly) and an unbounded self-mill (self-deplete), EXCLUDING the §4 terminals
+# (deckout-opp opponent mill, finite self-deplete). Both families are single self-sustaining
+# events (no co-unbounded partner), wired as event SELF-EDGES that ``recursive_event_set`` now
+# recognises as 1-node cycles. self-mill (``card-enters-graveyard``) flips 10 genuine
+# infinite-mill / graveyard-recursion / Underworld-Breach decks; extra-turn is corpus-inert at
+# the engine-unit level (no deck has an ``extra-turn`` consumer attr) but mechanically complete.
+# Measured OFF(P3)/ON(P3b) on the 187 corpus: Class A 26 -> 23 (3 more reconciled, incl.
+# Bruvac/Phenax); the 10 Phase-3 false circuits + the new W5-style carriers (one-shot extra-turn,
+# one-shot mill, opponent deckout) ALL stay open. ENGINE + RESOLVE move via exactly 1 fixture
+# (gauntlet__kess-dissident-mage, an Underworld-Breach self-mill). NOT a version bump (Phase 5
+# owns the ship re-baseline). Drift ledger: ~/.claude/plans/trippersham/magic-tools/
+# 2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md (Phase 3b).
+#   FULL_CORPUS 17e806fa5692f255… -> e89bfe48515c67b5…
+#   ENGINE      8f45c628b2be503b… -> fdfb558c72101649…
+#   RESOLVE     6eed6ba71c308f80… -> 63d437d7e59e49a2…
+FULL_CORPUS_SHA = 'e89bfe48515c67b50080689b7b65a1a7bb768785c3dcfee44e9ae7c829986703'
 
 
 def full_corpus_sha() -> str:
