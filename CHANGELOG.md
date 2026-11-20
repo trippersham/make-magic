@@ -12,6 +12,67 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-11-20
+
+A **feature** release — under this project's pre-1.0 `0.y.z` convention the **minor**
+bump is the major/breaking increment. Ships the **unified event graph** (issue #83): the
+strategy engine's loop model is rebuilt so engine-detected recursion and combo-detected
+wins agree by construction, not by two drifting heuristics.
+
+### Added
+
+- **Unified event graph — events-as-nodes, one Tarjan-SCC walk, loop-aware substantiveness
+  (ADR 0026).** `Event` and the former `EventEffect` sidecar collapse into one concept: a
+  single directed graph over CardAttribute ∪ Event nodes, walked once. `recursive-engine`
+  becomes **true SCC membership** (a real directed cycle), replacing the `producers &
+  consumers` heuristic — removing 62 corpus-wide heuristic false-positives and recovering 16
+  genuine cycles it missed. Substantiveness gains a structural signal: a sub-threshold
+  attribute is admitted when it is **structurally load-bearing on a closed cycle anchored by a
+  prevalent node** (prevalence ∨ cycle-membership), retiring the "thematic vs mechanical"
+  framing. The "thematic vs mechanical" admission question is answered by structure, not a
+  hand label.
+
+- **Lifetrade recursion via catalog relays.** The 6 lifetrade `EventEffect`s (the directed
+  draw/gain/drain pairs) move from the dissolved `edge_roles.py` sidecar into `SEED_MAP` as
+  `RelayEntry(from_event, gate)` edges (gate queries byte-for-byte unchanged). Relay liveness
+  is **presence** of ≥1 gate carrier, so the real Magic enabler pair (Sanguine Bond +
+  Exquisite Blood — each a 1–2-card sub-threshold attribute) closes the recursive
+  `lifegain ↔ life-loss-drain` loop. A one-sided deck does not recurse.
+
+- **Combo-certified promotion for the 7 resource-dependent families** (ETB/death-recursion,
+  mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall). These families get their
+  event→event edges only from loops the combo detector has **already certified unbounded**
+  (reusing `combo_win`'s per-fid magnitudes via `unbounded_intermediate_events`), never from
+  naive gate queries — a family edge fires iff BOTH endpoint events are certified unbounded in
+  the SAME combo. This reconciles engines with combos by construction and structurally cannot
+  manufacture the Grim-Monolith / one-shot-copy false circuits. A false carrier's event is
+  finite (routes `oneshot`), so it is never an endpoint.
+
+- **Internal engine⟷combo reconciliation metric (ADR 0026 §5).** A pipeline **quality metric**
+  (`reconciliation.py`), emitted only into the corpus-run summary — never into a `resolve()`
+  record. The dumb honest diff of the two loop-signals the engine already computes, read with a
+  symmetric predicate (`recursive-engine` unit **or** closing commander loop): **Class A** =
+  combo win but the engine sees no loop (the "loops to author" queue); **Class B** = the engine
+  sees a loop but there is no combo win. At release: Class A = 26, Class B = 42 on the 170-deck
+  gauntlet.
+
+### Deferred
+
+- **Self-mill (`card-enters-graveyard`) and extra-turn families are deferred to #90.** They were
+  built and reverted: the single-event self-edge shape they required is topology-erased (a real
+  self-mill loop routes through its true carrier, e.g. Phenax through `untap`) and leaked a
+  false positive (Bruvac + Traumatize is a one-shot full-mill the Spellbook DB mislabels
+  `near-infinite`). A faithful re-add waits on the #86 magnitude + loop-topology work. Bruvac,
+  Phenax, and Kess therefore keep `card-enters-graveyard` as `static-payoff`. Combo
+  **win-detection** is unaffected.
+
+### Notes
+
+- Proof-carrying re-baseline (ADR 0003): the whole #83 change ships as ONE cumulative OFF→ON
+  (ENGINE `4d3f5e6d…`→`8f45c628…`, RESOLVE `940c3881…`→`6eed6ba7…`, FULL_CORPUS
+  `ec917355…`→`17e806fa…`), reproduced identically across two fresh runs. Tier-1 output stays
+  byte-deterministic and network-free.
+
 ## [0.8.0] — 2026-11-19
 
 A **feature** release — under this project's pre-1.0 `0.y.z` convention the **minor**

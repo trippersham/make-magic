@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Accepted (framework). Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) + Phase 3 (combo-certified promotion of the 7 resource-dependent families) in force on branch `feat/83-unified-event-graph`; Phases 4–5 pending. Multi-phase, proof-carrying (ADR 0003); ship gate at Phase 5. |
+| Status | Accepted (framework). Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) + Phase 3 (combo-certified promotion of the 7 resource-dependent families) + Phase 4 (internal reconciliation metric) + Phase 5 (behavioral verification + the cumulative 0.9.0 proof-carrying re-baseline) in force on branch `feat/83-unified-event-graph`. Self-mill + extra-turn DEFERRED (Phase-3b reverted → #90). Multi-phase, proof-carrying (ADR 0003); the cumulative OFF→ON re-baseline is the ADR 0003 2026-11-20 entry. |
 | Review | **owner-approved 2026-11-19 (relay placement = `produced_by`-only confirmed).** Agent-authored from the approved design (`~/.claude/plans/trippersham/magic-tools/2026-11-19-node-admission-thematic-vs-mechanical/design.md`) + the astra-5.2 drift pressure-test (`drift-pressure-test.md`, spike `spike/83-unified-event-drift`, throwaway). Owner reads this record before Phase 1. |
 | Test | Phase 0 (schema): from `plugins/make-magic/pipeline`: `uv run --extra dev pytest pipeline/transforms/strategy/tests/test_relay_schema.py pipeline/transforms/strategy/tests/test_event_ontology.py -q`. Parity gate: `uv run python -m pipeline.transforms.strategy.tests.engine_parity_oracle` — **the P0 SHA triple is UNCHANGED** (no relay families authored, no edges added). Later phases re-baseline under ADR 0003. |
 | Code paths | [`derive_card_events.py`](../../pipeline/pipeline/transforms/strategy/derive_card_events.py) (`RelayEntry`, `SEED_MAP`, `derive_card_events`, `validate_seed_map`), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (repurposed as the provisional-edge channel, Phase 1), [`strategy_graph.py`](../../pipeline/pipeline/transforms/strategy/strategy_graph.py) (the one walk; SCC; loop-aware admission, Phase 1; `combo_event_edges` threading, Phase 3), [`combo_win.py`](../../pipeline/pipeline/transforms/strategy/combo_win.py) (`unbounded_intermediate_events` — the certified-unbounded liveness filter, Phase 3), [`combo_promotion.py`](../../pipeline/pipeline/transforms/strategy/combo_promotion.py) (the 7-family combo-certified promotion, Phase 3) |
@@ -95,12 +95,22 @@ Kitsa / Narset's Reversal; token/ETB false draw returns). Edge-semantic validati
 
 ### 5. Internal reconciliation metric (not user-facing)
 
-The engine⟷combo loop-disagreement set (Class A: combo win, no recursive engine; Class B:
-recursive engine, no win) is a **pipeline quality metric** tracked per corpus run — the dumb
-honest diff (no `win_kind` predicate). It measures error now and is the future trigger for
-inference-based self-healing (the disagreement list = the "loops to author" queue). It is
-**never in `resolve()` output**. Class-A disagreements not combo-certified stay surfaced for
-owner triage; they are never force-closed by a false gate edge.
+The engine⟷combo loop-disagreement set is a **pipeline quality metric** tracked per corpus
+run — the dumb honest diff (no `win_kind` predicate). The two engine loop-signals are read
+**symmetrically**: the engine "sees a loop" iff it has a `recursive-engine` unit **OR** a
+closing commander loop (`commander_loop.closes`). So:
+
+- **Class A** = a combo WIN (`n_win_combos > 0`) but the engine sees NO loop — **neither** a
+  `recursive-engine` unit **nor** a closing commander loop.
+- **Class B** = the engine sees a loop (a `recursive-engine` unit **OR** a closing commander
+  loop) but there is NO combo win.
+
+The same "recursive unit OR closing commander loop" predicate defines "the engine sees a
+loop" on both sides, so A and B are exact complements of the win/loop cross-product (ADR 0003
+2026-11-20 re-baseline). It measures error now and is the future trigger for inference-based
+self-healing (the Class-A list = the "loops to author" queue). It is **never in `resolve()`
+output** (summary/log-only; see `reconciliation.py`). Class-A disagreements not combo-certified
+stay surfaced for owner triage; they are never force-closed by a false gate edge.
 
 ### 6. Provisional-edge channel — repurpose `relay.py`, do not delete
 
@@ -200,6 +210,21 @@ The one walk consumes **catalog edges + the runtime store-backed provisional edg
   magnitude + topology work first, then lands in **#90**. The seven Phase-3 families are
   unchanged; the P0 SHA triple is back at the Phase-3 values (ENGINE `8f45c628…`, RESOLVE
   `6eed6ba7…`, FULL_CORPUS `17e806fa…`).
+- **Phase 4 (DONE 2026-11-20): internal reconciliation metric, as code.** The engine⟷combo
+  loop-disagreement (§5) is a new module `reconciliation.py` emitted ONLY into the corpus-run
+  summary (`run._summary`), never into a `resolve()` record. It READS existing record fields
+  (`n_win_combos`, `facts['engines']['engine_units']`) with the symmetric "recursive unit OR
+  closing commander loop" predicate — no new `win_kind`, no scoring — so it adds no field and
+  the P0 SHA triple is **byte-unchanged** (ENGINE `8f45c628…`, RESOLVE `6eed6ba7…`, FULL_CORPUS
+  `17e806fa…`; a pure addition). At the Phase-3 tip, gauntlet corpus: **Class A = 26, Class B =
+  42** (`test_reconciliation.py::TestReconciliationCensus` pins the 26 named decks).
+- **Phase 5 (DONE 2026-11-20): behavioral verification + the cumulative 0.9.0 re-baseline.** The
+  feature is verified end-to-end on the real corpus (lifetrade + the 7 families close; the 10
+  named false circuits stay open; the deferred families stay `static-payoff`; Class A = 26 /
+  Class B = 42) and the whole #83 change ships as ONE proof-carrying cumulative re-baseline from
+  pre-#83 `main` (ENGINE `4d3f5e6d…`, RESOLVE `940c3881…`, FULL_CORPUS `ec917355…`) to the P3 tip
+  (ENGINE `8f45c628…`, RESOLVE `6eed6ba7…`, FULL_CORPUS `17e806fa…`) — see the ADR 0003
+  2026-11-20 entry. Version bumped 0.8.0 → **0.9.0** (lockstep).
 - Substantiveness (ADR 0002/0004/0020) and centrality (ADR 0014) stay in their ADR-0021
   layers; this change is entirely in substantiveness.
 

@@ -16,8 +16,10 @@ Covers the Phase-1 framework of ADR 0026 (issue #83):
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import cast
 
 from pipeline.transforms.strategy._graph import strongly_connected_components
+from pipeline.transforms.strategy.assets import StrategyAssets
 from pipeline.transforms.strategy.derive_card_events import RelayEntry
 from pipeline.transforms.strategy.strategy_graph import (
     loop_aware_nodes,
@@ -132,8 +134,10 @@ class TestRecursiveEventSet:
 
 
 class TestLoopAwareNodes:
-    def _assets(self, events: dict) -> SimpleNamespace:
-        return SimpleNamespace(events=events)
+    def _assets(self, events: dict) -> StrategyAssets:
+        # loop_aware_nodes reads only ``.events``; a duck-typed shim is enough at
+        # runtime, cast to the real type so the call sites type-check.
+        return cast(StrategyAssets, SimpleNamespace(events=events))
 
     def test_subthreshold_on_cycle_is_admitted(self) -> None:
         # p (prevalent) ↔ a (sub-threshold) via Ex/Ey; a is load-bearing on the loop.

@@ -709,6 +709,77 @@ re-baseline makes every *intended* change legible as such.
   self-contained reference, and the `repin` flow re-pins it as part of any future sanctioned
   re-baseline. See ADR 0022 (the derived adjacency the gate verifies did not silently fall back).
 
+- **2026-11-20 — the unified event graph (#83): ONE cumulative, proof-carrying re-baseline
+  (ADR 0026).** This is the ship re-baseline for the whole #83 change, consolidating the
+  per-phase drift ledger (`~/.claude/plans/trippersham/magic-tools/
+  2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md`, Phases 1–4) into one
+  OFF→ON for the owner gate. The intermediate phases each regenerated the local baselines to
+  keep `pytest -q` green while preserving the measured delta in the ledger; this entry records
+  the cumulative delta those phases sum to. **The committed baselines already reflect ON** (the
+  oracle prints `OK: matches recorded` for all three; the repro `pinned` leg reproduces the
+  triple across two fresh runs — seed 0 and seed 4242 + CPU load — with a zero-divergence
+  semantic diff over all 187 records).
+  - **OFF** (pre-#83 `main`, the 2026-11-18 coherence-rebuild tip): ENGINE `4d3f5e6d9d8ed142…`,
+    RESOLVE `940c38811193b6f4…`, FULL_CORPUS `ec917355dd3eb2cf…`.
+  - **ON** (the #83 tip, Phase-3 engine behavior + the Phase-4 metric): ENGINE
+    `8f45c628b2be503b…`, RESOLVE `6eed6ba71c308f80…`, FULL_CORPUS `17e806fa5692f255…`.
+
+  **Intended-delta narrative** (the sum of the four phases; full per-phase proof in the ledger):
+  - **Phase 1 — true-SCC `recursive-engine` + loop-aware substantiveness (framework).** One
+    sorted-Tarjan SCC pass over the unified CardAttribute∪Event graph replaces the
+    `producers & consumers` heuristic. Measured over 187 decks: **62 decks LOST** a recursive
+    label (heuristic false-positives that never closed a real loop — `land-enters`/`token-created`/
+    `draw-a-card`/`lifegain` etc.) and **16 GAINED** a genuine cycle the heuristic missed. Plus
+    **84 loop-aware node admissions across 29 decks**, each a genuine loop member on a real
+    catalog cycle (W2 HARD STOP re-measured on the real topology: **0 spurious**). Event-nodes
+    carry zero intrinsic mass (owner-confirmed W3 option (a)). FULL_CORPUS `ec917355…` →
+    `5045f7af…`; ENGINE `4d3f5e6d…` → `80d0116a…`; RESOLVE `940c3881…` → `3ebb33fd…`.
+  - **Phase 2 — lifetrade +4.** The 6 lifetrade `EventEffect`s relocated from the dissolved
+    `edge_roles.py` sidecar into `SEED_MAP` as `RelayEntry(from_event, gate)` edges (gate queries
+    byte-for-byte unchanged; relay liveness = PRESENCE of ≥1 gate carrier, not identity
+    admission). Exactly **4/170 gauntlet decks** gain a genuine relay-closed recursive
+    lifegain↔life-loss-drain loop (celes/elenda/karlov/liesa), **0 false lifetrade recursions**;
+    one-sided decks stay open. ENGINE + RESOLVE **byte-identical** (no hermetic fixture carries an
+    enabler pair); FULL_CORPUS `5045f7af…` → `85eba970…`.
+  - **Phase 3 — the 7 families: +36 recursive, Class A −8.** The 7 resource/repeatability-
+    dependent families (ETB/death, mana-refund, cast/copy, draw-wheel, untap-mana, counter,
+    landfall) get event→event edges by **combo-certified promotion** — loops `combo_win` has
+    ALREADY certified unbounded (`unbounded_intermediate_events`, reusing `fid_route`), never from
+    naive gate queries (the W1 constraint). **36/170 gauntlet decks** gain ≥1 combo-certified
+    recursive event; recursive-engine decks 90 → 98; **Class A 34 → 26** (8 decks reconciled, incl.
+    the audit's named Selvala/Derevi). **W5 HARD GATE held: all 10 named false circuits stay OPEN**
+    (a false carrier's event is finite → not in the certified-unbounded set → its family edge can
+    never form). Zero identity drift by construction (only the KIND of an already-enumerated unit
+    moves). ENGINE `80d0116a…` → `8f45c628…`, RESOLVE `3ebb33fd…` → `6eed6ba7…` (both via exactly 2
+    fixtures that carry a combo-certified combo — `gauntlet__urza-lord-high-artificer`,
+    `owned__ozai`); FULL_CORPUS `85eba970…` → `17e806fa…`.
+  - **Phase 3b — built then DEFERRED to #90 (NO net movement).** Self-mill (`card-enters-graveyard`)
+    + extra-turn were built (`b77da70`) then forward-reverted (`883baff`) by owner decision: the
+    single-event self-edge shape is topology-erased (a self-mill loop routes through its true
+    carrier, e.g. Phenax through `untap`) and leaks a false positive (Bruvac + Traumatize is a
+    one-shot full-mill the Spellbook DB mislabels `near-infinite`). The revert restores the Phase-3
+    tree exactly, so the triple is back at the Phase-3 ON values; **Bruvac/Phenax/Kess
+    `card-enters-graveyard` are back to `static-payoff` and must NOT close.** A faithful re-add waits
+    on the #86 magnitude + topology work.
+  - **Phase 4 — the reconciliation metric: NO output movement.** A new reader module
+    (`reconciliation.py`) emitted only into the corpus-run summary (`run._summary`), never into a
+    `resolve()` record; it adds no field and the triple is byte-unchanged. Gauntlet corpus:
+    **Class A = 26, Class B = 42** (the `commander_loop.closes ∨ recursive-engine` symmetric
+    predicate; ADR 0026 §5 aligned in this change).
+
+  **Behavioral verification (Phase 5, this change)** — captured in
+  `research/p5-behavioral-evidence.md`: the Queza relay fixture closes the recursive
+  `{lifegain, life-loss-drain, draw-a-card}` SCC; the 4 split-brain decks close the full
+  `{lifegain, life-loss-drain}` SCC and reconcile out of Class A; each of the 7 families reports a
+  `recursive-engine` on its named deck; the 10 false circuits stay OPEN; Bruvac/Phenax/Kess
+  `card-enters-graveyard` == `static-payoff`; the metric reports Class A = 26 / Class B = 42.
+  `distill_parity_baseline.json`, `engine_isolation_baseline.json`, `FULL_CORPUS_SHA`, the 7
+  per-file ENGINE/RESOLVE constants, and the pinned `manifest.json` all reflect ON (regenerated by
+  the per-phase commits). Version bumped 0.8.0 → **0.9.0** (lockstep, breaking-tier under the
+  pre-1.0 `0.y.z` convention). `uv run --extra dev pytest -q` green + network-free (pinned
+  `raw/oracle_tags.parquet` sha `9289959165d59b64…` byte-unchanged before == after); ruff + format
+  + pyright clean.
+
 ## Related records
 - 0001 — the knowledge-placement doctrine these files exemplify.
 - 0002 — the substantiveness model (`strategy_graph.py` is shared with this record).
@@ -717,3 +788,4 @@ re-baseline makes every *intended* change legible as such.
 - 0022 — the derived-adjacency + rank-don't-cut flip of the 2026-11-14 re-baseline above.
 - 0014 — the mass-election flip; its `lead` removal re-baselined in the 2026-11-14 entry.
 - 0020 — the event-substantiveness gate + corrected mana-wiring behind the 2026-11-14 re-baseline.
+- 0026 — the unified event graph (#83) behind the 2026-11-20 cumulative re-baseline.
