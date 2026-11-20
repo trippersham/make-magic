@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Accepted (framework). Phase 0 (schema) in force on branch `feat/83-unified-event-graph`; Phases 1–5 pending. Multi-phase, proof-carrying (ADR 0003); ship gate at Phase 5. |
+| Status | Accepted (framework). Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) in force on branch `feat/83-unified-event-graph`; Phases 3–5 pending. Multi-phase, proof-carrying (ADR 0003); ship gate at Phase 5. |
 | Review | **owner-approved 2026-11-19 (relay placement = `produced_by`-only confirmed).** Agent-authored from the approved design (`~/.claude/plans/trippersham/magic-tools/2026-11-19-node-admission-thematic-vs-mechanical/design.md`) + the astra-5.2 drift pressure-test (`drift-pressure-test.md`, spike `spike/83-unified-event-drift`, throwaway). Owner reads this record before Phase 1. |
 | Test | Phase 0 (schema): from `plugins/make-magic/pipeline`: `uv run --extra dev pytest pipeline/transforms/strategy/tests/test_relay_schema.py pipeline/transforms/strategy/tests/test_event_ontology.py -q`. Parity gate: `uv run python -m pipeline.transforms.strategy.tests.engine_parity_oracle` — **the P0 SHA triple is UNCHANGED** (no relay families authored, no edges added). Later phases re-baseline under ADR 0003. |
 | Code paths | [`derive_card_events.py`](../../pipeline/pipeline/transforms/strategy/derive_card_events.py) (`RelayEntry`, `SEED_MAP`, `derive_card_events`, `validate_seed_map`), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (repurposed as the provisional-edge channel, Phase 1), [`strategy_graph.py`](../../pipeline/pipeline/transforms/strategy/strategy_graph.py) (the one walk; SCC; loop-aware admission, Phase 1), [`combo_win.py`](../../pipeline/pipeline/transforms/strategy/combo_win.py) (combo-certified promotion, Phase 3) |
@@ -147,6 +147,25 @@ The one walk consumes **catalog edges + the runtime store-backed provisional edg
   recursive lifetrade loop; the families close their audited loop-combos; the 10 named false
   circuits STAY OPEN; Class A shrinks toward the ~57 genuinely-terminal combos; 0 false
   engines.
+- **Phase 1 (DONE 2026-11-19):** true-SCC `recursive-engine` + loop-aware substantiveness over the
+  unified graph; ENGINE/RESOLVE/FULL_CORPUS re-baselined; 0 spurious admissions (W2 PASS).
+- **Phase 2 (DONE 2026-11-20): lifetrade gate-edges relocated to catalog relays.** The 6 lifetrade
+  `EventEffect`s moved from the dissolved `edge_roles.py` sidecar into `SEED_MAP` as
+  `RelayEntry(from_event, gate)` on the produced event's `produced_by` (gate queries byte-for-byte).
+  **Realized relay-gate liveness = PRESENCE, not admission** (§1 "enabling cards" clarified): a
+  catalog relay is live iff its gate CardAttribute **has a carrier in the deck**, NOT iff the gate is
+  a substantive identity node. This lets a sub-threshold enabler pair (Sanguine Bond's `gain-to-drain`
+  + Exquisite Blood's `drain-to-gain`, each a 1–2-card attr) close the recursive lifegain↔life-loss-
+  drain engine and reconcile engine⟷combo (both need both cards). Implemented as the optional
+  `relay_gate_carriers` argument to `unified_event_graph_edges`/`recursive_event_set`, threaded from
+  `elect_engine_units` (`set(attr_weight)`); it falls back to `nodes` for callers where present ==
+  admitted (e.g. `loop_aware_nodes`, which already passes all present attrs). A gate does NOT become
+  an identity node merely by enabling a relay (loop-aware admission unchanged — a pure lifetrade
+  event-cycle carries no attr anchor, so no identity drift). Measured OFF/ON on the 187 corpus:
+  exactly 4/170 gauntlet decks gain a recursive lifetrade engine (celes/elenda/karlov/liesa), 0 false
+  lifetrade recursions, one-sided decks stay open; ENGINE/RESOLVE byte-identical (no hermetic fixture
+  carries an enabler pair), FULL_CORPUS re-baselined `5045f7af…→85eba970…`. `CURATED_EDGE_ROLES` is
+  now empty; the `EventEffect` type + the store waterfall remain for haiku/spellbook provisional edges.
 - Substantiveness (ADR 0002/0004/0020) and centrality (ADR 0014) stay in their ADR-0021
   layers; this change is entirely in substantiveness.
 

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Accepted. Guard fields scaffolded (Phase 2A); evaluation semantics land in Phase 2B. |
+| Status | **Superseded for the curated within-card edge** by ADR 0026 (#83 Phase 2, 2026-11-20): the 6 curated lifetrade `EventEffect`s were relocated into `derive_card_events.SEED_MAP` as `RelayEntry(from_event, gate)` catalog edges (gate queries byte-for-byte unchanged) and the one unified SCC walk reads them natively. `CURATED_EDGE_ROLES` is now EMPTY. The `EventEffect` TYPE + the curated→store waterfall in `edge_roles.py`/`relay.py` REMAIN for the provisional (haiku/spellbook) store-authored edges (ADR 0017). Guard fields stay scaffolded (Phase 2A); evaluation (Phase 2B) is unused by the relocated lifetrade and applies only to any future store-authored guarded edge. |
 | Review | pending owner review: agent-authored from design-3 section 3.2/3.3; records the schema as built. |
 | Test | From `plugins/make-magic/pipeline`: `uv run --extra dev pytest pipeline/transforms/strategy/tests/test_eventeffect_scaffolding.py -q` (round-trip, defaults, lifecycle). Parity gate: `uv run python -m pipeline.transforms.strategy.tests.engine_parity_oracle` — all three P0 SHAs unchanged (the guard fields are additive + defaulted + inert). |
 | Code paths | [`edge_roles.py`](../../pipeline/pipeline/transforms/strategy/edge_roles.py) (`EventEffect` dataclass — renamed from `EdgeRole`; guard scaffolding fields), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (`build_relay_augmented_event_edges` — reads `produced_event`), [`machine_vocab.py`](../../pipeline/pipeline/transforms/strategy/machine_vocab.py) (`CardAttribute.produced_event`, `Provenance.lifecycle`) |
@@ -88,8 +88,10 @@ new field with a default that matches the effective behavior (curated = verified
 
 ## Consequences
 
-- All 6 curated `EventEffect` entries carry inert guard defaults; they will be annotated with
-  real guard values in Phase 2B as evaluation semantics arrive.
+- The 6 curated lifetrade `EventEffect` entries were relocated to `SEED_MAP` catalog relays
+  (ADR 0026 Phase 2); `CURATED_EDGE_ROLES` is now empty. The `EventEffect` dataclass + its
+  inert guard scaffolding remain for store-authored (haiku/spellbook) provisional edges, which
+  are the only consumers of the Phase-2B evaluation path if/when it lands.
 - The provisional store's `CardAttribute` (renamed from `MachineAttribute`) now writes `produced_event` (not `effect_event`) to JSONL;
   deserialization reads both keys for backward compatibility with pre-rename stores.
 - The `Provenance.lifecycle` field enables the design-3 section 5 storage-by-lifecycle rule

@@ -28,15 +28,11 @@ class TestEventEffectRename:
 
         assert EventEffect is not None
 
-    def test_curated_registry_uses_eventeffect(self) -> None:
-        """CURATED_EDGE_ROLES values are EventEffect instances."""
-        from pipeline.transforms.strategy.edge_roles import (
-            CURATED_EDGE_ROLES,
-            EventEffect,
-        )
+    def test_curated_registry_empty_after_relocation(self) -> None:
+        """CURATED_EDGE_ROLES is empty: lifetrade moved to SEED_MAP relays (ADR 0026 Ph2)."""
+        from pipeline.transforms.strategy.edge_roles import CURATED_EDGE_ROLES
 
-        for name, entry in CURATED_EDGE_ROLES.items():
-            assert isinstance(entry, EventEffect), f'{name}: expected EventEffect, got {type(entry).__name__}'
+        assert CURATED_EDGE_ROLES == {}
 
     def test_produced_event_field_exists(self) -> None:
         """EventEffect has the renamed field 'produced_event' (was 'effect_event')."""
@@ -50,46 +46,34 @@ class TestEventEffectRename:
         assert ee.produced_event == 'life-loss-drain'
 
     @pytest.mark.parametrize(
-        'attr_name,expected_trigger,expected_produced',
+        'owning_event,from_event,gate',
         [
-            ('draw-to-drain', 'draw-a-card', 'life-loss-drain'),
-            ('draw-to-gain', 'draw-a-card', 'lifegain'),
-            ('gain-to-drain', 'lifegain', 'life-loss-drain'),
-            ('drain-to-gain', 'life-loss-drain', 'lifegain'),
-            ('gain-to-draw', 'lifegain', 'draw-a-card'),
-            ('drain-to-draw', 'life-loss-drain', 'draw-a-card'),
+            ('life-loss-drain', 'draw-a-card', 'draw-to-drain'),
+            ('lifegain', 'draw-a-card', 'draw-to-gain'),
+            ('life-loss-drain', 'lifegain', 'gain-to-drain'),
+            ('lifegain', 'life-loss-drain', 'drain-to-gain'),
+            ('draw-a-card', 'lifegain', 'gain-to-draw'),
+            ('draw-a-card', 'life-loss-drain', 'drain-to-draw'),
         ],
-        ids=[
-            'draw-to-drain',
-            'draw-to-gain',
-            'gain-to-drain',
-            'drain-to-gain',
-            'gain-to-draw',
-            'drain-to-draw',
-        ],
+        ids=['draw-to-drain', 'draw-to-gain', 'gain-to-drain', 'drain-to-gain', 'gain-to-draw', 'drain-to-draw'],
     )
-    def test_curated_round_trip_with_produced_event(
+    def test_lifetrade_relocated_to_seed_map_relay(
         self,
-        attr_name: str,
-        expected_trigger: str,
-        expected_produced: str,
+        owning_event: str,
+        from_event: str,
+        gate: str,
     ) -> None:
-        """Every curated entry round-trips trigger_event + produced_event + provenance."""
-        from pipeline.transforms.strategy.edge_roles import CURATED_EDGE_ROLES
+        """Each former curated role is now a SEED_MAP RelayEntry on the produced event."""
+        from pipeline.transforms.strategy.derive_card_events import SEED_MAP, RelayEntry
 
-        entry = CURATED_EDGE_ROLES[attr_name]
-        assert entry.trigger_event == expected_trigger
-        assert entry.produced_event == expected_produced
-        assert entry.provenance.source == 'curated'
+        relays = SEED_MAP[owning_event]['produced_by'].get('relays', [])
+        assert RelayEntry(from_event=from_event, gate=gate) in relays
 
-    def test_get_role_returns_eventeffect_with_produced_event(self) -> None:
-        """get_role returns an EventEffect with the 'produced_event' field."""
-        from pipeline.transforms.strategy.edge_roles import EventEffect, get_role
+    def test_get_role_returns_none_after_relocation(self) -> None:
+        """get_role no longer returns a curated lifetrade role (relocated to SEED_MAP)."""
+        from pipeline.transforms.strategy.edge_roles import get_role
 
-        role = get_role('draw-to-drain')
-        assert role is not None
-        assert isinstance(role, EventEffect)
-        assert role.produced_event == 'life-loss-drain'
+        assert get_role('draw-to-drain') is None
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -118,20 +102,6 @@ class TestEventEffectDefaults:
         assert ee.guard_unresolved is False
         assert ee.magnitude is None
         assert ee.ability_key is None
-
-    def test_curated_entries_all_have_inert_guard_defaults(self) -> None:
-        """All 6 curated entries carry the inert guard defaults (scaffolding only)."""
-        from pipeline.transforms.strategy.edge_roles import CURATED_EDGE_ROLES
-
-        for name, entry in CURATED_EDGE_ROLES.items():
-            assert entry.provider == 'card', f'{name}: provider'
-            assert entry.guard_characteristic_ref is None, f'{name}: guard_characteristic_ref'
-            assert entry.guard_trigger_scope == 'any', f'{name}: guard_trigger_scope'
-            assert entry.guard_identity == 'any', f'{name}: guard_identity'
-            assert entry.guard_event_reachable_ref is None, f'{name}: guard_event_reachable_ref'
-            assert entry.guard_unresolved is False, f'{name}: guard_unresolved'
-            assert entry.magnitude is None, f'{name}: magnitude'
-            assert entry.ability_key is None, f'{name}: ability_key'
 
     def test_eventeffect_is_frozen(self) -> None:
         """EventEffect remains a frozen dataclass."""
@@ -175,13 +145,6 @@ class TestProvenanceLifecycle:
         """Lifecycle can be set explicitly."""
         prov = Provenance(source='haiku', lifecycle='verified')
         assert prov.lifecycle == 'verified'
-
-    def test_curated_edge_roles_provenance_lifecycle(self) -> None:
-        """All curated edge roles carry lifecycle='verified'."""
-        from pipeline.transforms.strategy.edge_roles import CURATED_EDGE_ROLES
-
-        for name, entry in CURATED_EDGE_ROLES.items():
-            assert entry.provenance.lifecycle == 'verified', f'{name}: expected lifecycle="verified"'
 
 
 # ────────────────────────────────────────────────────────────────────────────

@@ -61,6 +61,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from pipeline.transforms.strategy.assets import StrategyAssets
+from pipeline.transforms.strategy.derive_card_events import RelayEntry
 from pipeline.transforms.strategy.edge_roles import EventEffect, get_role
 from pipeline.transforms.strategy.machine_vocab import ProvisionalAttributeStore
 from pipeline.transforms.strategy.strategy_graph import elect_engine_units
@@ -130,32 +131,44 @@ def build_relay_augmented_event_edges(
         same shape as the default ``event_edges`` in ``compute_facts``.
     """
     # Copy the catalog's producer/consumer lists so we never mutate the originals.
+    # The catalog lists may carry RelayEntry objects (ADR 0026 catalog relays); keep
+    # only the string refs here — the relays are injected as attr legs just below, and
+    # ``refs_to_nodes`` would drop the RelayEntry objects anyway.
     augmented_produced: dict[str, list[str]] = {}
     augmented_triggered: dict[str, list[str]] = {}
     for evname, ev in events.items():
-        augmented_produced[evname] = list(ev['produced_by'])
-        augmented_triggered[evname] = list(ev['triggers'])
+        augmented_produced[evname] = [r for r in ev['produced_by'] if isinstance(r, str)]
+        augmented_triggered[evname] = [r for r in ev['triggers'] if isinstance(r, str)]
 
-    # Inject relay nodes from edge-category attrs present in nodes.
+    def _inject(attr: str, tev: str, eev: str) -> None:
+        """Inject *attr* as a consumer of *tev* and a producer of *eev* (relay node)."""
+        if tev not in augmented_triggered or eev not in augmented_produced:
+            return
+        if attr not in augmented_triggered[tev]:
+            augmented_triggered[tev].append(attr)
+        if attr not in augmented_produced[eev]:
+            augmented_produced[eev].append(attr)
+
+    # (1) Catalog relay edges (ADR 0026): a RelayEntry on ``<owning>.produced_by`` names
+    # ``(from_event, gate)`` — the gate CardAttribute consumes ``from_event`` and produces
+    # the owning event. This is the within-card edge that was the curated ``edge_roles``
+    # sidecar before Phase 2; it is now authored in the catalog, so the relay-augmented
+    # engine_report reads it here (keeping the named cycle + relay hubs) while the catalog
+    # also feeds the one SCC walk's event→event relay edges directly. A relay is injected
+    # when its gate attr is an active node.
+    for evname, ev in events.items():
+        for ref in ev.get('produced_by', ()):
+            if isinstance(ref, RelayEntry) and ref.gate in nodes:
+                _inject(ref.gate, ref.from_event, evname)
+
+    # (2) Provisional store / curated edge roles from attrs present in nodes.
     # Sorted iteration for determinism (the injection order does not affect the
     # cross-product, but the produced_by/triggers append order is stable).
     for attr in sorted(nodes):
         role = _get_role_with_store(attr, store)
         if role is None:
             continue
-        tev = role.trigger_event
-        eev = role.produced_event
-        # Guard: both events must exist in the catalog (they always do for the
-        # 6 curated attrs, but the guard keeps the function safe for future
-        # machine-authored attrs whose events might be novel).
-        if tev not in augmented_triggered or eev not in augmented_produced:
-            continue
-        # Add attr as consumer of its trigger event.
-        if attr not in augmented_triggered[tev]:
-            augmented_triggered[tev].append(attr)
-        # Add attr as producer of its effect event.
-        if attr not in augmented_produced[eev]:
-            augmented_produced[eev].append(attr)
+        _inject(attr, role.trigger_event, role.produced_event)
 
     # Build event_edges from augmented sets — same cross-product as compute_facts.
     def refs_to_nodes(refs: list[str]) -> list[str]:

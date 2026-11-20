@@ -654,6 +654,18 @@ SEED_MAP: dict[str, dict[str, Any]] = {
                 'repeatable-lifegain',
             ],
             'grade': 'S',
+            # Lifetrade relays (ADR 0026 Phase 2 — relocated from the dissolved
+            # ``edge_roles.py`` EventEffect sidecar, gate queries byte-for-byte).
+            # ``lifegain`` is PRODUCED by a card that consumes draw-a-card
+            # (draw-to-gain, e.g. Queza) or life-loss-drain (drain-to-gain, e.g.
+            # Exquisite Blood: "whenever an opponent loses life, you gain that
+            # much life"). The gate is the curated within-card CardAttribute slug
+            # whose carriers make the edge live; the relay closes the
+            # lifegain↔life-loss-drain loop (hub Exquisite Blood / Sanguine Bond).
+            'relays': [
+                RelayEntry(from_event='draw-a-card', gate='draw-to-gain'),
+                RelayEntry(from_event='life-loss-drain', gate='drain-to-gain'),
+            ],
         },
     },
     # ── 11. life-loss-drain ─────────────────────────────────────────────
@@ -685,6 +697,18 @@ SEED_MAP: dict[str, dict[str, Any]] = {
                 'opponent-loses-life',
             ],
             'grade': 'M',
+            # Lifetrade relays (ADR 0026 Phase 2 — relocated from the dissolved
+            # ``edge_roles.py`` EventEffect sidecar, gate queries byte-for-byte).
+            # ``life-loss-drain`` is PRODUCED by a card that consumes draw-a-card
+            # (draw-to-drain, e.g. Queza: "whenever you draw a card, target
+            # opponent loses 1 life") or lifegain (gain-to-drain, e.g. Sanguine
+            # Bond: "whenever you gain life, target opponent loses that much
+            # life"). Paired with lifegain.produced_by's drain-to-gain relay, this
+            # closes the lifegain↔life-loss-drain loop.
+            'relays': [
+                RelayEntry(from_event='draw-a-card', gate='draw-to-drain'),
+                RelayEntry(from_event='lifegain', gate='gain-to-drain'),
+            ],
         },
     },
     # ── 12. counter-placed ──────────────────────────────────────────────
@@ -893,6 +917,18 @@ SEED_MAP: dict[str, dict[str, Any]] = {
                 'repeatable-draw',
             ],
             'grade': 'S',
+            # Lifetrade relays (ADR 0026 Phase 2 — relocated from the dissolved
+            # ``edge_roles.py`` EventEffect sidecar, gate queries byte-for-byte).
+            # ``draw-a-card`` is PRODUCED by a card that consumes lifegain
+            # (gain-to-draw, e.g. Lich's Mastery / Drogskol Reaver: "whenever you
+            # gain life, draw a card") or life-loss-drain (drain-to-draw, e.g.
+            # Vilis: "whenever you lose life, draw that many cards"). These let a
+            # draw payoff re-enter the lifetrade loop (Queza draws → drains/gains →
+            # Lich's Mastery draws again).
+            'relays': [
+                RelayEntry(from_event='life-loss-drain', gate='drain-to-draw'),
+                RelayEntry(from_event='lifegain', gate='gain-to-draw'),
+            ],
         },
     },
     # ── 18. discard ─────────────────────────────────────────────────────
@@ -1750,6 +1786,26 @@ def derive_card_events(
         derived[event_name] = new_ev
 
     return derived
+
+
+def relay_gate_attrs(seed_map: dict[str, dict[str, Any]] | None = None) -> frozenset[str]:
+    """The CardAttribute slugs that gate a catalog :class:`RelayEntry`.
+
+    These are the within-card edge attributes whose carriers enable a relay
+    (the lifetrade draw/gain/drain couplings, relocated here from the dissolved
+    ``edge_roles.py`` sidecar — ADR 0026 Phase 2). The RESOLVED/PROVISIONAL
+    completeness label reads this set as the authored within-card edge attrs
+    (``engine_hydration.curated_edge_queries``), so the single source of truth for
+    "which synth attrs author a within-card edge" is the SEED_MAP relays, not a
+    separate hand-kept registry.
+    """
+    sm = seed_map if seed_map is not None else SEED_MAP
+    gates: set[str] = set()
+    for entry in sm.values():
+        for side in ('produced_by', 'triggers'):
+            for relay in entry.get(side, {}).get('relays', []):
+                gates.add(relay.gate)
+    return frozenset(gates)
 
 
 # ---------------------------------------------------------------------------

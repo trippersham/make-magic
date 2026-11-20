@@ -405,9 +405,13 @@ class TestP0SHAUnchanged:
 
         events = load_assets().events
         derived = derive_card_events(events)
+        # The derived lists may now carry RelayEntry objects (ADR 0026 Phase 2 lifetrade
+        # relays) alongside the sorted string refs, so compare the two derive outputs
+        # directly (deterministic order: sorted strings then sorted relays) rather than
+        # calling sorted() over the mixed-type list.
         for ev in events:
-            assert sorted(events[ev]['produced_by']) == sorted(derived[ev]['produced_by'])
-            assert sorted(events[ev]['triggers']) == sorted(derived[ev]['triggers'])
+            assert events[ev]['produced_by'] == derived[ev]['produced_by']
+            assert events[ev]['triggers'] == derived[ev]['triggers']
 
     def test_engine_parity_sha_unchanged(self) -> None:
         from pipeline.transforms.strategy.tests.engine_parity_oracle import (
@@ -464,12 +468,20 @@ class TestDerivedAdjacencyShape:
         self,
         catalog_events: dict[str, dict],
     ) -> None:
-        from pipeline.transforms.strategy.derive_card_events import derive_card_events
+        from pipeline.transforms.strategy.derive_card_events import RelayEntry, derive_card_events
 
         derived = derive_card_events(catalog_events)
         for event_name, ev in derived.items():
-            assert ev['produced_by'] == sorted(ev['produced_by']), f'{event_name}: derived produced_by not sorted'
-            assert ev['triggers'] == sorted(ev['triggers']), f'{event_name}: derived triggers not sorted'
+            for side in ('produced_by', 'triggers'):
+                refs = ev[side]
+                # The derived order is: sorted string refs, then sorted RelayEntry
+                # relays appended (ADR 0026 Phase 2). Assert each segment is sorted and
+                # the strings precede the relays.
+                strings = [r for r in refs if isinstance(r, str)]
+                relays = [r for r in refs if isinstance(r, RelayEntry)]
+                assert refs == strings + relays, f'{event_name}.{side}: strings must precede relays'
+                assert strings == sorted(strings), f'{event_name}.{side}: string refs not sorted'
+                assert relays == sorted(relays), f'{event_name}.{side}: relay refs not sorted'
 
 
 # ---------------------------------------------------------------------------
@@ -587,7 +599,10 @@ class TestExclusivityValidator:
                 expected: set[str] = set()
                 for a in seeds:
                     expected |= descendant_closure(a, taxonomy)
-                assert set(derived[event_name][side]) == expected, (
+                # Compare the STRING refs only; RelayEntry relays (ADR 0026 Phase 2) are
+                # additive and are not part of the seed closure-union.
+                string_refs = {r for r in derived[event_name][side] if isinstance(r, str)}
+                assert string_refs == expected, (
                     f'{event_name}.{side}: derived output drifted from the curated closure-union'
                 )
 

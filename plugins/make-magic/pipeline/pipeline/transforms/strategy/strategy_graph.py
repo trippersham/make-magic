@@ -122,6 +122,7 @@ def unified_event_graph_edges(
     event_edges: list[tuple[str, str, str]],
     events: dict,
     nodes: set[str],
+    relay_gate_carriers: set[str] | None = None,
 ) -> tuple[set[tuple[str, str]], list[tuple[tuple[str, str], tuple[str, str]]]]:
     """Edges of the ONE unified CardAttribute | Event graph (ADR 0026).
 
@@ -132,10 +133,20 @@ def unified_event_graph_edges(
     bipartite legs this graph restores: ``p → ev`` (``p`` produces the event) and
     ``ev → c`` (the event triggers ``c``). A :class:`RelayEntry` authored on an
     event's ``produced_by`` side (``produced_by``-only, owner-approved) is the
-    gated event→event edge ``from_event → owning-event``; it is live only when its
-    ``gate`` CardAttribute is an admitted node (the gate must itself be
-    present/substantive). This is the one place a relay is INTERPRETED as a graph
-    edge rather than dropped as a clean-miss string.
+    gated event→event edge ``from_event → owning-event``; it is live iff its
+    ``gate`` CardAttribute **has a carrier in the deck** (ADR 0026 §1 / the design's
+    "enabling cards" rule: the edge is live iff the gate has >= 1 carrier — a gate
+    carrier is the edge's enabler, NOT a claim that the gate is a substantive
+    identity node). *Relay-gate liveness is therefore PRESENCE, distinct from the
+    admission that governs string attr legs:* a relay closes a structural loop
+    (Sanguine Bond's gain→drain + Exquisite Blood's drain→gain = the recursive
+    lifegain↔life-loss-drain engine) whenever both enabler cards are in the deck,
+    even when each is a 1-2-card sub-threshold attr that never earns an identity
+    node. ``relay_gate_carriers`` names the present-attr set the gate is tested
+    against; when ``None`` it falls back to ``nodes`` (the structural callers that
+    pass a single set where present == admitted, e.g. ``loop_aware_nodes``, which
+    already passes ALL present attrs). This is the one place a relay is INTERPRETED
+    as a graph edge rather than dropped as a clean-miss string.
 
     Legs come from TWO sources, unioned: the ``events`` catalog (every string
     producer/consumer leg + the gated event→event relay edges) AND the passed
@@ -153,6 +164,7 @@ def unified_event_graph_edges(
     isolated event (no in-deck producer or consumer) cannot sit on a cycle and is
     therefore immaterial to SCC detection.
     """
+    gate_carriers = relay_gate_carriers if relay_gate_carriers is not None else nodes
     graph_nodes: set[tuple[str, str]] = set()
     edges: list[tuple[tuple[str, str], tuple[str, str]]] = []
 
@@ -171,9 +183,12 @@ def unified_event_graph_edges(
         en = ('e', ev)
         for ref in spec.get('produced_by', ()):
             if isinstance(ref, RelayEntry):
-                # event→event relay (ADR 0026, produced_by-only): live only when
-                # its gate CardAttribute is an admitted node.
-                if ref.gate in nodes:
+                # event→event relay (ADR 0026, produced_by-only): live iff its gate
+                # CardAttribute HAS A CARRIER in the deck (presence), not iff the
+                # gate is an admitted identity node. A lifetrade relay closes its
+                # loop on the enabler card alone (Sanguine Bond + Exquisite Blood),
+                # which is often a 1-2-card sub-threshold attr.
+                if ref.gate in gate_carriers:
                     add(('e', ref.from_event), en)
             elif ref in nodes:
                 add(('a', ref), en)
@@ -244,6 +259,7 @@ def recursive_event_set(
     event_edges: list[tuple[str, str, str]],
     events: dict,
     nodes: set[str],
+    relay_gate_carriers: set[str] | None = None,
 ) -> set[str]:
     """Events on a true cycle of the unified graph — the ``recursive-engine`` set.
 
@@ -254,8 +270,13 @@ def recursive_event_set(
     its producers also consumed *some* (possibly unrelated) event, without proving
     the cycle ever returned. Per-event static-unit enumeration is unaffected: the
     SCC only reclassifies recursive-vs-static.
+
+    ``relay_gate_carriers`` is the present-attr set a catalog :class:`RelayEntry`'s
+    gate is tested against (presence, per ADR 0026 §1); ``None`` falls back to
+    ``nodes``. Passing the full present set lets a lifetrade relay close its loop on
+    the enabler cards alone, even when the gate attr is sub-threshold for identity.
     """
-    graph_nodes, edges = unified_event_graph_edges(event_edges, events, nodes)
+    graph_nodes, edges = unified_event_graph_edges(event_edges, events, nodes, relay_gate_carriers)
     recursive: set[str] = set()
     for comp in _graph.strongly_connected_components(graph_nodes, edges):
         if len(comp) < 2:
@@ -350,8 +371,12 @@ def elect_engine_units(
     # node sits on a real directed cycle of the unified CardAttribute | Event
     # graph, replacing the ``producers & consumers`` heuristic. ``relay`` stays as
     # the reported hub signal (the producer that is also a consumer); the SCC
-    # decides the recursive-vs-static KIND.
-    recursive_events = recursive_event_set(event_edges, assets.events, nodes)
+    # decides the recursive-vs-static KIND. Catalog relay gates are tested for
+    # PRESENCE (a carrier in the deck = any attr in ``attr_weight``), not identity
+    # admission: a lifetrade loop (Sanguine Bond's gain→drain + Exquisite Blood's
+    # drain→gain) closes on the two enabler cards even when each gate attr is a
+    # 1-2-card sub-threshold attr that never earns an identity node (ADR 0026 §1).
+    recursive_events = recursive_event_set(event_edges, assets.events, nodes, set(attr_weight))
 
     def by_w(xs):
         return sorted(xs, key=lambda a: (-attr_weight[a], a))

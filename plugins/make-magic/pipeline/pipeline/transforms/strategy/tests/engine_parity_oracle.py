@@ -429,7 +429,28 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   FULL_CORPUS ec917355dd3eb2cf… -> 5045f7af250529e7…
 #   ENGINE      4d3f5e6d9d8ed142… -> 80d0116a653ffb31…
 #   RESOLVE     940c38811193b6f4… -> 3ebb33fd9b469926…
-FULL_CORPUS_SHA = '5045f7af250529e7328cf680a9b36aa955ed9eeba85978e2c7ecfac025559a0a'
+# Re-baselined 2026-11-20 (#83 Phase 2 — lifetrade gate-edges relocated to catalog
+# relays). The 6 lifetrade EventEffects (the draw/gain/drain directed pairs) moved
+# from the dissolved ``edge_roles.py`` sidecar into ``derive_card_events.SEED_MAP``
+# as ``RelayEntry(from_event, gate)`` edges on the PRODUCED event's ``produced_by``
+# (gate queries BYTE-FOR-BYTE unchanged). The one unified SCC walk now reads them
+# natively, and a catalog relay's gate is tested for PRESENCE (a carrier in the
+# deck, ADR 0026 §1 / design "enabling cards" rule) rather than identity admission —
+# a Phase-2 framework correction so a sub-threshold enabler pair (Sanguine Bond's
+# gain→drain + Exquisite Blood's drain→gain) closes the recursive lifegain↔life-loss-
+# drain loop, reconciling engine⟷combo (both need both cards). Measured OFF/ON on
+# the real 187 corpus (pinned lake): exactly 4/170 gauntlet decks gain a recursive
+# lifetrade event — celes/elenda/karlov/liesa, the 4 named split-brain decks — and
+# 0 others (no false lifetrade recursion anywhere; a one-sided deck with only one
+# gate stays open). The 17 hermetic fixtures carry NO lifetrade enabler PAIR, so
+# ENGINE + RESOLVE are BYTE-IDENTICAL; only the lake-backed FULL_CORPUS moves.
+# Determinism held (identical under PYTHONHASHSEED 0 and 4242). NOT a version bump —
+# Phase 5 owns the final ship re-baseline. Drift ledger: ~/.claude/plans/trippersham/
+# magic-tools/2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md (Phase 2).
+#   FULL_CORPUS 5045f7af250529e7… -> 85eba970fe1f0934…
+#   ENGINE      80d0116a653ffb31… (UNCHANGED)
+#   RESOLVE     3ebb33fd9b469926… (UNCHANGED)
+FULL_CORPUS_SHA = '85eba970fe1f0934b939be08d3b1c2d8e2edc613fc43bc2816da7bb7086483bc'
 
 
 def full_corpus_sha() -> str:
