@@ -144,3 +144,23 @@ class TestValidatorAcceptsRelay:
         relay = RelayEntry(from_event='draw-a-card', gate='')
         violations = validate_seed_map(seed_map=_synthetic_seed_map([relay]))
         assert any('gate' in v for v in violations), violations
+
+    def test_relay_on_triggers_side_rejected(self) -> None:
+        """ADR 0026 (owner-approved): a relay is authored ONLY on ``produced_by``.
+
+        A relay placed on the ``triggers`` side is a placement violation — the
+        owning event is the PRODUCED end of the gated event→event edge.
+        """
+        relay = RelayEntry(from_event='draw-a-card', gate='gain-to-draw')
+        seed_map = {
+            'lifegain': {
+                'produced_by': {'seeds': [], 'grade': 'empty'},
+                'triggers': {'seeds': [], 'grade': 'empty', 'relays': [relay]},
+            },
+            'draw-a-card': {
+                'produced_by': {'seeds': [], 'grade': 'empty'},
+                'triggers': {'seeds': [], 'grade': 'empty'},
+            },
+        }
+        violations = validate_seed_map(seed_map=seed_map)
+        assert any('produced_by' in v and 'triggers' in v for v in violations), violations

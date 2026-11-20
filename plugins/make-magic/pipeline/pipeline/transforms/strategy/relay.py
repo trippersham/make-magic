@@ -40,6 +40,20 @@ After relay injection the event graph contains:
 
 The cycle ``gain-to-draw -> draw-to-gain -> gain-to-draw`` (through events
 ``draw-a-card`` and ``lifegain``) closes — this is the Queza engine.
+
+Provisional-edge channel (ADR 0026 — the one unified walk)
+---------------------------------------------------------
+Under the unified event graph (issue #83), ``elect_engine_units`` detects loops
+with ONE sorted-Tarjan SCC pass over the CardAttribute | Event graph. This module
+is the **provisional-edge channel** that feeds that one walk: it augments the
+catalog's ``event_edges`` with the within-card edge attrs sourced from the curated
+registry (``edge_roles.py``) AND the runtime :class:`ProvisionalAttributeStore`
+(ADR-0017 spellbook/haiku edges). Because the SCC pass consumes the
+``event_edges`` argument, those injected within-card edges participate in cycle
+detection automatically — ``engine_report``'s RESOLVED/PROVISIONAL label and
+``combo_edges`` keep working, now with true-SCC recursion instead of the retired
+``producers & consumers`` heuristic. Catalog ``RelayEntry`` event→event edges are
+read straight from ``assets.events`` inside the walk (Phase 1 authors none).
 """
 
 from __future__ import annotations

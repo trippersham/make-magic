@@ -1589,12 +1589,23 @@ def validate_seed_map(
         for side in ('produced_by', 'triggers'):
             seeds = entry[side]['seeds']
 
-            # (0) Relay-shape invariant (ADR 0026): each relay names a known
-            # source event and a non-empty gate CardAttribute ref.  This accepts
-            # the relay shape alongside the string seeds WITHOUT weakening the
-            # mechanic-exclusivity checks below (relays live in their own key and
-            # the seed iteration is untouched).
-            for relay in entry[side].get('relays', []):
+            # (0) Relay-shape + placement invariant (ADR 0026, owner-approved
+            # 2026-11-19): each relay names a known source event and a non-empty
+            # gate CardAttribute ref, AND a relay is authored ONLY on an event's
+            # ``produced_by`` side.  A relay on ``triggers`` is rejected: the owning
+            # event is the PRODUCED end of the gated event→event edge
+            # (``from_event`` → owning-event), so the entry sits where the event is
+            # produced.  This accepts the relay shape alongside the string seeds
+            # WITHOUT weakening the mechanic-exclusivity checks below (relays live
+            # in their own key and the seed iteration is untouched).
+            relays = entry[side].get('relays', [])
+            if relays and side != 'produced_by':
+                violations.append(
+                    f'{event_name}.{side}: relays may be authored only on the '
+                    f"'produced_by' side (ADR 0026 produced_by-only placement); "
+                    f'found {len(relays)} relay(s) on {side!r}'
+                )
+            for relay in relays:
                 if relay.from_event not in known_events:
                     violations.append(
                         f'{event_name}.{side}: relay from_event {relay.from_event!r} is not a known event'

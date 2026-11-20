@@ -694,8 +694,8 @@ class TestPopulateComboEdgesDriver:
         # P0 SHAs must not shift — they don't consult the store at all.
         engine_sha = composite_sha(compute_engine_isolation_baselines())
         resolve_sha = composite_sha(compute_resolve_baselines())
-        assert engine_sha == '4d3f5e6d9d8ed142f50e241940de58c5b92aad5b30629b9b81d2d5a73c3131e3'
-        assert resolve_sha == '940c38811193b6f4ca9ab2b2b20e2df63e70bc1f4ba8911f7486c0a1a11c8814'
+        assert engine_sha == '80d0116a653ffb31692fefb8d6a43b2099440febc3901b361fb9fa034e2bed0f'
+        assert resolve_sha == '3ebb33fd9b469926fd06d2c63605dfe9bad462563760dae47eca9c4cb93c8c76'
 
 
 class TestHasFreshEdgesForCombo:

@@ -406,7 +406,30 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   RESOLVE     940c38811193b6f4… -> 940c38811193b6f4… (UNCHANGED)
 # Proof: ~/.claude/plans/trippersham/magic-tools/2026-11-18-reproducibility-adversarial-test/
 # subagents/component0/delta-report.md.
-FULL_CORPUS_SHA = 'ec917355dd3eb2cfb8136fb0e078e83eee88950ce257fcedac79ea0a01307eff'
+# Re-baselined 2026-11-19 (#83 Phase 1 — unified event graph: events-as-nodes, true-SCC
+# recursive-engine, loop-aware substantiveness). This is an OUTPUT-MOVING, proof-carrying
+# re-baseline (ADR 0003) that is NOT the final Phase-5 ship re-baseline and does NOT bump
+# the version — it keeps the suite green while Phases 2-5 proceed. Three framework changes
+# move output: (1) `recursive-engine` is now true SCC membership over the unified
+# CardAttribute|Event graph, replacing `producers & consumers`; measured OFF/ON on the real
+# 187 corpus, the SCC LOST a recursive label on 62 decks (heuristic false-positives: an
+# event flagged recursive merely because one producer also consumed some UNRELATED event —
+# e.g. land-enters/token-created/draw-a-card/permanent-dies self-reported loops that never
+# returned) and GAINED a genuine cycle on 16 (e.g. Isperia creature-enters, Wilhelt/Teysa/
+# Krenko permanent-leaves, Narset rad). (2) Loop-aware substantiveness admits a sub-threshold
+# attr that is structurally load-bearing on a closed cycle anchored by a prevalent attr:
+# measured 84 node admissions across 29 decks, ALL genuine blink/ETB loop members
+# (flicker-*/enters-in-company/multiple-bodies on Urza/Roon/Brago/Aminatou/Shiko/Narset…),
+# aristocrat death->token members (leaves-body-behind/splits-on-death on Wilhelt/Celes/
+# Yawgmoth…), and proliferate->counter (pseudo-proliferate on Ezuri/Aminatou). W2 re-measure:
+# 0 spurious (none match the spike's relay-family false-circuit classes; Phase 1 authors ZERO
+# relay families). (3) Events are first-class NODES (zero intrinsic mass; the ADR-0014 mass
+# criterion is UNCHANGED). Drift ledger: ~/.claude/plans/trippersham/magic-tools/
+# 2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md (Phase 1).
+#   FULL_CORPUS ec917355dd3eb2cf… -> 5045f7af250529e7…
+#   ENGINE      4d3f5e6d9d8ed142… -> 80d0116a653ffb31…
+#   RESOLVE     940c38811193b6f4… -> 3ebb33fd9b469926…
+FULL_CORPUS_SHA = '5045f7af250529e7328cf680a9b36aa955ed9eeba85978e2c7ecfac025559a0a'
 
 
 def full_corpus_sha() -> str:
