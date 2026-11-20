@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Status | Accepted (framework). Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) in force on branch `feat/83-unified-event-graph`; Phases 3–5 pending. Multi-phase, proof-carrying (ADR 0003); ship gate at Phase 5. |
+| Status | Accepted (framework). Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) + Phase 3 (combo-certified promotion of the 7 resource-dependent families) in force on branch `feat/83-unified-event-graph`; Phases 4–5 pending. Multi-phase, proof-carrying (ADR 0003); ship gate at Phase 5. |
 | Review | **owner-approved 2026-11-19 (relay placement = `produced_by`-only confirmed).** Agent-authored from the approved design (`~/.claude/plans/trippersham/magic-tools/2026-11-19-node-admission-thematic-vs-mechanical/design.md`) + the astra-5.2 drift pressure-test (`drift-pressure-test.md`, spike `spike/83-unified-event-drift`, throwaway). Owner reads this record before Phase 1. |
 | Test | Phase 0 (schema): from `plugins/make-magic/pipeline`: `uv run --extra dev pytest pipeline/transforms/strategy/tests/test_relay_schema.py pipeline/transforms/strategy/tests/test_event_ontology.py -q`. Parity gate: `uv run python -m pipeline.transforms.strategy.tests.engine_parity_oracle` — **the P0 SHA triple is UNCHANGED** (no relay families authored, no edges added). Later phases re-baseline under ADR 0003. |
-| Code paths | [`derive_card_events.py`](../../pipeline/pipeline/transforms/strategy/derive_card_events.py) (`RelayEntry`, `SEED_MAP`, `derive_card_events`, `validate_seed_map`), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (repurposed as the provisional-edge channel, Phase 1), [`strategy_graph.py`](../../pipeline/pipeline/transforms/strategy/strategy_graph.py) (the one walk; SCC; loop-aware admission, Phase 1), [`combo_win.py`](../../pipeline/pipeline/transforms/strategy/combo_win.py) (combo-certified promotion, Phase 3) |
+| Code paths | [`derive_card_events.py`](../../pipeline/pipeline/transforms/strategy/derive_card_events.py) (`RelayEntry`, `SEED_MAP`, `derive_card_events`, `validate_seed_map`), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (repurposed as the provisional-edge channel, Phase 1), [`strategy_graph.py`](../../pipeline/pipeline/transforms/strategy/strategy_graph.py) (the one walk; SCC; loop-aware admission, Phase 1; `combo_event_edges` threading, Phase 3), [`combo_win.py`](../../pipeline/pipeline/transforms/strategy/combo_win.py) (`unbounded_intermediate_events` — the certified-unbounded liveness filter, Phase 3), [`combo_promotion.py`](../../pipeline/pipeline/transforms/strategy/combo_promotion.py) (the 7-family combo-certified promotion, Phase 3) |
 
 ## Context
 
@@ -166,6 +166,28 @@ The one walk consumes **catalog edges + the runtime store-backed provisional edg
   lifetrade recursions, one-sided decks stay open; ENGINE/RESOLVE byte-identical (no hermetic fixture
   carries an enabler pair), FULL_CORPUS re-baselined `5045f7af…→85eba970…`. `CURATED_EDGE_ROLES` is
   now empty; the `EventEffect` type + the store waterfall remain for haiku/spellbook provisional edges.
+- **Phase 3 (DONE 2026-11-20): combo-certified promotion of the 7 resource-dependent families**
+  (ETB/death-recursion, mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall). These
+  families get their event→event edges by reusing loops `combo_win` has ALREADY certified unbounded
+  (`combo_win.unbounded_intermediate_events`, which reads `fid_route`'s per-fid magnitudes — no
+  re-derived resource arithmetic, no gate query), NOT from naive gate edges (§4). `combo_promotion.py`
+  holds a declarative `FAMILY_RELAY_EDGES` table (12 edge rules) and one uniform predicate
+  (`certified_family_pairs`): a family edge `(a, b)` fires iff BOTH endpoint events are certified
+  unbounded in the SAME combo. `combo_certified_event_edges` builds the per-deck 2-cycle edges, which
+  `compute_facts` threads into the one SCC walk (`recursive_event_set` via `combo_event_edges`). The
+  promotion only reclassifies the KIND of an engine unit that already exists (an event with in-deck
+  producer AND consumer attrs) — it admits no new node, so `loop_aware_nodes` / identity / strategy /
+  communities / headline are untouched; only `facts['engines']['engine_units']` moves. Correct by
+  construction: a false carrier's event is finite (routes `oneshot`, not `intermediate`), so it is
+  never in the certified-unbounded set and its family edge can never form — the Grim-Monolith /
+  one-shot-copy / token-ETB-false-draw circuits stay structurally open. Measured OFF/ON on the 187
+  corpus (pinned lake): 36/170 gauntlet decks gain ≥1 combo-certified recursive event across all 7
+  families; Class A 34 → 26 (8 decks reconciled, incl. the audit's named Selvala/Derevi); the 10
+  named false circuits ALL stay open (W5 hard gate held). ENGINE `80d0116a…→8f45c628…`, RESOLVE
+  `3ebb33fd…→6eed6ba7…` (both via exactly 2 fixtures that carry a combo-certified combo —
+  `gauntlet__urza-lord-high-artificer`, `owned__ozai`), FULL_CORPUS `85eba970…→17e806fa…`.
+  Reproduced deterministically across two oracle runs. NOT a version bump (Phase 5 owns the ship
+  re-baseline).
 - Substantiveness (ADR 0002/0004/0020) and centrality (ADR 0014) stay in their ADR-0021
   layers; this change is entirely in substantiveness.
 

@@ -450,7 +450,27 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   FULL_CORPUS 5045f7af250529e7… -> 85eba970fe1f0934…
 #   ENGINE      80d0116a653ffb31… (UNCHANGED)
 #   RESOLVE     3ebb33fd9b469926… (UNCHANGED)
-FULL_CORPUS_SHA = '85eba970fe1f0934b939be08d3b1c2d8e2edc613fc43bc2816da7bb7086483bc'
+# Re-baselined 2026-11-20 (#83 Phase 3 — combo-certified promotion of the 7
+# resource-dependent relay families). For each deck, the event→event edges of the 7
+# families (ETB/death, mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall)
+# are promoted from loops ``combo_win`` ALREADY certified unbounded (reusing its per-fid
+# magnitudes via ``unbounded_intermediate_events``), NOT from naive gate queries — so the
+# false circuits (Grim Monolith nets -1 mana; one-shot copies; token/ETB false draw returns)
+# structurally cannot close (``combo_win`` never certified them). A family edge is admitted
+# only when BOTH its endpoint events are certified unbounded in the SAME combo; it only
+# reclassifies the KIND of an engine unit that already exists (no new node → no identity
+# drift). Measured OFF(P2)/ON(P3) on the real 187 corpus (pinned lake): 36/170 gauntlet decks
+# gain >=1 combo-certified recursive event across all 7 families; Class A 34 -> 26 (8 decks
+# reconciled: Karador/Derevi/Sharuum/Xenagos/Veyran/Selvala/Prosper/Xyris); the 10 named
+# false circuits ALL stay open. ENGINE + RESOLVE move via exactly 2 hermetic fixtures that
+# carry a combo-certified family combo (gauntlet__urza-lord-high-artificer: mana-refund +
+# cast/copy; owned__ozai). NOT a version bump — Phase 5 owns the ship re-baseline. Drift
+# ledger: ~/.claude/plans/trippersham/magic-tools/
+# 2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md (Phase 3).
+#   FULL_CORPUS 85eba970fe1f0934… -> 17e806fa5692f255…
+#   ENGINE      80d0116a653ffb31… -> 8f45c628b2be503b…
+#   RESOLVE     3ebb33fd9b469926… -> 6eed6ba71c308f80…
+FULL_CORPUS_SHA = '17e806fa5692f255c4fd55f6a099a3ebde78b1263a5776ea7066a3c06989de9b'
 
 
 def full_corpus_sha() -> str:

@@ -645,6 +645,36 @@ def walk_win_kind(verdict: dict) -> str:
     return verdict.get('kind', 'rule')
 
 
+def unbounded_intermediate_events(fids: list[int]) -> set[str]:
+    """The events a combo makes **unbounded** — its certified loop carriers.
+
+    An ``intermediate`` route in :func:`fid_route` is reached ONLY when the fid's
+    magnitude is ``infinite``/``near-infinite`` (see ``fid_route``: every
+    ``intermediate`` branch is guarded by ``unbounded``). So this returns exactly
+    the events the combo-detector has certified as going infinite in this combo —
+    the self-sustaining loop carriers, not finite one-shot effects.
+
+    This is the liveness filter for **combo-certified relay promotion** (ADR 0026
+    §4, issue #83 Phase 3): the 7 resource/repeatability-dependent relay families
+    (ETB/death, mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall)
+    get their event→event edges ONLY from loops ``combo_win`` has already certified
+    unbounded, NEVER from naive gate queries (which cannot express the net-mana /
+    repeatability / zone arithmetic edge validity needs — they manufacture the
+    Grim-Monolith / one-shot-copy false circuits). This function REUSES ``fid_route``
+    (the same per-fid classification the win-walk itself runs); it does NOT
+    re-derive resource arithmetic and does NOT invent new combo detection. A
+    one-shot ritual (Grim Monolith nets -1 mana) or a finite copy (Narset's
+    Reversal copies once) routes ``oneshot``, never ``intermediate``, so its event
+    is structurally absent here — which is why the false circuits cannot close.
+    """
+    events: set[str] = set()
+    for fid in fids:
+        r = fid_route(fid)
+        if r is not None and r.get('route') == 'intermediate' and isinstance(r.get('event'), str):
+            events.add(r['event'])
+    return events
+
+
 # ---------------------------------------------------------------------------
 # Name-to-fid resolution (for combos that lack fids in the lake)
 # ---------------------------------------------------------------------------
