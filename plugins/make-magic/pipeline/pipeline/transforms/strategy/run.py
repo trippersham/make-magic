@@ -37,6 +37,7 @@ from pipeline.transforms.strategy.corpus import (
     load_owned,
 )
 from pipeline.transforms.strategy.naming import headline_strategy
+from pipeline.transforms.strategy.reconciliation import format_reconciliation, reconciliation_metric
 
 
 def recalc_corpus(
@@ -76,6 +77,10 @@ def _summary(records: list[dict]) -> str:
             f'    F4-blocked: {(r.get("commander_hint") or r["name"])[:34]:35} '
             f'kept {r["pre_combo_name"]} (share/margin dense)'
         )
+    # Internal engine<->combo reconciliation metric (ADR 0026 §5): a pipeline quality
+    # measure emitted to the summary/log ONLY — the Class-A set is the "loops to author"
+    # self-healing queue. It reads existing record fields, never a resolve() field.
+    lines.append(format_reconciliation(reconciliation_metric(records)))
     return '\n'.join(lines)
 
 
