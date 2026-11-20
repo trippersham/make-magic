@@ -234,6 +234,19 @@ quantity, out of scope). This is an output-changing re-baseline ([0003], 2026-11
 `afcffc8a…` → `7a73aba9…`, resolve `5c4f9c05…` → `1e54293c…`, full-corpus `c0d979ea…` → `07eb6673…`,
 with a 187/187 zero-value-change equivalence proof.
 
+## Amendment — 2026-11-19 ([0026]: `recursive-engine` becomes true-SCC; election criterion UNCHANGED)
+
+The unified event graph ([0026], issue #83) **does not change the mass-election criterion** — the
+node-weighted event-neighborhood mass, the `elected` set, the dedup, and the candidate-pool filters
+are all untouched. The one note: the engine-unit **`recursive-engine` label becomes true-SCC
+membership (a real cycle over the one walked graph)**, replacing the `producers & consumers`
+heuristic. Per-event unit enumeration is **preserved** (static-payoff units still enumerate); the
+SCC only reclassifies recursive-vs-static and closes loops. This is a **centrality-layer label
+refinement**, kept strictly distinct from the **substantiveness** admission signal ([0026] adds the
+prevalence ∨ cycle-membership disjunct to substantiveness, [0002]/[0004]/[0020] — NOT to this
+election). **Phase 0 is schema-only; the true-SCC label lands in [0026] Phase 1 under a
+proof-carrying re-baseline ([0003]).**
+
 ## Related records
 - 0002 — substantiveness gates archetype LABELS (level 2) and, as of 2026-11-14, EVENT
   election candidacy (level 3, `producer_anchor`) whose pool this election consumes; as of

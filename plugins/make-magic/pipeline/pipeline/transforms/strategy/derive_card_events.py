@@ -91,6 +91,50 @@ from pathlib import Path
 from typing import Any, NamedTuple
 
 # ---------------------------------------------------------------------------
+# Relay entry — a gated event→event edge on a produced_by/triggers side.
+#
+# The unified event graph (ADR 0026, issue #83) models ONE concept — the Event —
+# whose ``produced_by``/``triggers`` entries are uniformly CardAttribute refs
+# (slug strings) OR a *relay* that additionally names a SOURCE event.  A relay on
+# ``<owning-event>.produced_by`` reads: "this event is produced by a card that
+# consumes ``from_event`` and whose relay is live wherever ``gate`` has carriers"
+# — the ``EventEffect`` sidecar (``edge_roles.py``) dissolved into the one graph.
+#
+# The field mapping from the former ``EventEffect`` (ADR 0011) is:
+#   ``trigger_event``  → ``from_event``  (the source event the relay fires on)
+#   ``produced_event`` → the OWNING event (the side this entry sits on)
+#   gate query / provenance → ``gate`` (the CardAttribute ref that gates the edge)
+#
+# A ``RelayEntry`` is an immutable, hashable NamedTuple so it is safe in the
+# consumer path (``r in nodes`` is a clean membership miss, never a TypeError)
+# and sorts deterministically by ``(from_event, gate)``.
+#
+# PHASE 0 (this change) lays the SCHEMA only: the real SEED_MAP authors ZERO
+# relays, so ``derive_card_events`` emits the same all-string lists it always has
+# and the engine output is byte-identical.  Relay families are authored in later
+# phases (lifetrade as gate-query edges; the 7 resource-dependent families via
+# combo-certified promotion, NOT naive gates — see ADR 0026).
+# ---------------------------------------------------------------------------
+
+
+class RelayEntry(NamedTuple):
+    """A gated event→event relay on a ``produced_by``/``triggers`` side (ADR 0026).
+
+    Parameters
+    ----------
+    from_event
+        The SOURCE Event slug the relay fires on (former ``EventEffect.trigger_event``).
+    gate
+        The CardAttribute ref whose carriers make the relay edge live (the former
+        ``EventEffect`` guard/provenance, collapsed to one gate ref per ADR 0009's
+        closed query vocabulary).
+    """
+
+    from_event: str
+    gate: str
+
+
+# ---------------------------------------------------------------------------
 # 28-event seed map — owner-approved DATA from the validated build-design.
 #
 # For each event, each side (``triggers`` / ``produced_by``) carries:
@@ -101,6 +145,9 @@ from typing import Any, NamedTuple
 #   - ``grade``: "S" (clean structural, one exclusive taxonomy seed),
 #     "M" (semantic, union of flat concepts), or "empty" (no otag seed —
 #     text-synth / terminal / inert).
+#   - ``relays`` (OPTIONAL): list[RelayEntry] — gated event→event edges carried
+#     onto this side ALONGSIDE the derived string entries (ADR 0026).  Absent on
+#     every real event in Phase 0; the derivation appends them un-clobbered.
 #
 # The union of build-design seeds + enumerated slugs ensures
 # derived ⊇ enumerated while the higher seeds unlock descendant coverage
@@ -1535,9 +1582,26 @@ def validate_seed_map(
         for s in ('produced_by', 'triggers'):
             seed_sets[(ev, s)] = set(entry[s]['seeds'])
 
+    # Known events = the authoring universe; a relay's ``from_event`` must name one.
+    known_events = set(seed_map)
+
     for event_name, entry in seed_map.items():
         for side in ('produced_by', 'triggers'):
             seeds = entry[side]['seeds']
+
+            # (0) Relay-shape invariant (ADR 0026): each relay names a known
+            # source event and a non-empty gate CardAttribute ref.  This accepts
+            # the relay shape alongside the string seeds WITHOUT weakening the
+            # mechanic-exclusivity checks below (relays live in their own key and
+            # the seed iteration is untouched).
+            for relay in entry[side].get('relays', []):
+                if relay.from_event not in known_events:
+                    violations.append(
+                        f'{event_name}.{side}: relay from_event {relay.from_event!r} is not a known event'
+                    )
+                if not isinstance(relay.gate, str) or not relay.gate:
+                    violations.append(f'{event_name}.{side}: relay gate {relay.gate!r} must be a non-empty string')
+
             if not seeds:
                 continue
 
@@ -1610,25 +1674,42 @@ def validate_seed_map(
 
 def derive_card_events(
     events: dict[str, dict],
+    *,
+    seed_map: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, dict]:
     """Compute derived ``produced_by``/``triggers`` from seeds + taxonomy closure.
 
     For each event side, the derived list = sorted union of descendant-closures
-    of all seeds for that side.  The committed enumerated lists are a subset
-    of the derived lists (no loss) because the seed map includes both the
-    build-design structural seeds AND the existing enumerated slugs.
+    of all seeds for that side, followed by any authored :class:`RelayEntry`
+    relays (sorted, carried un-clobbered — ADR 0026).  The committed enumerated
+    lists are a subset of the derived string lists (no loss) because the seed map
+    includes both the build-design structural seeds AND the existing enumerated
+    slugs.
 
     The returned dict has the same shape as *events* — every event key is
     present with the same ``rule``/``abbrev``/``polarity``/``scope`` fields.
     Only ``produced_by`` and ``triggers`` lists are replaced.
 
-    Events not in :data:`SEED_MAP` are passed through unchanged.
+    A side carries relays by listing them under an optional ``relays`` key
+    (:class:`RelayEntry` values).  They are **not** closure-derived — they survive
+    the overwrite by being appended after the sorted string closure.  In Phase 0
+    no real event authors relays, so every derived list stays all-strings and the
+    engine output is byte-identical.
+
+    Events not in the seed map are passed through unchanged.
+
+    Parameters
+    ----------
+    seed_map
+        Override for testing; defaults to the module-level :data:`SEED_MAP`.
     """
+    if seed_map is None:
+        seed_map = SEED_MAP
     taxonomy = load_taxonomy()
 
     derived: dict[str, dict] = {}
     for event_name, ev in events.items():
-        entry = SEED_MAP.get(event_name)
+        entry = seed_map.get(event_name)
         if entry is None:
             # Not in seed map — pass through unchanged.
             derived[event_name] = dict(ev)
@@ -1639,8 +1720,9 @@ def derive_card_events(
 
         for side in ('produced_by', 'triggers'):
             seeds = entry[side]['seeds']
-            if not seeds:
-                # Empty seed set — keep the original list (terminal/inert events).
+            relays: list[RelayEntry] = entry[side].get('relays', [])
+            if not seeds and not relays:
+                # No seeds and no relays — keep the original list (terminal/inert).
                 continue
 
             # Expand each seed via descendant-closure and union.
@@ -1648,7 +1730,11 @@ def derive_card_events(
             for seed in seeds:
                 expanded |= descendant_closure(seed, taxonomy)
 
-            new_ev[side] = sorted(expanded)
+            # String attribute refs first (sorted), relay entries after (sorted by
+            # (from_event, gate)) — a deterministic order over the mixed list.
+            new_side: list[str | RelayEntry] = sorted(expanded)
+            new_side.extend(sorted(relays))
+            new_ev[side] = new_side
 
         derived[event_name] = new_ev
 

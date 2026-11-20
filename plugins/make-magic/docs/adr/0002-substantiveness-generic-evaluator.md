@@ -87,6 +87,21 @@ demoted archetypes across the 170-deck corpus (graveyard x52 + mill/theft/enchan
 vehicles/-1-1-counters x1 each) — a latent incompleteness now fixed. No consumed output
 changed: `demoted_archetypes` is a diagnostic field read by no code path.
 
+## Amendment — 2026-11-19 ([0026] framework: substantiveness gains a structural loop-participation signal)
+
+The unified event graph ([0026], issue #83) adds a **structural signal** to this admission
+framework (the decision is captured in [0026]; realized in [0026] Phase 1, not Phase 0). A node
+is **substantive** iff **statistically prevalent** (the existing `member_count`/commander data
+Requirements) **OR structurally load-bearing** (on a closed cycle — binary SCC-membership ≥ 2,
+among otherwise-substantive nodes). The structural signal is computed by a **provisional cycle
+pass inside the substantiveness stage** (structure, not mass — honouring the [0021]
+substantiveness→centrality order). It is a binary membership test, not a new continuous
+Requirement kind, and it does **not** add an `arch == '<name>'` branch — the prevalence side stays
+the closed-kind determiner this record governs. The **"thematic vs mechanical"** framing is
+**retired**; substantiveness stays **distinct from centrality** ([0014]). **Phase 0 is schema-only
+(the relay-entry plumbing); this signal lands in Phase 1 under a proof-carrying re-baseline
+([0003]).**
+
 ## Related records
 - 0001 — the doctrine this implements.
 - 0004 (planned) — the presence gate `determine_node_eligible` dedup routes through this framework.

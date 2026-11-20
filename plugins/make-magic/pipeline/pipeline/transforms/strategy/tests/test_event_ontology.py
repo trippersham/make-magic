@@ -202,3 +202,59 @@ class TestPhase2BInertEvents:
             ev = events[slug]
             assert 'polarity' not in ev, f'{slug} must NOT have polarity'
             assert 'scope' not in ev, f'{slug} must NOT have scope'
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# 6. ADR 0026: a produced_by/triggers entry may be a RelayEntry, not only a string
+# ────────────────────────────────────────────────────────────────────────────
+
+
+class TestRelayEntryOntology:
+    """ADR 0012 (amended by ADR 0026): the string-only entry invariant is relaxed
+    — an entry on a ``produced_by``/``triggers`` side is a CardAttribute ref
+    (slug string) OR a ``{from_event, gate}`` relay.
+
+    The held ``event_catalog.json`` still carries all-string lists (Phase 0 adds
+    ZERO relay families, so the raw catalog is byte-identical).  The ontology
+    *admits* the relay shape in the DERIVED view produced by
+    ``derive_card_events`` — that is what this test asserts, so a future regression
+    that narrows an entry back to "string only" is caught.
+    """
+
+    def test_raw_catalog_entries_are_strings(self, events: dict[str, dict]) -> None:
+        """The held catalog seed stays all-strings (no relays authored in Phase 0)."""
+        for name, ev in events.items():
+            for side in ('produced_by', 'triggers'):
+                for entry in ev[side]:
+                    assert isinstance(entry, str), (
+                        f'event {name!r}.{side} carries a non-string raw entry {entry!r} — '
+                        f'the held catalog seed is all-strings in Phase 0 (ADR 0012/0026)'
+                    )
+
+    def test_derived_view_admits_relay_entry(self) -> None:
+        """A ``RelayEntry`` is a valid entry on a side ALONGSIDE string refs."""
+        from pipeline.transforms.strategy.derive_card_events import RelayEntry, derive_card_events
+
+        synthetic_events = {
+            'lifegain': {'rule': 'r', 'produced_by': [], 'triggers': []},
+            'draw-a-card': {'rule': 'r', 'produced_by': [], 'triggers': []},
+        }
+        relay = RelayEntry(from_event='draw-a-card', gate='draw-to-drain')
+        seed_map = {
+            'lifegain': {
+                'produced_by': {'seeds': [], 'grade': 'empty', 'relays': [relay]},
+                'triggers': {'seeds': [], 'grade': 'empty'},
+            },
+            'draw-a-card': {
+                'produced_by': {'seeds': [], 'grade': 'empty'},
+                'triggers': {'seeds': [], 'grade': 'empty'},
+            },
+        }
+        derived = derive_card_events(synthetic_events, seed_map=seed_map)
+        produced_by = derived['lifegain']['produced_by']
+        assert relay in produced_by
+        # Every entry is either a CardAttribute ref (str) or a RelayEntry.
+        for entry in produced_by:
+            assert isinstance(entry, (str, RelayEntry)), (
+                f'unexpected entry kind {type(entry).__name__} in derived produced_by (ADR 0026)'
+            )
