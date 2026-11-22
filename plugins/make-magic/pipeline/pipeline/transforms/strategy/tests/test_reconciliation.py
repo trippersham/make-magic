@@ -9,6 +9,7 @@ those 8 return to the "loops to author" queue, so Class A == 34 and Class B == 4
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -135,17 +136,8 @@ class TestReconciliationHonestDiff:
 
 
 # ---------------------------------------------------------------------------
-# Lake-gated — reproduce the hand census (Class A == 26, named)
+# Pinned-lake census — reproduce the families-deferred census (Class A == 34)
 # ---------------------------------------------------------------------------
-
-
-def _check_lake() -> bool:
-    base = os.environ.get('MAKE_MAGIC_DATA_DIR')
-    root = Path(base) if base else (Path.home() / '.local/share/make-magic')
-    return (root / 'raw' / 'oracle_cards.parquet').exists() and (root / 'normalized' / 'card_otag.parquet').exists()
-
-
-_LAKE_AVAILABLE = _check_lake()
 
 #: The families-deferred Class-A census (gauntlet, 170 decks): 32 distinct slugs, 34
 #: total (``azorius__shorikai`` and ``rakdos__prosper`` each carry two builds). This is
@@ -197,22 +189,79 @@ EXPECTED_CLASS_A: frozenset[str] = frozenset(
 )
 
 
-@pytest.mark.skipif(not _LAKE_AVAILABLE, reason='lake parquets not available')
+#: The subprocess that computes the census inside the isolated pinned lake. It prints
+#: exactly one ``CENSUS <json>`` line so the parent reads the counts unambiguously past
+#: any adjacency/warning chatter on stdout.
+_CENSUS_RUNNER = (
+    'import json, sys\n'
+    'from pipeline.transforms.strategy.run import recalc_corpus\n'
+    'from pipeline.transforms.strategy.reconciliation import reconciliation_metric\n'
+    'm = reconciliation_metric(recalc_corpus())\n'
+    'payload = {\n'
+    '    "n_a": m.n_class_a,\n'
+    '    "n_b": m.n_class_b,\n'
+    '    "members": sorted(set(m.class_a)),\n'
+    '    "dupes": len(m.class_a) - len(set(m.class_a)),\n'
+    '}\n'
+    'sys.stdout.write("CENSUS " + json.dumps(payload) + "\\n")\n'
+)
+
+
 class TestReconciliationCensus:
-    """The metric reproduces the families-deferred census: Class A == 34, same decks."""
+    """The metric reproduces the families-deferred census: Class A == 34, Class B == 42.
 
-    def test_class_a_count_and_membership(self):
-        from pipeline.transforms.strategy.run import recalc_corpus
+    Bound to the committed ``tests/repro/pinned_lake`` fixture (all FOUR extraction
+    inputs; ADR 0003/0022) and run in a FRESH subprocess with ``MAKE_MAGIC_DATA_DIR``
+    seeded from it — the same isolation the reproducibility harness uses. This makes
+    the counts reproducible on a clean checkout: the in-process path reads the
+    developer's live lake (dev-only, and it falls into the ADR-0022 enumerated-
+    adjacency fallback when the lake lacks ``normalized/combo.parquet`` /
+    ``raw/oracle_tags.parquet``), while the pinned fixture pins the coherent lake the
+    re-baselined composites are valid against. The pipeline memoizes assets and
+    lru-caches adjacency, so the data dir is swapped in a subprocess, not in-process.
+    """
 
-        m = reconciliation_metric(recalc_corpus())
-        assert m.n_class_a == 34, f'Class A drift: expected 34, got {m.n_class_a}: {sorted(m.class_a)}'
-        assert m.n_class_b == 42, f'Class B drift: expected 42, got {m.n_class_b}'
-        # The two multi-build slugs collapse in the membership set.
-        assert set(m.class_a) == EXPECTED_CLASS_A, (
+    def test_class_a_count_and_membership(self, tmp_path: Path) -> None:
+        import subprocess
+        import sys
+
+        from pipeline.transforms.strategy.tests.repro import harness
+
+        # Root of trust: the committed fixture must match its manifest before use.
+        harness.verify_pinned_fixture()
+        lake = tmp_path / 'lake'
+        harness.seed_lake(lake, harness.SEED_FILES)
+
+        env = dict(os.environ)
+        env['MAKE_MAGIC_DATA_DIR'] = str(lake)
+        cp = subprocess.run(
+            [sys.executable, '-c', _CENSUS_RUNNER],
+            cwd=str(harness.pipeline_root()),
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=1200,
+        )
+        assert cp.returncode == 0, f'census subprocess failed (rc={cp.returncode}):\n{cp.stderr[-3000:]}'
+        # A lake missing raw/oracle_tags silently switches to a DIFFERENT adjacency
+        # algorithm (ADR 0022); the four-file seed must prevent it.
+        blob = (cp.stdout or '') + (cp.stderr or '')
+        assert harness.FALLBACK_SIGNATURE not in blob, (
+            'ADR-0022 enumerated-adjacency fallback fired — lake under-seeded'
+        )
+
+        census_lines = [ln for ln in cp.stdout.splitlines() if ln.startswith('CENSUS ')]
+        assert len(census_lines) == 1, f'expected one CENSUS line, got {census_lines!r}\nstdout:\n{cp.stdout[-2000:]}'
+        result = json.loads(census_lines[0][len('CENSUS ') :])
+
+        assert result['n_a'] == 34, f'Class A drift: expected 34, got {result["n_a"]}: {result["members"]}'
+        assert result['n_b'] == 42, f'Class B drift: expected 42, got {result["n_b"]}'
+        members = set(result['members'])
+        assert members == EXPECTED_CLASS_A, (
             f'Class-A membership drift. '
-            f'unexpected={sorted(set(m.class_a) - EXPECTED_CLASS_A)} '
-            f'missing={sorted(EXPECTED_CLASS_A - set(m.class_a))}'
+            f'unexpected={sorted(members - EXPECTED_CLASS_A)} '
+            f'missing={sorted(EXPECTED_CLASS_A - members)}'
         )
         # Two duplicated slugs (the two Shorikai builds and the two Prosper builds), so
         # the 34 count exceeds the 32 distinct slugs by exactly two.
-        assert len(m.class_a) - len(set(m.class_a)) == 2
+        assert result['dupes'] == 2
