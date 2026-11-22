@@ -2066,6 +2066,68 @@ def _crispi(argv: list[str]) -> None:
     print(json.dumps(result, indent=2))
 
 
+def _compare(argv: list[str]) -> None:
+    """Compare two decks on identity (layer 1) + execution (layer 3) deltas.
+
+    ``collection compare <A> <B> [--cohort <bundle>] [--json]``. Each reference
+    resolves to a gauntlet/precon ``.dck`` (by stem or ``bundle::stem``) or a deck
+    in the local store. Both decks go through the shared semantic-dump cache, so a
+    repeat comparison is a cache hit (no re-resolve). ``--cohort`` is wired as a
+    Phase-5 stub (it echoes the spec + the matching gauntlet-bundle size).
+    """
+    parser = argparse.ArgumentParser(
+        prog='collection compare',
+        description='Compare two decks: archetype-identity (layer 1) + execution (layer 3) deltas.',
+    )
+    parser.add_argument('a', help='Deck A reference (gauntlet .dck stem, bundle::stem, or local deck name).')
+    parser.add_argument('b', help='Deck B reference (same addressing as A).')
+    parser.add_argument(
+        '--cohort', default=None, help='Phase-5 stub: a gauntlet bundle to place A among (centroid TBD).'
+    )
+    parser.add_argument('--json', action='store_true', help='Emit the structured comparison payload as JSON.')
+    args = parser.parse_args(argv)
+
+    from pipeline.transforms.comparison import LakeContext, cached_deck_dump, resolve_reference
+    from pipeline.transforms.comparison.execution_diff import diff_execution
+    from pipeline.transforms.comparison.identity_diff import diff_identity
+    from pipeline.transforms.comparison.report import comparison_payload, render_text
+
+    ctx = LakeContext.build()
+    deck_a = resolve_reference(args.a, ctx)
+    deck_b = resolve_reference(args.b, ctx)
+    dump_a, hit_a = cached_deck_dump(deck_a, ctx, slug=str(deck_a.get('name') or args.a))
+    dump_b, hit_b = cached_deck_dump(deck_b, ctx, slug=str(deck_b.get('name') or args.b))
+
+    id_diff = diff_identity(dump_a.semantic_dump, dump_b.semantic_dump)
+    exec_diff = diff_execution(dump_a.execution_surface(), dump_b.execution_surface())
+
+    cohort = None
+    if args.cohort is not None:
+        from pipeline.transforms.strategy import corpus
+
+        n_match = sum(1 for info in corpus.gauntlet_decks() if info.get('bundle') == args.cohort)
+        cohort = {
+            'spec': args.cohort,
+            'bundle_match_count': n_match,
+            'note': 'cohort centroid + distance is a Phase-5 stub; --cohort is wired, not yet computed.',
+        }
+
+    payload = comparison_payload(
+        id_diff,
+        exec_diff,
+        a_name=str(deck_a.get('name') or args.a),
+        b_name=str(deck_b.get('name') or args.b),
+        a_identity_gap=dump_a.identity_gap,
+        b_identity_gap=dump_b.identity_gap,
+        cache_hits=(hit_a, hit_b),
+        cohort=cohort,
+    )
+    if args.json:
+        print(json.dumps(payload, indent=2))
+    else:
+        print(render_text(payload))
+
+
 def _hydrate_lake(argv: list[str]) -> None:
     """Bootstrap the local card lake — the public wrapper over the ingest + build stages.
 
@@ -2415,6 +2477,7 @@ VERBS = {
     # behavioral
     'factsheet': _factsheet,
     'crispi': _crispi,
+    'compare': _compare,
 }
 
 __all__ = ('main',)
