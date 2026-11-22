@@ -47,6 +47,7 @@ from pipeline.collection import (
 )
 from pipeline.config import AirtableConfigError
 from pipeline.contracts import ROLE_COMMANDER, Deck, DeckCard, Trade
+from pipeline.transforms.comparison import diff_card_sets
 
 if TYPE_CHECKING:
     from pipeline.collection import CollectionStore
@@ -1228,13 +1229,19 @@ def _deck_drift(deck: Deck, store: CollectionStore) -> _DeckDrift:
         )
 
     baseline_cards = baseline['cards']
-    baseline_names = {c['name'] for c in baseline_cards}
-    current_names = {c.name for c in deck.cards}
-    missing_names = baseline_names - current_names
-    # Divergence: the deck holds a card NOT in the baseline. This is an active
-    # swap, not a pure shrink — recovery would overfill or re-add a cut card, so
-    # it must BLOCK. `current ⊆ baseline` is the hard subset guard.
-    diverged = not current_names <= baseline_names
+    # The card-set delta (what the current deck lost vs its baseline, and whether
+    # it gained anything) rides the shared card-set comparator so audit/recover and
+    # deck-vs-deck comparison share one implementation. Key both sides by card NAME
+    # (the baseline's recovery identity); the value is unused here (presence-only).
+    card_delta = diff_card_sets(
+        {c['name']: c for c in baseline_cards},
+        {c.name: c for c in deck.cards},
+    )
+    missing_names = set(card_delta.removed)
+    # Divergence: the deck holds a card NOT in the baseline (``added`` non-empty).
+    # This is an active swap, not a pure shrink — recovery would overfill or re-add
+    # a cut card, so it must BLOCK. `current ⊆ baseline` is the hard subset guard.
+    diverged = bool(card_delta.added)
 
     # Cross-reference live inventory: a row still present => unlinked; gone =>
     # deleted. For a deleted row, decide HERE (during planning, read-only) whether

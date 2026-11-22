@@ -54,10 +54,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from pipeline.transforms.comparison.dump_diff import LAYERS as LAYERS
 from pipeline.transforms.strategy.naming import headline_strategy
 
-#: The five engine layers + the input card pool, in dump order.
-LAYERS: tuple[str, ...] = ('attributes', 'events', 'eventeffects', 'archetype_identity', 'engines', 'pool')
+# ``LAYERS`` (the five engine layers + the input card pool, in dump order) is
+# imported from :mod:`pipeline.transforms.comparison.dump_diff` — the shared
+# comparator owns the layer catalog, so the record schema this module builds and
+# the differ that walks it read from one source and never drift.
 
 #: Frozen clock used by ``--frozen-meta`` so two runs are byte-identical.
 _FROZEN_CLOCK = '1970-01-01T00:00:00+00:00'
