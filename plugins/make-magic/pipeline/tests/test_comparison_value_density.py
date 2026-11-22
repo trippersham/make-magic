@@ -76,6 +76,22 @@ def test_zero_mv_is_finite() -> None:
     assert value_density({'draw'}, 0.0, table=SYNTH) == pytest.approx(1.5)
 
 
+def test_value_density_refuses_non_finite_mv() -> None:
+    """M2: a non-finite MV is refused (never laundered into a NaN density)."""
+    for bad in (float('nan'), float('inf'), float('-inf')):
+        with pytest.raises(ValueError, match='finite'):
+            value_density({'draw'}, bad, table=SYNTH)
+
+
+def test_value_density_guards_mv_at_minus_one() -> None:
+    """m1: MV = -1 (denominator 0) is guarded, not a ZeroDivisionError."""
+    with pytest.raises(ValueError):
+        value_density({'draw'}, -1.0, table=SYNTH)
+    # And a sub-(-1) MV (negative denominator) is guarded too.
+    with pytest.raises(ValueError):
+        value_density({'draw'}, -2.0, table=SYNTH)
+
+
 def test_mv_residual_above_and_below_rate() -> None:
     v = value_sum({'repeatable-draw', 'draw-engine', 'pure-draw', 'draw'}, table=SYNTH)  # 9.0
     assert mv_residual({'repeatable-draw', 'draw-engine', 'pure-draw', 'draw'}, 1.0, table=SYNTH) == pytest.approx(

@@ -28,6 +28,7 @@ Two design points from the spike (``research/spike/FINDINGS.md``):
 from __future__ import annotations
 
 import json
+import math
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -71,7 +72,15 @@ def value_density(
     The ``+1`` keeps a 0-MV card finite (a Mox is very dense, not infinitely so) and softens
     the curve (research §5). Role-scope with ``role_attrs`` for slot-filling; omit it for a
     whole-card density.
+
+    A non-finite ``mv`` (``NaN`` / ``inf``) is REFUSED — it would launder into a NaN density
+    and serialise as the ``null`` "not computed" sentinel. An ``mv <= -1`` (a zero or negative
+    denominator) is likewise refused rather than dividing by zero or flipping the sign.
     """
+    if not math.isfinite(mv):
+        raise ValueError(f'value_density requires a finite MV, got {mv!r}')
+    if mv + 1.0 <= 0.0:
+        raise ValueError(f'value_density requires MV > -1 (a positive denominator), got {mv!r}')
     v = value_sum(attrs, role_attrs=role_attrs, table=table)
     return v / (mv + 1.0)
 
