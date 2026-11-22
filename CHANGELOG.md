@@ -12,12 +12,11 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [0.9.0] — 2026-11-20
-
-A **feature** release — under this project's pre-1.0 `0.y.z` convention the **minor**
-bump is the major/breaking increment. Ships the **unified event graph** (issue #83): the
-strategy engine's loop model is rebuilt so engine-detected recursion and combo-detected
-wins agree by construction, not by two drifting heuristics.
+Ships the **unified event graph** (issue #83): the strategy engine's loop model is rebuilt so
+engine-detected recursion and combo-detected wins are **independent signals whose disagreement the
+new reconciliation metric measures** (the "loops to author" queue), not two drifting heuristics
+asserted to agree. The combo-certified families that would close the remaining disagreement are
+deferred to #90.
 
 ### Added
 
@@ -77,8 +76,12 @@ wins agree by construction, not by two drifting heuristics.
   from pre-#83 `main` to the families-deferred tip — ENGINE `4d3f5e6d…`→`80d0116a…`, RESOLVE
   `940c3881…`→`3ebb33fd…`, FULL_CORPUS `ec917355…`→`85eba970…` — reproduced identically across
   two fresh runs (`PYTHONHASHSEED` 0 and 4242). Deferring the 7 combo-certified families reverts
-  all three composites byte-for-byte to the framework+lifetrade (Phase-2) state. Tier-1 output
-  stays byte-deterministic and network-free.
+  all three composites byte-for-byte to the framework+lifetrade (Phase-2) state. The #115
+  election-loop fix (a pure-event-cycle lifetrade loop that was silently dropped) then moves
+  **FULL_CORPUS `85eba970…`→`f3efdb0d…`** for 3 corpus decks (Karlov / Elenda / Edgar Markov, each a
+  genuine Sanguine Bond + Exquisite Blood loop); ENGINE + RESOLVE stay byte-identical and the
+  reconciliation census holds at Class A 34 / Class B 42. Tier-1 output stays byte-deterministic
+  and network-free.
 
 ## [0.8.0] — 2026-11-19
 
