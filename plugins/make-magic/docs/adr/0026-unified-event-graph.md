@@ -5,7 +5,7 @@
 | Status | Accepted (framework). Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) + Phase 3 (combo-certified promotion of the 7 resource-dependent families) + Phase 4 (internal reconciliation metric) + Phase 5 (behavioral verification + the cumulative 0.9.0 proof-carrying re-baseline) in force on branch `feat/83-unified-event-graph`. Self-mill + extra-turn DEFERRED (Phase-3b reverted → #90). Multi-phase, proof-carrying (ADR 0003); the cumulative OFF→ON re-baseline is the ADR 0003 2026-11-20 entry. |
 | Review | **owner-approved 2026-11-19 (relay placement = `produced_by`-only confirmed).** Agent-authored from the approved design (`~/.claude/plans/trippersham/magic-tools/2026-11-19-node-admission-thematic-vs-mechanical/design.md`) + the astra-5.2 drift pressure-test (`drift-pressure-test.md`, spike `spike/83-unified-event-drift`, throwaway). Owner reads this record before Phase 1. |
 | Test | Phase 0 (schema): from `plugins/make-magic/pipeline`: `uv run --extra dev pytest pipeline/transforms/strategy/tests/test_relay_schema.py pipeline/transforms/strategy/tests/test_event_ontology.py -q`. Parity gate: `uv run python -m pipeline.transforms.strategy.tests.engine_parity_oracle` — **the P0 SHA triple is UNCHANGED** (no relay families authored, no edges added). Later phases re-baseline under ADR 0003. |
-| Code paths | [`derive_card_events.py`](../../pipeline/pipeline/transforms/strategy/derive_card_events.py) (`RelayEntry`, `SEED_MAP`, `derive_card_events`, `validate_seed_map`), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (repurposed as the provisional-edge channel, Phase 1), [`strategy_graph.py`](../../pipeline/pipeline/transforms/strategy/strategy_graph.py) (the one walk; SCC; loop-aware admission, Phase 1; `combo_event_edges` threading, Phase 3), [`combo_win.py`](../../pipeline/pipeline/transforms/strategy/combo_win.py) (`unbounded_intermediate_events` — the certified-unbounded liveness filter, Phase 3), [`combo_promotion.py`](../../pipeline/pipeline/transforms/strategy/combo_promotion.py) (the 7-family combo-certified promotion, Phase 3) |
+| Code paths | [`derive_card_events.py`](../../pipeline/pipeline/transforms/strategy/derive_card_events.py) (`RelayEntry`, `SEED_MAP`, `derive_card_events`, `validate_seed_map`), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (repurposed as the provisional-edge channel, Phase 1), [`strategy_graph.py`](../../pipeline/pipeline/transforms/strategy/strategy_graph.py) (the one walk; SCC; loop-aware admission, Phase 1; `combo_event_edges` threading, Phase 3), [`combo_win.py`](../../pipeline/pipeline/transforms/strategy/combo_win.py) (`unbounded_intermediate_events` — the certified-unbounded liveness filter, Phase 3), [`combo_promotion.py`](../../pipeline/pipeline/transforms/strategy/combo_promotion.py) (the 7-family combo-certified promotion + the template-satisfaction gate, Phase 3), [`data/combo_templates.json`](../../pipeline/pipeline/transforms/strategy/data/combo_templates.json) (template-requirement predicates, 2026-11-22) |
 
 ## Context
 
@@ -92,6 +92,20 @@ Kitsa / Narset's Reversal; token/ETB false draw returns). Edge-semantic validati
   graph gets these event→event edges from loops `combo_win` has ALREADY certified unbounded
   (reuse its magnitudes), **NOT** from naive gate queries. This reconciles engines⟷combos by
   construction and structurally cannot form the Grim-Monolith / one-shot-copy false circuits.
+
+  **Template-satisfaction gate (2026-11-22, #83 pre-merge review / #106 Cayth).** `combo_detect`
+  matches a combo on its concrete `uses` cards only and drops the `requires[].template` pieces, so
+  a template-partial combo (e.g. "+ any Persist Creature") is DETECTED on a deck that lacks the
+  template piece, then win-classified — but the loop is **not executable**. Promotion asserts an
+  executable loop, so a win combo is promoted ONLY when the deck satisfies **every** template it
+  requires. The requirement survives in the already-landed `variant_id`: its `--<ids>` suffix is
+  Commander Spellbook's template-id set (verified byte-equal to `requires[].template.id` across the
+  corpus). Each template id maps (in `data/combo_templates.json`) to a predicate over a deck card —
+  a keyword/type check (persist/undying), an otag check (copy-clone, counter-increaser), or a
+  cmc/permanent/generic-castable check — and is satisfied when any deck card matches; a template id
+  with no entry **fails closed** (not promoted). This is a uniform predicate over template data +
+  deck cards, no per-deck branch. Cayth's `2034-2744--5` (needs a Persist Creature it lacks) is
+  dropped; Marchesa's persist combo (Glen Elendra Archmage + River Kelpie) PASSES and is kept.
 
 ### 5. Internal reconciliation metric (not user-facing)
 

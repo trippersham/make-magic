@@ -35,7 +35,103 @@ knowledge lives in the lake's combo data, never as a branch in this engine code.
 
 from __future__ import annotations
 
+import json
+import re
+from functools import cache
+from pathlib import Path
+
 from pipeline.transforms.strategy.combo_win import unbounded_intermediate_events
+
+_COMBO_TEMPLATES_PATH = Path(__file__).resolve().parent / 'data' / 'combo_templates.json'
+
+#: The `--<ids>` suffix of a Commander Spellbook variant_id encodes the required
+#: TEMPLATE ids (``2034-2744--5`` requires template 5; ``2034-5662--5--195`` requires
+#: 5 and 195). This matches the raw variant's ``requires[].template.id`` set exactly
+#: (verified 0 mismatches across the corpus), so the already-landed variant_id carries
+#: the template requirement that ``combo_detect`` dropped at normalization.
+_TEMPLATE_SUFFIX_RE = re.compile(r'--(.+)$')
+
+_PERMANENT_TYPES: tuple[str, ...] = ('Creature', 'Artifact', 'Enchantment', 'Planeswalker', 'Battle', 'Land')
+
+
+@cache
+def _load_combo_templates() -> dict[int, dict]:
+    """Load the template-requirement predicates (template id -> predicate spec).
+
+    Keyed by int template id; the leading ``_doc`` key and any other non-numeric
+    key are ignored. A template id absent from this map is NOT expressible and
+    fails closed (see :func:`combo_templates_satisfied`).
+    """
+    with _COMBO_TEMPLATES_PATH.open() as f:
+        raw = json.load(f)
+    return {int(k): v['predicate'] for k, v in raw.items() if k.isdigit()}
+
+
+def template_ids(variant_id: str) -> list[int]:
+    """The Commander Spellbook template ids a variant requires, from its id suffix.
+
+    Returns ``[]`` when the variant names no template (no ``--`` suffix).
+    """
+    m = _TEMPLATE_SUFFIX_RE.search(variant_id or '')
+    if not m:
+        return []
+    return sorted(int(tok) for tok in m.group(1).split('-') if tok)
+
+
+def _generic_castable(mana_cost: str) -> bool:
+    """A non-empty mana cost with no colored (WUBRG) pip — castable with generic mana."""
+    return bool(mana_cost) and not any(ch in mana_cost for ch in 'WUBRG')
+
+
+def _card_satisfies(predicate: dict, card: dict) -> bool:
+    """Does one deck card satisfy a template predicate (ALL present conditions hold)?"""
+    kw_any = predicate.get('keyword_any')
+    if kw_any is not None and not (set(kw_any) & set(card.get('keywords') or [])):
+        return False
+    type_substr = predicate.get('type_substr')
+    if type_substr is not None and type_substr not in (card.get('type_line') or ''):
+        return False
+    otag_any = predicate.get('otag_any')
+    if otag_any is not None and not (set(otag_any) & set(card.get('otags') or [])):
+        return False
+    max_cmc = predicate.get('max_cmc')
+    if max_cmc is not None and (card.get('cmc') or 0) > max_cmc:
+        return False
+    if predicate.get('permanent'):
+        tl = card.get('type_line') or ''
+        if 'Instant' in tl or 'Sorcery' in tl or not any(t in tl for t in _PERMANENT_TYPES):
+            return False
+    return not (predicate.get('generic_castable') and not _generic_castable(card.get('mana_cost') or ''))
+
+
+def template_satisfied(template_id: int, cards: list[dict]) -> bool:
+    """Is a single template requirement satisfiable by the deck's cards?
+
+    Expressible (in :data:`combo_templates.json`) iff ANY deck card satisfies its
+    predicate; an inexpressible template id fails closed (``False``), since
+    promotion asserts an executable loop and must never certify a piece it cannot
+    confirm the deck holds.
+    """
+    predicate = _load_combo_templates().get(template_id)
+    if predicate is None:
+        return False
+    return any(_card_satisfies(predicate, c) for c in cards)
+
+
+def combo_templates_satisfied(variant_id: str, cards: list[dict]) -> bool:
+    """Does the deck hold a card for EVERY template this win combo requires?
+
+    A win combo with no template requirement is vacuously satisfied. A combo whose
+    required template piece the deck lacks (Cayth's missing Persist Creature, #83
+    BLOCKER 1) — or whose template this engine cannot express — is NOT satisfied,
+    so :func:`combo_certified_event_edges` drops it before promotion. This is the
+    uniform executability predicate over template data + deck cards (no per-deck
+    branch): a template-partial combo detected on its concrete pieces alone is
+    promoted ONLY when its template is actually present, never on the detection
+    signal that ``combo_detect`` leaves template-blind.
+    """
+    return all(template_satisfied(tid, cards) for tid in template_ids(variant_id))
+
 
 #: The seven resource-dependent relay families as declarative event→event edge rules.
 #: Each rule is ``(family, (event_a, event_b))``: an undirected relay between the two
@@ -89,24 +185,34 @@ def certified_family_pairs(unbounded: set[str]) -> set[tuple[str, str]]:
     return {edge for _family, edge in FAMILY_RELAY_EDGES if edge[0] in unbounded and edge[1] in unbounded}
 
 
-def combo_certified_event_edges(win_combo_fids: list[list[int]]) -> list[tuple[str, str]]:
+def combo_certified_event_edges(win_combos: list[dict], cards: list[dict]) -> list[tuple[str, str]]:
     """Per-deck combo-certified event→event edges for the one SCC walk.
 
-    *win_combo_fids* is the fid list of every WIN combo detected in the deck (the walk's
+    *win_combos* is every WIN combo detected in the deck (the walk's
     ``combo_win_verdict`` already decided win-ness; this consumes that, it does not
-    re-detect). For each win combo, the events it certifies unbounded
-    (:func:`.combo_win.unbounded_intermediate_events`) select the family pairs
-    (:func:`certified_family_pairs`); each pair becomes a directed 2-cycle (both
-    ``(a, b)`` and ``(b, a)``) so the SCC closes it. Edges from all win combos are
-    unioned and returned sorted (determinism, ADR 0003).
+    re-detect), each a dict carrying its ``variant_id`` and resolved ``_fids``.
+    *cards* is the deck's attached cards (``keywords``/``type_line``/``cmc``/
+    ``mana_cost``/``otags``), read ONLY to evaluate template satisfaction.
+
+    A win combo contributes edges ONLY when the deck satisfies every TEMPLATE piece
+    the combo requires (:func:`combo_templates_satisfied`) — a template-partial combo
+    that ``combo_detect`` matched on its concrete pieces alone (Cayth's variant that
+    needs a Persist Creature the deck lacks, #83 BLOCKER 1) is NOT an executable loop,
+    so it is dropped before promotion. For each surviving win combo, the events it
+    certifies unbounded (:func:`.combo_win.unbounded_intermediate_events`) select the
+    family pairs (:func:`certified_family_pairs`); each pair becomes a directed 2-cycle
+    (both ``(a, b)`` and ``(b, a)``) so the SCC closes it. Edges from all surviving win
+    combos are unioned and returned sorted (determinism, ADR 0003).
 
     The per-combo scoping is load-bearing: two UNRELATED combos (one makes infinite
     untap, another infinite mana) must NOT compose into a spurious untap↔mana loop, so
     both endpoints of a family edge must be certified unbounded in the SAME combo.
     """
     pairs: set[tuple[str, str]] = set()
-    for fids in win_combo_fids:
-        pairs |= certified_family_pairs(unbounded_intermediate_events(fids))
+    for combo in win_combos:
+        if not combo_templates_satisfied(combo.get('variant_id', ''), cards):
+            continue
+        pairs |= certified_family_pairs(unbounded_intermediate_events(combo.get('_fids') or []))
     edges: set[tuple[str, str]] = set()
     for a, b in pairs:
         edges.add((a, b))

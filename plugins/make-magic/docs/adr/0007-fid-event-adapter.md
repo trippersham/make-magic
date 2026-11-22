@@ -88,6 +88,21 @@ During promotion, ambiguous features received owner-ruled classifications:
   No monarch fids exist (verified). `combo_win.fid_route`'s branch renamed to match (ADR 0016).
   Data-only change to the `event` field; carried under the Tier-A re-baseline (ADR 0003).
 
+- **2026-11-22 — continuous-pump fids corrected off `counter-placed` (#107 Ezuri).** 30 fids
+  whose names describe a continuous +X/+X power/size boost ("Infinitely large creature until end
+  of turn" = fid 651 Umbral Mantle, "Infinite power ...", "power and toughness ... until end of
+  turn") were mapped to `event: "counter-placed"` though such a boost places ZERO counters — a
+  power/toughness modifier is a static continuous effect, not counter placement and not a CR
+  trigger event (adr-event-ontology: mechanic-class is a CardAttribute, not an Event). All 30 now
+  carry `event: null` with the note "continuous +X/+X power pump; not a counter, no bounded trigger
+  event (static P/T modifier)". This removes them from the `counter` relay family (counter-placed↔
+  untap), which had falsely certified a recursive counter engine for Ezuri off its Umbral Mantle
+  loops; no win changes (the pumps never self-certified a win). The 54 genuine `counter-placed`
+  fids (real +1/+1 counters, proliferate, saga lore-counters) are untouched; the new
+  `test_fid_adapter.TestEventNameConsistency` guards the class (every `counter-placed` name must
+  evidence a counter mechanic). Data-only change to the `event`/`note` fields; carried under the
+  2026-11-22 re-baseline (ADR 0003).
+
 ## Related records
 
 - 0012 — Event ontology: the bounded trigger taxonomy the adapter maps into.

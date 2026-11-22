@@ -780,6 +780,24 @@ re-baseline makes every *intended* change legible as such.
   `raw/oracle_tags.parquet` sha `9289959165d59b64…` byte-unchanged before == after); ruff + format
   + pyright clean.
 
+- **2026-11-22 — two corpus false-positives removed (#83 pre-merge review, #106 Cayth +
+  #107 Ezuri).** Two engine corrections that REMOVE false recursive labels (output-moving):
+  (a) `fid_event_adapter.json` fid 651 + the 30-fid continuous-pump class drop `counter-placed`
+  for `event=None` (a +X/+X power boost is a static P/T modifier, not a counter, not a trigger
+  event), so they stop certifying the `counter` relay family that gave Ezuri a false recursive
+  counter engine; (b) combo-certified promotion now evaluates a win combo's required TEMPLATE
+  pieces (`data/combo_templates.json`, keyed off the variant_id `--<ids>` suffix) against the
+  deck, so Cayth's Persist-Creature-less variant no longer promotes a false death/token loop while
+  Marchesa's satisfied persist combo is kept. Measured OFF/ON on the pinned 170-deck gauntlet,
+  reproduced at `PYTHONHASHSEED` 0 and 4242: exactly 2/170 decks move, both FP removals (Ezuri
+  `counter-placed`; Cayth `permanent-dies`/`token-created`/`permanent-sacrificed`, keeping its 3
+  genuine ranked events), 0 win-combo changes, Class A 26 / Class B 42 UNCHANGED, the ~36 genuine
+  family loops survive byte-identical. The 17 hermetic fixtures carry neither case, so ENGINE +
+  RESOLVE are byte-UNCHANGED; only `FULL_CORPUS_SHA` moves `17e806fa…` → `7b59008f…` (updated in
+  `engine_parity_oracle.py` + the pinned `manifest.json`). NOT a version bump (folds into the
+  0.9.0 prep). `uv run --extra dev pytest -q` green + network-free; ruff + format + pyright clean.
+  Proof: `subagents/fix-path1-fps/outbox.md`.
+
 ## Related records
 - 0001 — the knowledge-placement doctrine these files exemplify.
 - 0002 — the substantiveness model (`strategy_graph.py` is shared with this record).

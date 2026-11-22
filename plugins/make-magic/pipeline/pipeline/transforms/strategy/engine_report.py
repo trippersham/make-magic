@@ -513,7 +513,7 @@ def identify_engines(
     earned_archetypes = {
         arch for arch, st in ctx.strategies.items() if requirement_for(arch, ctx.cfg).satisfied(st, ctx, arch)
     }
-    combo_event_edges = combo_certified_event_edges([c['_fids'] for c in ctx.win_combos])
+    combo_event_edges = combo_certified_event_edges(ctx.win_combos, ctx.cards)
     iso = elect_engine_units_with_relay(
         ctx.nodes,
         ctx.assets.events,

@@ -942,11 +942,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 159,
     "magnitude": "infinite",
     "name": "Infinitely large creatures",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -1540,11 +1540,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 271,
     "magnitude": "near-infinite",
     "name": "Near-infinitely large creature until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -2322,11 +2322,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 481,
     "magnitude": "near-infinite",
     "name": "Near-infinitely large creatures until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -2793,11 +2793,11 @@
     "scope": "self"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 609,
     "magnitude": "infinite",
     "name": "Infinite power for any creature",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -2921,11 +2921,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 651,
     "magnitude": "infinite",
     "name": "Infinitely large creature until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -4241,11 +4241,11 @@
     "scope": "self"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 1016,
     "magnitude": "infinite",
     "name": "Infinitely large creatures you control until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
@@ -4313,11 +4313,11 @@
     "scope": "self"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 1040,
     "magnitude": "infinite",
     "name": "Infinitely large creature",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -4351,11 +4351,11 @@
     "scope": "target"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 1045,
     "magnitude": "near-infinite",
     "name": "Near-infinitely large creature",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -6520,11 +6520,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 1579,
     "magnitude": "infinite",
     "name": "Infinitely powerful creatures you control until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
@@ -9120,11 +9120,11 @@
     "scope": "target"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2275,
     "magnitude": "infinite",
     "name": "Infinitely powerful creature until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -9184,74 +9184,74 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2289,
     "magnitude": "infinite",
     "name": "Infinite power and toughness for certain creatures until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2290,
     "magnitude": "infinite",
     "name": "Infinite power and toughness for certain creatures",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2291,
     "magnitude": "infinite",
     "name": "Infinite power and toughness for most creatures you control until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2292,
     "magnitude": "near-infinite",
     "name": "Near-infinite power and toughness for certain creatures until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2293,
     "magnitude": "infinite",
     "name": "Infinite power for certain creatures until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2294,
     "magnitude": "near-infinite",
     "name": "Near-infinite power for a creature until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2295,
     "magnitude": "near-infinite",
     "name": "Near-infinite power for a creature",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2296,
     "magnitude": "near-infinite",
     "name": "Near-infinite power for certain creatures until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -9501,11 +9501,11 @@
     "scope": "self"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2355,
     "magnitude": "near-infinite",
     "name": "Near-infinitely powerful creature until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -9519,20 +9519,20 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2357,
     "magnitude": "near-infinite",
     "name": "Near-infinitely large creatures you control until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2358,
     "magnitude": "near-infinite",
     "name": "Near-infinitely powerful creatures you control until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
@@ -10724,11 +10724,11 @@
     "scope": "self"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2584,
     "magnitude": "infinite",
     "name": "Infinitely powerful red creatures you control until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": {
       "color": "red"
     },
@@ -10843,11 +10843,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2605,
     "magnitude": "infinite",
     "name": "Infinitely large Allies you control until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
@@ -10984,11 +10984,11 @@
     "scope": "self"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2645,
     "magnitude": "infinite",
     "name": "Infinitely powerful creature",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -11046,11 +11046,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2654,
     "magnitude": "infinite",
     "name": "Infinitely large Thopters you control",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
@@ -11083,11 +11083,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2659,
     "magnitude": "infinite",
     "name": "Infinitely powerful creatures you control",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
@@ -11211,11 +11211,11 @@
     "scope": "self"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2679,
     "magnitude": "infinite",
     "name": "Infinitely powerful Rats you control until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
@@ -11615,11 +11615,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2749,
     "magnitude": "infinite",
     "name": "Infinite power for a creature",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   },
@@ -12059,11 +12059,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2829,
     "magnitude": "infinite",
     "name": "Infinitely powerful legendary creatures you control until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "self"
   },
@@ -12480,11 +12480,11 @@
     "scope": "unscoped"
   },
   {
-    "event": "counter-placed",
+    "event": null,
     "fid": 2923,
     "magnitude": "infinite",
     "name": "Infinite power and toughness for a creature until end of turn",
-    "note": "combat; timing=deferred",
+    "note": "continuous +X/+X power pump; not a counter, no bounded trigger event (static P/T modifier)",
     "object_descriptor": null,
     "scope": "unscoped"
   }

@@ -470,7 +470,34 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   FULL_CORPUS 85eba970fe1f0934… -> 17e806fa5692f255…
 #   ENGINE      80d0116a653ffb31… -> 8f45c628b2be503b…
 #   RESOLVE     3ebb33fd9b469926… -> 6eed6ba71c308f80…
-FULL_CORPUS_SHA = '17e806fa5692f255c4fd55f6a099a3ebde78b1263a5776ea7066a3c06989de9b'
+# Re-baselined 2026-11-22 (#83 two corpus false-positives removed — #106 Cayth,
+# #107 Ezuri). Two engine corrections that REMOVE false recursive labels (ADR 0003
+# output-moving re-baseline):
+#   * #107 Ezuri: fid_event_adapter fid 651 ("Infinitely large creature until end of
+#     turn", Umbral Mantle) + the 30-fid "continuous +X/+X pump" class were mislabeled
+#     `counter-placed` though a power/size boost places ZERO counters. A pump is a static
+#     P/T modifier, not a CR trigger event (adr-event-ontology), so these map to
+#     event=None. They no longer certify the `counter` relay family (counter-placed<->
+#     untap), which had given Ezuri a false recursive counter engine off its 6 Umbral
+#     Mantle loops.
+#   * #106 Cayth: combo-certified promotion now evaluates a win combo's TEMPLATE pieces
+#     (combo_templates.json, keyed by the variant_id's `--<ids>` suffix) against the deck
+#     before promoting. Cayth's variant 2034-2744--5 requires a Persist Creature the deck
+#     lacks, so its etb-death family edges are dropped (the loop is non-executable);
+#     Marchesa's persist combo PASSES (Glen Elendra Archmage + River Kelpie) and is KEPT.
+# Measured OFF/ON (170 gauntlet pinned lake, reproduced at PYTHONHASHSEED 0 and 4242):
+# exactly 2/170 decks move, both FP removals — Ezuri loses `counter-placed` (raw+ranked);
+# Cayth loses `permanent-dies`/`token-created` (ranked) and `permanent-sacrificed` (raw),
+# keeping its 3 genuine ranked events (counter-placed, creature-enters-battlefield,
+# proliferate). 0 win-combo changes (Ezuri 12, Cayth 1 intact); Class A 26/Class B 42
+# UNCHANGED, 0 Class-A membership change; the ~36 genuine family loops (incl. Marchesa,
+# Ghave, Shorikai, Derevi) all survive byte-identical. The 17 hermetic fixtures carry
+# NEITHER touched case, so ENGINE + RESOLVE are UNCHANGED — only FULL_CORPUS moves:
+#   FULL_CORPUS 17e806fa5692f255… -> 7b59008f70d6b003…
+#   ENGINE      8f45c628b2be503b… (unchanged)
+#   RESOLVE     6eed6ba71c308f80… (unchanged)
+# Proof: subagents/fix-path1-fps/outbox.md.
+FULL_CORPUS_SHA = '7b59008f70d6b003635d23e025aa52dd3e6d9b2260ee6a4d980fc2d0a51b139e'
 
 
 def full_corpus_sha() -> str:

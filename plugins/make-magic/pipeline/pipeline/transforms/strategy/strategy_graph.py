@@ -1018,8 +1018,12 @@ def compute_facts(
     # Combo-certified relay promotion (ADR 0026 §4 / #83 Phase 3): the per-deck event→event
     # edges for the 7 resource-dependent families, promoted from this deck's WIN combos that
     # ``combo_win`` certified unbounded (reusing their fids — no re-detection, no gate query).
-    # Injected into the one SCC walk so a genuine family loop reports ``recursive-engine``.
-    combo_event_edges = combo_certified_event_edges([c['_fids'] for c in win_combos])
+    # A win combo is promoted only when the deck SATISFIES every template piece it requires
+    # (``combo_templates_satisfied`` reads ``cards``): a template-partial combo matched on its
+    # concrete pieces alone (Cayth's Persist-Creature-less variant, #83 BLOCKER 1) is not an
+    # executable loop. Injected into the one SCC walk so a genuine family loop reports
+    # ``recursive-engine``.
+    combo_event_edges = combo_certified_event_edges(win_combos, cards)
     facts['engines']['engine_units'] = elect_engine_units(
         nodes, event_edges, attr_weight, assets, cards, earned_archetypes, combo_event_edges
     )

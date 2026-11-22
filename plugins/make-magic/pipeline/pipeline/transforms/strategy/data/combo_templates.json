@@ -1,0 +1,33 @@
+{
+  "_doc": "Template-requirement predicates for combo-certified promotion (ADR 0026 §4, issue #83). A Commander Spellbook variant may require a TEMPLATE piece (`requires[].template`, e.g. 'any Persist Creature') in addition to its concrete `uses` cards. combo_detect drops template pieces (concrete-only matching), so a template-partial combo can be DETECTED on its concrete pieces alone and then win-classified — but its loop cannot actually execute unless the deck also holds a card satisfying the template. Promotion asserts an EXECUTABLE loop, so a win combo is promoted ONLY when every template it names is satisfied by the deck. Each template id (the `--<ids>` suffix of a variant_id, Commander Spellbook's own template ids) maps to a PREDICATE over a deck card: a card satisfies it when every present condition holds (keyword_any AND type_substr AND otag_any AND max_cmc/permanent/generic_castable); the template is satisfied when ANY deck card satisfies. A template id with NO entry here is NOT expressible and FAILS CLOSED (the combo is not promoted) — see combo_promotion.combo_templates_satisfied. Predicate keys: keyword_any (any of these Scryfall keywords in the card's `keywords`), type_substr (substring of `type_line`), otag_any (any of these otag slugs in `otags`), max_cmc (`cmc` <= N), permanent (type_line is a permanent type, not Instant/Sorcery), generic_castable (`mana_cost` is non-empty and carries no colored WUBRG pip). The six entries are the templates that gate a promoting win combo on the gauntlet corpus; residual template ids are listed for follow-up in the #83 outbox.",
+  "5": {
+    "name": "Persist Creature",
+    "query": "keyword:persist t:creature",
+    "predicate": {"keyword_any": ["Persist"], "type_substr": "Creature"}
+  },
+  "73": {
+    "name": "Creature with Persist or Undying",
+    "query": "t:creature (keyword:persist or keyword:undying)",
+    "predicate": {"keyword_any": ["Persist", "Undying"], "type_substr": "Creature"}
+  },
+  "108": {
+    "name": "Cards That Copy or Clone Creatures",
+    "query": null,
+    "predicate": {"otag_any": ["copy-creature", "clone"]}
+  },
+  "195": {
+    "name": "Increases +1/+1 Counter Placement but not -1/-1",
+    "query": null,
+    "predicate": {"otag_any": ["counter-increaser"]}
+  },
+  "46": {
+    "name": "Permanent Castable for {C}",
+    "query": "mv<=1 (mana={0} or mana={1} or mana={C}) is:permanent",
+    "predicate": {"max_cmc": 1, "permanent": true, "generic_castable": true}
+  },
+  "47": {
+    "name": "Permanent Castable for {C}{C}",
+    "query": "mv<=2 -t:land -t:attraction -mana:{X}{X}{X} -t:sticker -mana:{W} -mana:{U} -mana:{B} -mana:{R} -mana:{G} -t:instant -t:sorcery",
+    "predicate": {"max_cmc": 2, "permanent": true, "generic_castable": true}
+  }
+}

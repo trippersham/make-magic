@@ -282,6 +282,72 @@ class TestOwnerDispositions:
 
 
 # ────────────────────────────────────────────────────────────────────────────
+# 3b. Event-vs-name consistency (counter-placed must evidence a counter)
+# ────────────────────────────────────────────────────────────────────────────
+
+#: Tokens whose presence in a feature name evidences that the feature actually
+#: places/manipulates counters (so ``counter-placed`` is the correct event):
+#: ``counter`` (+1/+1, charge, etc.), ``proliferate`` (adds a counter to each
+#: permanent that has one), and saga lore-counter advancement
+#: (``saga``/``chapter``/``lore``; adr-event-ontology: Saga -> counter-placed).
+_COUNTER_EVIDENCE: frozenset[str] = frozenset({'counter', 'proliferate', 'saga', 'chapter', 'lore'})
+
+#: The continuous +X/+X "pump" fids (Umbral-Mantle class) that were mislabeled
+#: ``counter-placed`` though they place ZERO counters — a power/toughness boost is
+#: a continuous (static) effect, not a counter and not a CR trigger event (#107).
+#: They now carry ``event=None``; this frozenset is the regression guard.
+_CONTINUOUS_PUMP_FIDS: frozenset[int] = frozenset(
+    {
+        159, 271, 481, 609, 651, 1016, 1040, 1045, 1579, 2275,
+        2289, 2290, 2291, 2292, 2293, 2294, 2295, 2296, 2355, 2357,
+        2358, 2584, 2605, 2645, 2654, 2659, 2679, 2749, 2829, 2923,
+    }
+)  # fmt: skip
+
+
+class TestEventNameConsistency:
+    """An adapter row's event must be consistent with its feature name.
+
+    Guards the #107 defect class: a continuous power/size pump ("Infinitely large
+    creature", "Infinite power ...") was mapped to ``counter-placed`` though it
+    places no counters, which falsely certified the ``counter`` relay family
+    (``counter-placed`` <-> ``untap``) for Ezuri's Umbral Mantle loops.
+    """
+
+    def test_every_counter_placed_fid_evidences_a_counter(self) -> None:
+        """No ``counter-placed`` fid may be a pure power/pump effect.
+
+        Every ``counter-placed`` feature name must mention a counter mechanic
+        (counter / proliferate / saga-lore). A name that describes only an
+        "infinitely large / powerful" creature or "infinite power" is a continuous
+        P/T modifier, NOT counter placement, and must not route through
+        ``counter-placed`` (which is a ``counter`` relay-family endpoint).
+        """
+        offenders = []
+        for fid, m in load_adapter().items():
+            if m.event != 'counter-placed':
+                continue
+            if not any(tok in m.name.lower() for tok in _COUNTER_EVIDENCE):
+                offenders.append((fid, m.name))
+        assert not offenders, (
+            f'{len(offenders)} counter-placed fids name no counter mechanic (a pump is not a counter): {offenders}'
+        )
+
+    def test_continuous_pump_fids_are_not_counter_placed(self) -> None:
+        """The Umbral-Mantle-class pump fids carry ``event=None`` (#107 regression).
+
+        A continuous +X/+X boost is a static characteristic modifier, not a CR
+        trigger event; it is neither a counter nor (on its own) a certifiable win,
+        so it maps to ``None`` and feeds no relay family.
+        """
+        adapter = load_adapter()
+        for fid in sorted(_CONTINUOUS_PUMP_FIDS):
+            m = adapter.get(fid)
+            assert m is not None, f'pump fid {fid} missing from adapter'
+            assert m.event is None, f'pump fid {fid} ({m.name!r}) maps to {m.event!r}, expected None'
+
+
+# ────────────────────────────────────────────────────────────────────────────
 # 4. Object descriptor parsing
 # ────────────────────────────────────────────────────────────────────────────
 

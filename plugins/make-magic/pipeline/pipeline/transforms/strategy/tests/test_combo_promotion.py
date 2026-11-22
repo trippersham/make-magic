@@ -31,6 +31,9 @@ from pipeline.transforms.strategy.combo_promotion import (
     FAMILY_RELAY_EDGES,
     certified_family_pairs,
     combo_certified_event_edges,
+    combo_templates_satisfied,
+    template_ids,
+    template_satisfied,
 )
 from pipeline.transforms.strategy.combo_win import unbounded_intermediate_events
 from pipeline.transforms.strategy.strategy_graph import recursive_event_set
@@ -154,23 +157,28 @@ class TestUnboundedIntermediateEvents:
 # ---------------------------------------------------------------------------
 
 
+def _wc(*fid_lists: list[int]) -> list[dict]:
+    """Build win-combo dicts (template-free variant ids) for the no-template path."""
+    return [{'variant_id': str(1000 + i), '_fids': fids} for i, fids in enumerate(fid_lists)]
+
+
 class TestComboCertifiedEventEdges:
     def test_two_cycle_both_directions(self):
-        edges = combo_certified_event_edges([[FID_INF_UNTAP, FID_INF_MANA]])
+        edges = combo_certified_event_edges(_wc([FID_INF_UNTAP, FID_INF_MANA]), [])
         assert set(edges) == {('untap', 'mana-produced'), ('mana-produced', 'untap')}
 
     def test_etb_death_cycle(self):
-        edges = set(combo_certified_event_edges([[FID_INF_ETB, FID_INF_DIES, FID_INF_SAC]]))
+        edges = set(combo_certified_event_edges(_wc([FID_INF_ETB, FID_INF_DIES, FID_INF_SAC]), []))
         assert ('creature-enters-battlefield', 'permanent-dies') in edges
         assert ('permanent-dies', 'creature-enters-battlefield') in edges
         assert ('creature-enters-battlefield', 'permanent-sacrificed') in edges
 
     def test_sorted_deterministic(self):
-        edges = combo_certified_event_edges([[FID_INF_UNTAP, FID_INF_MANA]])
+        edges = combo_certified_event_edges(_wc([FID_INF_UNTAP, FID_INF_MANA]), [])
         assert edges == sorted(edges)
 
     def test_union_across_combos(self):
-        edges = set(combo_certified_event_edges([[FID_INF_UNTAP, FID_INF_MANA], [FID_INF_ETB, FID_INF_DIES]]))
+        edges = set(combo_certified_event_edges(_wc([FID_INF_UNTAP, FID_INF_MANA], [FID_INF_ETB, FID_INF_DIES]), []))
         assert ('untap', 'mana-produced') in edges
         assert ('creature-enters-battlefield', 'permanent-dies') in edges
 
@@ -178,14 +186,66 @@ class TestComboCertifiedEventEdges:
         # Two UNRELATED combos (one makes only infinite untap, the other only infinite mana)
         # must NOT compose into a spurious untap↔mana loop — both endpoints must be certified
         # unbounded in the SAME combo.
-        assert combo_certified_event_edges([[FID_INF_UNTAP], [FID_INF_MANA]]) == []
+        assert combo_certified_event_edges(_wc([FID_INF_UNTAP], [FID_INF_MANA]), []) == []
 
     def test_w5_finite_carrier_yields_no_edge(self):
         # A finite one-shot (the one-shot-copy class) certifies nothing → no edge.
-        assert combo_certified_event_edges([[FID_FINITE_CAST]]) == []
+        assert combo_certified_event_edges(_wc([FID_FINITE_CAST]), []) == []
         # A mana-only infinite (the Grim-Monolith class once promoted to mana) certifies only
         # ``mana-produced`` → no family pair (untap-mana needs untap; mana-refund needs cast).
-        assert combo_certified_event_edges([[FID_INF_MANA]]) == []
+        assert combo_certified_event_edges(_wc([FID_INF_MANA]), []) == []
+
+
+# ---------------------------------------------------------------------------
+# Template-satisfaction gating (#83 BLOCKER 1 / #106 Cayth) — a template-partial
+# combo promotes ONLY when the deck holds a card for every template it requires.
+# ---------------------------------------------------------------------------
+
+
+class TestTemplateGating:
+    def test_template_ids_parsed_from_variant_suffix(self):
+        assert template_ids('2034-2744--5') == [5]
+        assert template_ids('2034-5662--5--195') == [5, 195]
+        assert template_ids('1376-2816') == []  # no template marker
+
+    def test_persist_keyword_satisfaction(self):
+        persist_creature = {
+            'name': 'Glen Elendra Archmage',
+            'type_line': 'Creature — Faerie Wizard',
+            'keywords': ['Persist'],
+        }
+        plain = {'name': 'Servo', 'type_line': 'Artifact Creature — Servo', 'keywords': []}
+        assert template_satisfied(5, [persist_creature]) is True
+        assert template_satisfied(5, [plain]) is False
+
+    def test_cheap_generic_permanent_satisfaction(self):
+        sol_ring = {'name': 'Sol Ring', 'type_line': 'Artifact', 'cmc': 1.0, 'mana_cost': '{1}'}
+        colored = {'name': 'Birds of Paradise', 'type_line': 'Creature — Bird', 'cmc': 1.0, 'mana_cost': '{G}'}
+        instant = {'name': 'Brainstorm', 'type_line': 'Instant', 'cmc': 1.0, 'mana_cost': '{U}'}
+        assert template_satisfied(46, [sol_ring]) is True  # mv1, generic, permanent
+        assert template_satisfied(46, [colored]) is False  # colored pip
+        assert template_satisfied(46, [instant]) is False  # not a permanent
+
+    def test_unexpressible_template_fails_closed(self):
+        # A template id with no entry in combo_templates.json cannot be confirmed → not satisfied.
+        assert template_satisfied(999999, [{'name': 'x', 'type_line': 'Creature', 'keywords': ['Persist']}]) is False
+        assert combo_templates_satisfied('10-20--999999', []) is False
+
+    def test_all_templates_must_be_satisfied(self):
+        persist = {'name': 'Glen Elendra Archmage', 'type_line': 'Creature — Faerie Wizard', 'keywords': ['Persist']}
+        increaser = {'name': 'Hardened Scales', 'type_line': 'Enchantment', 'otags': ['counter-increaser']}
+        assert combo_templates_satisfied('2034-5662--5--195', [persist, increaser]) is True
+        assert combo_templates_satisfied('2034-5662--5--195', [persist]) is False  # 195 unmet
+        assert combo_templates_satisfied('1376-2816', []) is True  # no template is vacuously satisfied
+
+    def test_promotion_dropped_when_template_unsatisfied(self):
+        # The Cayth shape: an etb-death win combo requiring a Persist Creature (template 5).
+        # With a persist creature present -> the family edges promote; without -> dropped.
+        combo = {'variant_id': '2034-2744--5', '_fids': [FID_INF_ETB, FID_INF_DIES, FID_INF_SAC]}
+        persist = {'name': 'River Kelpie', 'type_line': 'Creature — Beast', 'keywords': ['Persist']}
+        no_persist = {'name': 'Servo', 'type_line': 'Artifact Creature — Servo', 'keywords': []}
+        assert combo_certified_event_edges([combo], [persist]) != []  # Marchesa shape: KEEP
+        assert combo_certified_event_edges([combo], [no_persist]) == []  # Cayth shape: DROP
 
 
 # ---------------------------------------------------------------------------
