@@ -133,6 +133,29 @@ def test_commander_coupling_lifts_engine_participation(deck, draw_pool, draw_dat
     assert recs['remora'].strength_relative.engine_participation >= 0.0
 
 
+def test_commander_coupling_is_derived_not_raw() -> None:
+    """A candidate that couples to the commander ONLY via a derived attr (raw otags
+    disjoint) is still commander_coupled. Regression for the raw-vs-derived
+    `_commander_attrs` bug (adversarial-review follow-up): the commander's raw otag
+    `lifegain-matters` derives to `lifegain` but is not literally `lifegain`, and the
+    candidate's `repeatable-lifegain` also derives to `lifegain` — a raw-otag comparison
+    saw no overlap and dropped the coupling; the derived comparison catches it.
+
+    With no `anchor_event`, `role_attrs` is `None` so `fit_overlap` is 0.0, making
+    `engine_participation` exactly the commander-coupled bonus: 1.0 coupled, 0.0 not.
+    The raw bug yielded 0.0 here.
+    """
+    deck = {
+        'name': 'derived-coupling',
+        'cards': [
+            {'name': 'Cmdr', 'oracle_id': 'cmd-oid', 'role': 'commander', 'otags': ['lifegain-matters']},
+        ],
+    }
+    cand = {'cand': {'oracle_id': 'cand', 'otags': ['repeatable-lifegain'], 'cmc': 2}}
+    recs = strength(deck, ['cand'], candidate_cards=cand)
+    assert recs['cand'].strength_relative.engine_participation == 1.0
+
+
 def test_edhrec_synergy_is_none_offline(deck, draw_pool, draw_data) -> None:
     """Commander-conditioned EDHREC synergy is unavailable offline — None, not 0."""
     recs = strength(deck, ['remora'], anchor_event='draw-a-card', strength_data=draw_data, candidate_cards=draw_pool)

@@ -116,14 +116,6 @@ def _as_deck(deck_or_dump: dict, *, lake: Any = None) -> dict:
     return {'cards': cards}
 
 
-def _commander_attrs(deck: dict) -> set[str]:
-    out: set[str] = set()
-    for c in deck['cards']:
-        if c.get('role') == 'commander':
-            out |= {t.lower() for t in c.get('otags', [])}
-    return out
-
-
 def _commander_attrs_derived(deck: dict, assets: Any) -> set[str]:
     """Command-zone attributes DERIVED (otag closure + synth), the same engine derivation.
 
@@ -221,7 +213,12 @@ def strength(
                 meta_by_oid.setdefault(str(moid), m)
 
     deck = _as_deck(deck_or_dump, lake=lake)
-    cmd_attrs = _commander_attrs(deck)
+    # Commander coupling compares DERIVED candidate attrs against DERIVED commander attrs
+    # (not raw otags): a candidate deriving to `lifegain` must couple to a commander whose
+    # raw otag `lifegain-matters` also derives to `lifegain`. Raw-vs-derived here silently
+    # dropped couplings through the commander's synth-only attrs (edge-roles, burn). This
+    # mirrors `marginal_participation`, keeping both entry points consistent.
+    cmd_attrs = _commander_attrs_derived(deck, assets)
     role_attrs = _role_attrs(anchor_event, assets)
 
     out: dict[str, StrengthRecord] = {}
