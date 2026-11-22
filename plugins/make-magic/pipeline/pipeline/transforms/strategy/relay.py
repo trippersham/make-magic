@@ -192,6 +192,8 @@ def elect_engine_units_with_relay(
     cards: list[dict],
     *,
     store: ProvisionalAttributeStore | None = None,
+    earned_archetypes: set[str] | None = None,
+    combo_event_edges: list[tuple[str, str]] | None = None,
 ) -> dict:
     """Run ``elect_engine_units`` over the relay-augmented event graph.
 
@@ -201,6 +203,19 @@ def elect_engine_units_with_relay(
 
     The default ``compute_facts`` path is NOT affected — it builds event edges
     from the catalog alone, without relay injection.
+
+    Superset-of-resolve contract (#83 MAJOR-4)
+    ------------------------------------------
+    The on-demand report must report at least what ``resolve()`` reports: its
+    election runs over the relay-augmented store edges **union** the per-deck
+    combo-certified event→event edges, under the SAME archetype-substantiveness
+    gate ``resolve()`` applies. Both inputs are threaded straight through to the
+    inner ``elect_engine_units`` exactly as ``strategy_graph.compute_facts``
+    passes them (``augmented_edges`` plays the role of ``event_edges``, a
+    superset of resolve's catalog cross-product). The caller
+    (:func:`.engine_report.identify_engines`) computes both the same way
+    ``resolve()`` does, so a family loop ``combo_win`` certified unbounded reports
+    ``recursive-engine`` in the report too — not a lesser ``static-payoff``.
 
     Parameters
     ----------
@@ -212,6 +227,16 @@ def elect_engine_units_with_relay(
         Optional :class:`ProvisionalAttributeStore` for machine-authored edge roles.
         When non-empty, machine-authored attributes' trigger/effect roles
         are injected into the relay graph alongside curated roles.
+    earned_archetypes
+        The deck's archetypes that clear their ``Requirement.satisfied`` bar, used
+        for the ARCHETYPE-substantiveness election gate (ADR 0021 B6). ``None`` (the
+        default) disables that grain — the backward-compatible behavior for callers
+        that only want the structure-only relay walk.
+    combo_event_edges
+        The per-deck combo-certified event→event edges (ADR 0026 §4 / #83 Phase 3),
+        promoted from this deck's WIN combos. ``None`` (the default) adds no combo
+        edges. Supplying them makes the report's recursive set a SUPERSET of the
+        relay-only walk, matching ``resolve()``.
 
     Returns
     -------
@@ -219,4 +244,4 @@ def elect_engine_units_with_relay(
         The engine-isolation dict, same shape as ``elect_engine_units`` output.
     """
     augmented_edges = build_relay_augmented_event_edges(nodes, events, store=store)
-    return elect_engine_units(nodes, augmented_edges, attr_weight, assets, cards)
+    return elect_engine_units(nodes, augmented_edges, attr_weight, assets, cards, earned_archetypes, combo_event_edges)

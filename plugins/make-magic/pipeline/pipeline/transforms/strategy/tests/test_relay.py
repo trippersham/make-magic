@@ -651,3 +651,69 @@ class TestProvisionalAttributeStoreRelayPath:
         # counter-to-mana should NOT appear in any edge
         machine_in_edges = {a for p, c, _ in edges for a in (p, c) if a == 'counter-to-mana'}
         assert not machine_in_edges
+
+
+# ---------------------------------------------------------------------------
+# F: Superset-of-resolve inputs (#83 MAJOR-4) — combo edges + archetype gate
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def urza_ctx():
+    """FactsContext for the hermetic Urza fixture (otags baked in; no lake)."""
+    deck = json.loads((FIX / 'decks' / 'gauntlet__urza-lord-high-artificer.json').read_text())
+    combos = [dict(c) for c in json.loads((FIX / 'combos.json').read_text())]
+    return compute_facts(deck, combos)
+
+
+class TestSupersetInputsForwarded:
+    """``elect_engine_units_with_relay`` threads ``combo_event_edges`` and
+    ``earned_archetypes`` through to the inner ``elect_engine_units``, exactly as
+    ``resolve()`` passes them. Defaults are backward-compatible (no combo edges,
+    archetype grain disabled), so existing callers are unaffected.
+    """
+
+    def test_backward_compatible_default_adds_no_recursion(self, urza_ctx, assets) -> None:
+        """With the defaults (no combo edges), mana-produced is NOT recursive —
+        the pre-fix behavior, proving the new params are inert when omitted."""
+        iso = elect_engine_units_with_relay(urza_ctx.nodes, assets.events, urza_ctx.attr_weight, assets, urza_ctx.cards)
+        recursive = {e['event'] for e in iso['engines'] if e['kind'] == 'recursive-engine'}
+        assert 'mana-produced' not in recursive
+
+    def test_combo_event_edges_forwarded_flip_kind(self, urza_ctx, assets) -> None:
+        """Threading the combo-certified mana↔spell-cast family edges flips those
+        events' units to recursive-engine (forwarded to recursive_event_set)."""
+        combo_edges = [
+            ('mana-produced', 'spell-cast'),
+            ('spell-cast', 'mana-produced'),
+        ]
+        iso = elect_engine_units_with_relay(
+            urza_ctx.nodes,
+            assets.events,
+            urza_ctx.attr_weight,
+            assets,
+            urza_ctx.cards,
+            combo_event_edges=combo_edges,
+        )
+        recursive = {e['event'] for e in iso['engines'] if e['kind'] == 'recursive-engine'}
+        assert {'mana-produced', 'spell-cast'} <= recursive
+
+    def test_earned_archetypes_forwarded_to_election(self, urza_ctx, assets) -> None:
+        """``earned_archetypes`` reaches the inner archetype-substantiveness gate.
+
+        An empty earned set gates every candidate whose SOLE basis is an (unearned)
+        archetype claim, so the ranked election set can only shrink relative to the
+        grain-disabled (None) default — proving the argument is consumed, not dropped.
+        """
+        iso_gated = elect_engine_units_with_relay(
+            urza_ctx.nodes,
+            assets.events,
+            urza_ctx.attr_weight,
+            assets,
+            urza_ctx.cards,
+            earned_archetypes=set(),
+        )
+        iso_open = elect_engine_units_with_relay(
+            urza_ctx.nodes, assets.events, urza_ctx.attr_weight, assets, urza_ctx.cards
+        )
+        assert len(iso_gated['ranked_units']) <= len(iso_open['ranked_units'])

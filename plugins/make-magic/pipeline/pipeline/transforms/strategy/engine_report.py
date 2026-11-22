@@ -32,6 +32,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pipeline.transforms.strategy.assets import is_land
+from pipeline.transforms.strategy.combo_promotion import combo_certified_event_edges
+from pipeline.transforms.strategy.determine_strategy_substantiveness import requirement_for
 from pipeline.transforms.strategy.engine_hydration import unauthored_cards
 from pipeline.transforms.strategy.machine_vocab import (
     CardAttribute,
@@ -282,11 +284,18 @@ def _characterize_engines(iso: dict, event_catalog: dict) -> list[NamedEngine]:
 
     # --- Standalone engines (not part of a cycle) ---
     for eng in standalone:
+        # Hub-less recursion (#83 MAJOR-4): a combo-certified event→event edge
+        # carries NO gate CardAttribute, so the event can be ``recursive-engine``
+        # with ``interior_node`` None (the relay-augmented path always names a gate
+        # hub; the combo path does not). The event itself still names the engine —
+        # ``_abbrev_event`` always yields a non-empty label (the slug when no abbrev
+        # is catalogued) — so the name is sensible, never blank or an exception, and
+        # the hub reads ``none`` to signal a family loop with no single-card hub.
         hub = eng['interior_node']
         members = sorted(set(eng['producers']) | set(eng['consumers']))
         events = [eng['event']]
 
-        ev_abbrev = _abbrev_event(eng['event'], event_catalog)
+        ev_abbrev = _abbrev_event(eng['event'], event_catalog) or eng['event']
         name = f'{ev_abbrev} engine' if eng['kind'] == 'recursive-engine' else f'{ev_abbrev} payoff'
 
         hub_str = hub or 'none'
@@ -493,6 +502,18 @@ def identify_engines(
                 ctx.cmd_attrs.add(ma.name)
 
     # 3. Run relay-augmented engine isolation.
+    #
+    # Superset-of-resolve (#83 MAJOR-4): the report must report at least what
+    # ``resolve()`` reports. ``resolve`` elects over the catalog edges UNION the
+    # per-deck combo-certified event→event edges, under the archetype-substantiveness
+    # gate; the relay-augmented edges already superset the catalog edges, so threading
+    # the SAME two inputs here makes the report's recursive set a superset of resolve's.
+    # Both are computed EXACTLY as ``strategy_graph.compute_facts`` does (same fids,
+    # same determiner) so the two public views can never disagree on a certified loop.
+    earned_archetypes = {
+        arch for arch, st in ctx.strategies.items() if requirement_for(arch, ctx.cfg).satisfied(st, ctx, arch)
+    }
+    combo_event_edges = combo_certified_event_edges([c['_fids'] for c in ctx.win_combos])
     iso = elect_engine_units_with_relay(
         ctx.nodes,
         ctx.assets.events,
@@ -500,6 +521,8 @@ def identify_engines(
         ctx.assets,
         ctx.cards,
         store=store,
+        earned_archetypes=earned_archetypes,
+        combo_event_edges=combo_event_edges,
     )
 
     # 4. Name / characterize each engine.
