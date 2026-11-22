@@ -543,7 +543,40 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   FULL_CORPUS 85eba970fe1f0934… -> f3efdb0daacd354f…
 #   ENGINE      80d0116a653ffb31… (UNCHANGED)
 #   RESOLVE     3ebb33fd9b469926… (UNCHANGED)
-FULL_CORPUS_SHA = 'f3efdb0daacd354f312f864a8a8f3ff8e35a0c1ef05932c002d07230b042baf7'
+# Re-baselined 2026-11-22 (#114 review A — 4 metadata/robustness defects in the #115
+# pure-event-cycle emission; ADR 0003 output-moving re-baseline). Only the NEW emission's
+# per-unit metadata moves (the unit set, mass, kind, and election are all unchanged):
+#   * #1 store-hijack (report path only): the A-emission keyed gate liveness on
+#     ``set(attr_weight)``, which the engine_report path salts with store (haiku) slugs;
+#     a same-named, wrong-role slug could revive a catalog gate and mint a phantom
+#     recursive engine. Liveness now tests the GENUINE native carrier set
+#     (``gate_carriers``, frozen before store injection). Default ``resolve()``/corpus
+#     path is store-free, so this moves NOTHING in the corpus (regression-tested).
+#   * #2 hub naming: the pure-event-cycle hub is now the loop's RETURN-PATH gate (a relay
+#     whose source event is inside the event's SCC), not the globally-heaviest live gate.
+#     The 3 corpus movers carry no out-of-SCC feeder gate (no Queza-style draw→drain/gain
+#     card), so every hub is UNCHANGED in the corpus; the fix is exercised by the Queza test.
+#   * #3 commander_coupled now counts the commander's SYNTHESIZED relay-gate attrs
+#     (gain-to-drain etc., SYNTH_ALWAYS, never a raw otag). The 3 movers' gates are carried
+#     by Sanguine Bond / Exquisite Blood, NOT the commander, so commander_coupled is
+#     UNCHANGED (stays false) in the corpus; the fix is exercised by the Vito test.
+#   * #4 formation_mode: a producer-only pure-event-cycle unit was mislabeled ``bipartite``
+#     (or ``terminal-producer`` for life-loss-drain) — ADR 0014 reserves those for other
+#     shapes. It now carries its own ``recursive-relay-loop`` mode. This is the ONLY corpus
+#     move (plus the raw unit's new ``relay_loop: true`` marker).
+# Measured OFF/ON (170 gauntlet + 17 fixtures, pinned lake, reproduced at PYTHONHASHSEED 0
+# and 4242): EXACTLY 3/170 decks move — karlov, elenda, celes(edgar-markov slug) — the same
+# 3 lifetrade decks #115 touched; each change is ONLY formation_mode (terminal-producer/
+# bipartite -> recursive-relay-loop) + the raw relay_loop marker; interior_node and
+# commander_coupled verified UNCHANGED-and-correct, mass/kind/election unchanged. liesa does
+# not move (its lifetrade events are in ev_prod, not A-emitted). 0 win-combo changes;
+# reconciliation Class A 34 / Class B 42 UNCHANGED. The 17 hermetic fixtures carry no
+# lifetrade enabler PAIR, so ENGINE + RESOLVE are BYTE-IDENTICAL; only FULL_CORPUS moves.
+# Proof: subagents/fix-a-metadata/outbox.md.
+#   FULL_CORPUS f3efdb0daacd354f… -> c85e4ae51a3e442a…
+#   ENGINE      80d0116a653ffb31… (UNCHANGED)
+#   RESOLVE     3ebb33fd9b469926… (UNCHANGED)
+FULL_CORPUS_SHA = 'c85e4ae51a3e442a58d38659a4bedf50ffc7e3b0c960c27285e14fba6179d187'
 
 
 def full_corpus_sha() -> str:

@@ -891,3 +891,221 @@ class TestPureEventCycleLifetradeLoop:
             assert not ({'lifegain', 'life-loss-drain'} & recursive), (
                 f'the lifetrade loop should open with only {keep[0]}; got recursive={recursive}'
             )
+
+
+# ---------------------------------------------------------------------------
+# PR #114 review A: 4 metadata/robustness defects in the #115 pure-event-cycle
+# emission (store-hijack, hub naming, commander_coupled, formation_mode).
+# ---------------------------------------------------------------------------
+
+
+def _sanguine_card() -> dict:
+    # gain-to-drain carrier: "you gain life -> opponent loses that much".
+    return {
+        'name': 'Sanguine Bond',
+        'oracle_id': 'sanguine-bond',
+        'type_line': 'Enchantment',
+        'oracle_text': 'Whenever you gain life, target opponent loses that much life.',
+        'otags': ['lifegain-matters', 'opponent-loses-life', 'life-total-matters-self'],
+    }
+
+
+def _exquisite_card() -> dict:
+    # drain-to-gain carrier: "opponent loses life -> you gain that much".
+    return {
+        'name': 'Exquisite Blood',
+        'oracle_id': 'exquisite-blood',
+        'type_line': 'Enchantment',
+        'oracle_text': 'Whenever an opponent loses life, you gain that much life.',
+        'otags': ['life-loss-matters', 'lifegain'],
+    }
+
+
+def _swamps(n: int) -> list[dict]:
+    return [
+        {
+            'name': f'Swamp #{i}',
+            'oracle_id': f'swamp-{i}',
+            'type_line': 'Basic Land — Swamp',
+            'oracle_text': '({T}: Add {B}.)',
+            'otags': [],
+        }
+        for i in range(n)
+    ]
+
+
+def _lifetrade_deck(commander: dict, enablers: list[dict]) -> dict:
+    cards = [commander, *enablers]
+    cards += _swamps(99 - len(enablers))
+    return {'name': 'lifetrade-metadata', 'cards': cards}
+
+
+class TestStoreSlugDoesNotHijackCatalogGate:
+    """#1 — a same-named, wrong-role store slug must not make a catalog relay gate
+    live. ``identify_engines`` injects store (haiku) slugs into ``attr_weight`` by
+    name+query match, so keying the A-emission's gate liveness on ``set(attr_weight)``
+    let a store entry named ``gain-to-drain`` (query ``otag:life-loss-matters``, which
+    matches Exquisite Blood, role ``life-loss-drain -> lifegain``) close the catalog
+    ``gain-to-drain`` return leg even though NO card natively carries that gate — a
+    phantom recursive engine. Liveness is now tested against the native carrier set.
+    """
+
+    @staticmethod
+    def _hijack_store() -> ProvisionalAttributeStore:
+        return ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='gain-to-drain',
+                    query='otag:life-loss-matters',  # matches Exquisite Blood, NOT the gate's role
+                    trigger_event='life-loss-drain',
+                    produced_event='lifegain',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
+        )
+
+    def _yargle_half_loop_deck(self) -> dict:
+        # Yargle (no gate) + Exquisite Blood (drain-to-gain ONLY) — a one-sided
+        # loop: the return leg (gain-to-drain) has NO native carrier, so the deck
+        # must report ZERO recursive engines.
+        yargle = {
+            'name': 'Yargle, Glutton of Urborg',
+            'role': 'commander',
+            'oracle_id': 'yargle',
+            'type_line': 'Legendary Creature — Frog Spirit',
+            'oracle_text': '',
+            'otags': [],
+        }
+        return _lifetrade_deck(yargle, [_exquisite_card()])
+
+    def test_wrong_role_store_slug_mints_no_phantom_engine(self) -> None:
+        from pipeline.transforms.strategy.engine_report import identify_engines
+
+        deck = self._yargle_half_loop_deck()
+        empty = identify_engines(deck, store=ProvisionalAttributeStore(), combos=[])
+        hijack = identify_engines(deck, store=self._hijack_store(), combos=[])
+
+        def _recursive(report) -> set[str]:
+            return {e['event'] for e in report.raw_isolation['engines'] if e['kind'] == 'recursive-engine'}
+
+        # The empty-store control reports zero recursive engines (one-sided loop).
+        assert _recursive(empty) == set(), f'control should be empty; got {_recursive(empty)}'
+        # The wrong-role store slug must NOT revive the catalog gate -> still zero.
+        assert _recursive(hijack) == set(), (
+            f'a wrong-role store slug minted a phantom recursive engine: {_recursive(hijack)}'
+        )
+
+
+class TestRecursiveHubIsReturnPathGate:
+    """#2 — the pure-event-cycle hub must be the loop's RETURN-PATH gate (a relay
+    whose source event is inside the event's SCC), not the globally-heaviest live
+    gate. With Queza (commander, heavy draw-to-drain/draw-to-gain gates that only
+    FEED the loop from ``draw-a-card``, which is outside the SCC) + Sanguine Bond +
+    Exquisite Blood, the heaviest-incoming rule named ``draw-to-drain`` / ``draw-to-
+    gain``; the loop actually returns through ``gain-to-drain`` / ``drain-to-gain``.
+    """
+
+    @staticmethod
+    def _queza() -> dict:
+        # draw-to-drain + draw-to-gain carrier (one sentence so the regexes match):
+        # "draw...opponent loses...you gain" — otags draw-matters + opponent-loses-life + lifegain.
+        return {
+            'name': 'Queza, Augur of Agonies',
+            'role': 'commander',
+            'oracle_id': 'queza',
+            'type_line': 'Legendary Creature — Vampire Wizard',
+            'oracle_text': 'Whenever you draw a card, target opponent loses 1 life and you gain 1 life.',
+            'otags': ['draw-matters', 'opponent-loses-life', 'lifegain'],
+        }
+
+    def test_hubs_are_the_scc_return_gates_not_the_feeder_gates(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        deck = _lifetrade_deck(self._queza(), [_sanguine_card(), _exquisite_card()])
+        units = resolve(deck, [])['facts']['engines']['engine_units']
+        by_event = {e['event']: e for e in units['engines']}
+        # Both lifetrade events are recursive (the loop closes through the enablers).
+        assert by_event['life-loss-drain']['kind'] == 'recursive-engine'
+        assert by_event['lifegain']['kind'] == 'recursive-engine'
+        # The hubs are the return-path gates inside the SCC, NOT the draw-* feeders.
+        assert by_event['life-loss-drain']['interior_node'] == 'gain-to-drain', (
+            f'hub fed the loop from outside the SCC: {by_event["life-loss-drain"]["interior_node"]}'
+        )
+        assert by_event['lifegain']['interior_node'] == 'drain-to-gain', (
+            f'hub fed the loop from outside the SCC: {by_event["lifegain"]["interior_node"]}'
+        )
+        # The feeder gate is NOT named the interior hub.
+        assert by_event['life-loss-drain']['interior_node'] != 'draw-to-drain'
+        assert by_event['lifegain']['interior_node'] != 'draw-to-gain'
+
+
+class TestCommanderCoupledSeesSyntheticGate:
+    """#3 — ``commander_coupled`` must count the commander's SYNTHESIZED relay-gate
+    attributes (gain-to-drain etc., SYNTH_ALWAYS, never a raw Scryfall otag). With
+    Vito (sole gain-to-drain carrier) + Exquisite Blood, the ``life-loss-drain`` unit
+    is driven by Vito's gate, yet the raw-otag commander rebuild dropped the synth
+    gate and reported ``commander_coupled=False``.
+    """
+
+    @staticmethod
+    def _vito() -> dict:
+        # gain-to-drain carrier: "you gain life -> each opponent loses 1 life".
+        return {
+            'name': 'Vito, Thorn of the Dusk Rose',
+            'role': 'commander',
+            'oracle_id': 'vito',
+            'type_line': 'Legendary Creature — Vampire Cleric',
+            'oracle_text': 'Whenever you gain life, each opponent loses that much life.',
+            'otags': ['lifegain-matters', 'opponent-loses-life'],
+        }
+
+    def test_life_loss_drain_unit_is_commander_coupled(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        deck = _lifetrade_deck(self._vito(), [_exquisite_card()])
+        units = resolve(deck, [])['facts']['engines']['engine_units']
+        ranked = {u['event']: u for u in units['ranked_units']}
+        assert 'life-loss-drain' in ranked, f'life-loss-drain not elected; got {sorted(ranked)}'
+        unit = ranked['life-loss-drain']
+        assert unit['interior_node'] == 'gain-to-drain'
+        assert unit['commander_coupled'] is True, (
+            'the commander is the sole gain-to-drain carrier (a synth gate) — unit must be commander_coupled'
+        )
+
+
+class TestRelayLoopFormationModeNeverBipartite:
+    """#4 — a producer-only pure-event-cycle unit (gate producers, ``consumers=[]``)
+    must carry its own ``formation_mode``, never ``bipartite`` (ADR 0014 reserves
+    bipartite for a unit with BOTH in-deck sides). Assert the raw shape AND the ranked
+    formation mode together.
+    """
+
+    @staticmethod
+    def _yargle() -> dict:
+        return {
+            'name': 'Yargle, Glutton of Urborg',
+            'role': 'commander',
+            'oracle_id': 'yargle',
+            'type_line': 'Legendary Creature — Frog Spirit',
+            'oracle_text': '',
+            'otags': [],
+        }
+
+    def test_raw_producer_only_and_ranked_not_bipartite(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        deck = _lifetrade_deck(self._yargle(), [_sanguine_card(), _exquisite_card()])
+        units = resolve(deck, [])['facts']['engines']['engine_units']
+        # RAW: the lifegain unit has one gate producer and no consumer (the
+        # pure-event-cycle shape).
+        raw = {e['event']: e for e in units['engines']}
+        assert raw['lifegain']['producers'] == ['drain-to-gain']
+        assert raw['lifegain']['consumers'] == []
+        # RANKED: its formation_mode is the relay-loop mode, never bipartite.
+        ranked = {u['event']: u for u in units['ranked_units']}
+        assert ranked['lifegain']['formation_mode'] != 'bipartite', (
+            f'producer-only relay loop mislabeled: {ranked["lifegain"]["formation_mode"]}'
+        )
+        assert ranked['lifegain']['formation_mode'] == 'recursive-relay-loop'
+        # life-loss-drain is likewise the relay-loop mode (not terminal-producer).
+        assert ranked['life-loss-drain']['formation_mode'] == 'recursive-relay-loop'

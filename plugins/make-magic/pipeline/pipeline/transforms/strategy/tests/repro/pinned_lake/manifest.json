@@ -6,7 +6,7 @@
   "pinned_composites": {
     "ENGINE": "80d0116a653ffb31692fefb8d6a43b2099440febc3901b361fb9fa034e2bed0f",
     "RESOLVE": "3ebb33fd9b469926fd06d2c63605dfe9bad462563760dae47eca9c4cb93c8c76",
-    "FULL_CORPUS": "f3efdb0daacd354f312f864a8a8f3ff8e35a0c1ef05932c002d07230b042baf7"
+    "FULL_CORPUS": "c85e4ae51a3e442a58d38659a4bedf50ffc7e3b0c960c27285e14fba6179d187"
   },
   "extraction_reads": [
     "raw/oracle_cards.parquet",

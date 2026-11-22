@@ -194,8 +194,9 @@ per-deck runtime.
   + Exquisite Blood's `drain-to-gain`, each a 1–2-card attr) close the recursive lifegain↔life-loss-
   drain engine and reconcile engine⟷combo (both need both cards). Implemented as the optional
   `relay_gate_carriers` argument to `unified_event_graph_edges`/`recursive_event_set`, threaded from
-  `elect_engine_units` (`set(attr_weight)`); it falls back to `nodes` for callers where present ==
-  admitted (e.g. `loop_aware_nodes`, which already passes all present attrs). A gate does NOT become
+  `elect_engine_units`'s `gate_carriers` (default `set(attr_weight)`; the `engine_report` path passes
+  the native carrier set — see the 2026-11-22 #114-review-A note below); it falls back to `nodes` for
+  callers where present == admitted (e.g. `loop_aware_nodes`, which already passes all present attrs). A gate does NOT become
   an identity node merely by enabling a relay (loop-aware admission unchanged — a pure lifetrade
   event-cycle carries no attr anchor, so no identity drift). Measured OFF/ON on the 187 corpus:
   exactly 4/170 gauntlet decks gain a recursive lifetrade engine (celes/elenda/karlov/liesa), 0 false
@@ -288,6 +289,23 @@ per-deck runtime.
   Edgar Markov — each a genuine Sanguine Bond + Exquisite Blood loop with both gate directions
   present; ENGINE + RESOLVE byte-identical, FULL_CORPUS `85eba970…→f3efdb0d…`, Class A/B unchanged
   at 34/42. See the ADR 0003 2026-11-22 (#115) entry.
+- **Emission metadata fixes (2026-11-22, #114 review A): 4 defects in the pure-event-cycle
+  unit's REPORTED metadata (the unit set, mass, kind, and the mass election are unchanged).**
+  (1) **Store-hijack (report path):** the A-emission keyed gate liveness on `set(attr_weight)`,
+  which `engine_report` salts with store (haiku) slugs by name+query match — a same-named,
+  wrong-role slug could revive a catalog gate and mint a phantom recursive engine. Liveness now
+  tests the GENUINE native carrier set, threaded as `elect_engine_units`'s `gate_carriers`
+  argument (`identify_engines` freezes `frozenset(ctx.attr_weight)` BEFORE the store-injection
+  loop); `None` falls back to `set(attr_weight)` for the store-free `compute_facts` path. A
+  genuine store edge still closes its loop through the relay-augmented `event_edges`, not this
+  gate test. (2) **Hub** = the loop's RETURN-PATH gate (a relay whose `from_event` is inside the
+  event's own SCC), not the heaviest live gate. (3) **commander_coupled** counts the commander's
+  synthesized relay-gate attrs (`SYNTH_ALWAYS`, dropped by the raw-otag rebuild). (4)
+  **formation_mode** gives the producer-only loop its own `recursive-relay-loop` mode (ADR 0014)
+  instead of `bipartite`/`terminal-producer`. Exactly 3/170 decks move (Karlov, Elenda, Celes),
+  ONLY `formation_mode` + the raw `relay_loop` marker; ENGINE/RESOLVE byte-identical, FULL_CORPUS
+  `f3efdb0d…→c85e4ae5…`, Class A/B unchanged at 34/42. See the ADR 0003 2026-11-22 (#114 review A)
+  entry + ADR 0014's `recursive-relay-loop` amendment.
 - Substantiveness (ADR 0002/0004/0020) and centrality (ADR 0014) stay in their ADR-0021
   layers; this change is entirely in substantiveness.
 

@@ -212,6 +212,7 @@ def elect_engine_units_with_relay(
     earned_archetypes: set[str] | None = None,
     combo_event_edges: list[tuple[str, str]] | None = None,
     matched_store_attrs: frozenset[str] | None = None,
+    gate_carriers: frozenset[str] | None = None,
 ) -> dict:
     """Run ``elect_engine_units`` over the relay-augmented event graph.
 
@@ -262,6 +263,13 @@ def elect_engine_units_with_relay(
         only when its name is in this set, so a zero-match store query never rewrites
         the named cycle of a same-slug native node. ``None`` (the default) keeps the
         ungated waterfall for structural callers that do not evaluate store queries.
+    gate_carriers
+        The GENUINE native carrier set a catalog relay gate's liveness is tested
+        against — the present attrs BEFORE any store injection (computed by
+        :func:`.engine_report.identify_engines`). Passing it keeps a same-named,
+        wrong-role store slug (which ``identify_engines`` adds to ``attr_weight``) from
+        reviving a catalog gate and minting a phantom recursive engine. ``None`` (the
+        default) lets ``elect_engine_units`` fall back to ``set(attr_weight)``.
 
     Returns
     -------
@@ -271,4 +279,13 @@ def elect_engine_units_with_relay(
     augmented_edges = build_relay_augmented_event_edges(
         nodes, events, store=store, matched_store_attrs=matched_store_attrs
     )
-    return elect_engine_units(nodes, augmented_edges, attr_weight, assets, cards, earned_archetypes, combo_event_edges)
+    return elect_engine_units(
+        nodes,
+        augmented_edges,
+        attr_weight,
+        assets,
+        cards,
+        earned_archetypes,
+        combo_event_edges,
+        gate_carriers,
+    )

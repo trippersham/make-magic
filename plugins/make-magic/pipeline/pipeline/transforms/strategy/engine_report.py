@@ -468,6 +468,15 @@ def identify_engines(
     # zero-match store entry must not hijack that native node's role and rewrite the
     # named cycle. A combo-implied edge (``combo_variant_id`` set) is grounded by its
     # combo being PRESENT (``_assemble_present_combo_edges``), so it counts as matched.
+    #
+    # Freeze the GENUINE native carrier set BEFORE the store loop mutates
+    # ``ctx.attr_weight``. A catalog relay gate is "live" only via a real in-deck
+    # carrier of that gate CardAttribute; a store slug sharing a gate's name (added
+    # to ``attr_weight`` by its own query match, possibly with the WRONG role) must
+    # not revive the gate and mint a phantom recursive engine. This native set is
+    # threaded to ``elect_engine_units`` as ``gate_carriers`` (a genuine store edge
+    # still closes its loop through the relay-augmented ``event_edges``, not this test).
+    native_gate_carriers = frozenset(ctx.attr_weight)
     matched_store_attrs: set[str] = set()
     if not store.is_empty:
         for ma in store.attributes:
@@ -542,6 +551,7 @@ def identify_engines(
         earned_archetypes=earned_archetypes,
         combo_event_edges=None,
         matched_store_attrs=frozenset(matched_store_attrs),
+        gate_carriers=native_gate_carriers,
     )
 
     # 4. Name / characterize each engine.

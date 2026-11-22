@@ -247,6 +247,30 @@ prevalence ∨ cycle-membership disjunct to substantiveness, [0002]/[0004]/[0020
 election). **Phase 0 is schema-only; the true-SCC label lands in [0026] Phase 1 under a
 proof-carrying re-baseline ([0003]).**
 
+## Amendment — 2026-11-22 (a FOURTH formation mode: `recursive-relay-loop`; #114 review A)
+
+The three anchor modes (§4.2) classify a unit by which side is in-deck, under the implicit
+assumption that every unit has in-deck ATTR producers/consumers. The [0026] §1 pure-event-cycle
+emission breaks that assumption: it mints a unit for a lifetrade event made recursive through
+event→event relays alone, whose producers are the live GATE carriers and whose `consumers` is `[]`.
+Such a producer-only unit reached `_anchor`'s `has_p and not has_c` fallthrough and was mislabeled
+`bipartite` (or, for `life-loss-drain`, which is in `_RULE_TERMINAL_EVENTS`, `terminal-producer`) —
+neither fits: it has only ONE in-deck side, and the loop (not a march toward `game-end`) is its
+defining structure. A **fourth mode** names it:
+
+4. **recursive-relay-loop** — a recursive unit (`relay_loop`) closed entirely through event→event
+   relays: gate producers, `consumers=[]`, on a real SCC. Classified FIRST in `_anchor` (the marker
+   is set only by the [0026] §1 emission), so it never falls through to `bipartite`. `marginal`
+   stays false (it is not `exogenous-environmental`).
+
+Also in this review (all **reported metadata only**, the mass election is untouched): the
+pure-event-cycle **hub** (`interior_node`) is the loop's RETURN-PATH gate — a relay whose source
+event is inside the event's own SCC — not the globally-heaviest live gate (which may only FEED the
+loop); and **`commander_coupled`** counts the commander's synthesized relay-gate attrs. This is an
+output-moving re-baseline ([0003], 2026-11-22 entry): exactly 3/170 corpus decks move (Karlov,
+Elenda, Celes), each ONLY `formation_mode` → `recursive-relay-loop` + the raw `relay_loop` marker;
+ENGINE + RESOLVE byte-identical, Class A 34 / Class B 42 unchanged.
+
 ## Related records
 - 0002 — substantiveness gates archetype LABELS (level 2) and, as of 2026-11-14, EVENT
   election candidacy (level 3, `producer_anchor`) whose pool this election consumes; as of

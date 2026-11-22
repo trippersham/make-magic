@@ -868,6 +868,37 @@ re-baseline makes every *intended* change legible as such.
   are byte-unchanged). NOT a version bump (folds into the 0.9.0 prep). `uv run --extra dev pytest -q`
   green + network-free; ruff + format + pyright clean. Proof: `subagents/fix-pr114-review/outbox.md`.
 
+- **2026-11-22 — 4 metadata/robustness defects in the #115 pure-event-cycle emission (#114 review
+  A).** An output-moving refinement of the metadata the #115 unit carries; the unit set, mass, kind,
+  and the mass election are all unchanged. (1) **Store-hijack (report path only):** the A-emission
+  keyed catalog relay-gate liveness on `set(attr_weight)`, which the `engine_report` path salts with
+  store (haiku) slugs by name+query match — a same-named, wrong-role slug could revive a catalog gate
+  and mint a phantom recursive engine. Liveness now tests the GENUINE native carrier set
+  (`gate_carriers`, frozen in `identify_engines` before store injection); a genuine store edge still
+  closes its loop through the relay-augmented `event_edges`, not this gate test. (2) **Hub naming:**
+  the hub is now the loop's RETURN-PATH gate — a relay whose source event is inside the event's own
+  SCC — not the globally-heaviest live gate (which can merely FEED the loop, e.g. `draw-a-card →
+  life-loss-drain`). (3) **commander_coupled** now counts the commander's SYNTHESIZED relay-gate attrs
+  (`gain-to-drain` etc. — `SYNTH_ALWAYS`, never a raw Scryfall otag, so the raw-otag commander rebuild
+  dropped them), scoped to catalog relay gates and used ONLY by the reported field (never the
+  election). (4) **formation_mode:** a producer-only pure-event-cycle unit (gate producers,
+  `consumers=[]`) was mislabeled `bipartite` (or `terminal-producer` for `life-loss-drain`); it now
+  carries its own `recursive-relay-loop` mode (ADR 0014). **Behavioral-equivalence proof:** measured
+  OFF/ON on the pinned 170-deck gauntlet + 17 fixtures, reproduced at `PYTHONHASHSEED` 0 and 4242 —
+  EXACTLY **3/170** decks move: **Karlov** (`life-loss-drain`), **Elenda** (`life-loss-drain`),
+  **Celes/Edgar Markov** (`lifegain`) — the same 3 lifetrade decks #115 touched. Each change is ONLY
+  `formation_mode` (`terminal-producer`/`bipartite` → `recursive-relay-loop`) + the raw unit's new
+  `relay_loop: true` marker; `interior_node` and `commander_coupled` are verified unchanged-and-correct
+  (these decks carry no out-of-SCC draw-feeder gate and their gate carriers are the enchantments, not
+  the commander, so #2 and #3 are correctly inert in the corpus — each is exercised by a dedicated
+  Queza / Vito regression). Liesa does not move (its lifetrade events are in `ev_prod`, not A-emitted).
+  0 win-combo changes; **reconciliation Class A 34 / Class B 42 UNCHANGED**. The 17 hermetic fixtures
+  carry no lifetrade enabler PAIR, so **ENGINE + RESOLVE are byte-IDENTICAL**; only `FULL_CORPUS_SHA`
+  moves `f3efdb0d…` → `c85e4ae5…` (updated in `engine_parity_oracle.py`'s re-baseline log + constant and
+  the pinned `manifest.json` `pinned_composites`; the two per-deck baseline JSONs are byte-unchanged).
+  NOT a version bump (version held at 0.8.1 under `[Unreleased]`). `uv run --extra dev pytest -q` green
+  + network-free; ruff + format + pyright clean. Proof: `subagents/fix-a-metadata/outbox.md`.
+
 ## Related records
 - 0001 — the knowledge-placement doctrine these files exemplify.
 - 0002 — the substantiveness model (`strategy_graph.py` is shared with this record).
