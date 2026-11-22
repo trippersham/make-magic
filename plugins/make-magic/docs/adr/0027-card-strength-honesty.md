@@ -76,6 +76,11 @@ theory-authoritative — rather than pursue group-lasso / explicit interaction t
 inclusion-rate target — is the one open modeling decision, made conservatively and visibly
 rather than silently picked.
 
+**Owner ratification (2026-11-22):** theory-prior-dominance on the 13 contested attributes is
+**accepted** as the shipped default; the data-louder alternatives (group-lasso / interaction
+terms / EDHREC inclusion-rate target) are deferred as an optional fast-follow, to be revisited
+only if the behavioral rankings (P6) read wrong. The shipped `attribute_values.json` stands.
+
 ### 5. Strength is OWNED here; the recommendation side embeds the DTO verbatim
 
 Ranking lives in `comparison/`; the recommendation package generates candidates and embeds
