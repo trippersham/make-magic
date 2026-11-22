@@ -40,7 +40,6 @@ resolution #5), rather than silently returning an empty pool.
 from __future__ import annotations
 
 import json
-import re
 from collections.abc import Callable
 from functools import lru_cache
 
@@ -86,11 +85,48 @@ _DEGRADED_ORDER_NOTE = (
     'fallback pending the deck-comparison strength model; it is not a strength ranking'
 )
 
-#: An edge-role annotation suffix such as ``[enabler]`` on a derived attribute
-#: name (e.g. ``tutor-land[enabler]`` from the lands-enabler join). The base name
-#: is the real attribute whose membership query resolves the demand; the suffix is
-#: a graph-side role tag with no query of its own, so it is stripped before lookup.
-_ROLE_SUFFIX_RE = re.compile(r'\[[^\]]*\]$')
+
+def _subtype_concentration_query(args: list[str]) -> str:
+    """Membership query for the ``subtype-concentration`` family given its subtypes.
+
+    Mirrors the engine's own rule — a card is in ``subtype-concentration[Elf,Goblin]``
+    iff ``creature_subtypes(card) & {Elf, Goblin}`` (``strategy_graph`` typal
+    concentration) — as an OR over the DSL's case-sensitive ``type:<Subtype>``
+    (a ``type_line`` substring, and subtypes are single capitalised tokens). The SAME
+    compiled query drives both lake retrieval and the per-candidate match re-check, so
+    they can never disagree.
+    """
+    return ' OR '.join(f'(type:{a})' for a in args)
+
+
+#: Parameterised attribute families: a base name whose bracketed suffix is a semantic
+#: ARGUMENT list (``subtype-concentration[Elf,Goblin]`` → the tribes), not a disposable
+#: graph role tag. The registry — not a blanket "strip any trailing bracket" — decides
+#: whether a given name's ``[...]`` is an argument or a role tag, so a parameterised
+#: family keeps its argument while a role suffix (e.g. ``tutor-land[enabler]``) is
+#: dropped. Add a family here to teach retrieval its argument semantics.
+_PARAMETERIZED_FAMILIES: dict[str, Callable[[list[str]], str]] = {
+    'subtype-concentration': _subtype_concentration_query,
+}
+
+
+def _parse_attribute_name(name: str) -> tuple[str, list[str] | None]:
+    """Split a node-attribute NAME into ``(base, args)``.
+
+    A node attribute may carry a trailing ``[...]`` that is EITHER a parameterised
+    family's argument list (``subtype-concentration[Elf,Goblin]``) or a graph-side
+    role/variant tag (``tutor-land[enabler]``). These share the bracket syntax but mean
+    opposite things, so a blanket strip conflates them and drops real arguments; the
+    family registry resolves the ambiguity instead. Returns ``args`` as the parsed list
+    when ``base`` is a parameterised family, else ``None`` (no bracket, or a role tag
+    that is not part of the attribute's identity).
+    """
+    if name.endswith(']') and '[' in name:
+        base, inner = name[: name.index('[')], name[name.index('[') + 1 : -1]
+        if base in _PARAMETERIZED_FAMILIES:
+            return base, [a.strip() for a in inner.split(',') if a.strip()]
+        return base, None
+    return name, None
 
 
 @lru_cache(maxsize=1)
@@ -121,7 +157,11 @@ def _synth_attribute_queries() -> dict[str, str]:
 def attribute_query(name: str) -> str:
     """Resolve one node-attribute NAME to its membership query string.
 
-    Three tiers, in the order the engine itself derives a card's attributes
+    A parameterised family (e.g. ``subtype-concentration[Elf]``) resolves through its
+    argument-aware query FIRST — its bracket is a semantic argument, not a role tag — so
+    the tribe is never dropped. Otherwise the base name (its role suffix, if any, having
+    been recognised as a tag and removed) resolves in three tiers, in the order the
+    engine itself derives a card's attributes
     (:func:`~pipeline.transforms.strategy.derive_card_attributes.derive_card_attributes`
     + :func:`~pipeline.transforms.strategy.distill_strategies.synth_attrs_for`), so
     retrieval cannot drift from membership:
@@ -130,11 +170,10 @@ def attribute_query(name: str) -> str:
     2. a synth attribute → its card-field query;
     3. otherwise a raw otag slug (an event-anchor / enchantment / EDHREC node) →
        ``otag:<slug>`` exact membership (card otags are ancestor-closed).
-
-    Any ``[role]`` suffix is stripped first (it is a graph-side role tag, not part
-    of the attribute's identity).
     """
-    base = _ROLE_SUFFIX_RE.sub('', name)
+    base, args = _parse_attribute_name(name)
+    if args is not None:
+        return _PARAMETERIZED_FAMILIES[base](args)
     card_attrs = _card_attribute_queries()
     if base in card_attrs:
         return card_attrs[base]
@@ -164,12 +203,19 @@ def demand_set_query(anchor: Anchor) -> str:
 
 
 def _deck_color_identity(deck_cards: list[dict]) -> frozenset[str]:
-    """The deck's color identity — the union of its cards' ``color_identity``.
+    """The deck's legal color identity — its commander(s)', excluding the sideboard.
 
-    The same derivation the strategy graph uses for its ``deck_ci``, so a
-    candidate is admitted iff its color identity is a subset of this set.
+    Commander's identity rule: the deck's identity IS its commander(s)' color
+    identity, so a candidate is admitted iff its identity is a subset of that. Derive
+    from the ``role == 'commander'`` card(s) when present; a bare card list with no
+    commander role falls back to the union of the maindeck. A sideboard / considering
+    card must never WIDEN the identity — unioning every row (the former behaviour) let
+    an off-color sideboard card admit off-identity candidates. ``[]`` is a decidable
+    colorless identity, not "unknown".
     """
-    return frozenset(x for c in deck_cards for x in (c.get('color_identity') or []))
+    commanders = [c for c in deck_cards if c.get('role') == 'commander']
+    basis = commanders or [c for c in deck_cards if c.get('role') != 'sideboard']
+    return frozenset(x for c in basis for x in (c.get('color_identity') or []))
 
 
 def _within_identity(card: dict, deck_ci: frozenset[str]) -> bool | None:

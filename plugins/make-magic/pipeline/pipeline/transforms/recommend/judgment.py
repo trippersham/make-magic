@@ -136,12 +136,18 @@ def make_lake_enricher() -> EnrichFn:
 
 
 def _deck_color_identity(deck_cards: list[dict]) -> frozenset[str]:
-    """The deck's color identity — the union of its cards' ``color_identity``.
+    """The deck's legal color identity — its commander(s)', excluding the sideboard.
 
-    The same derivation generation uses, so a candidate is admitted iff its color
-    identity is a subset of this set (Commander's identity rule).
+    Mirrors generation's derivation (the two gates must agree): the deck's identity IS
+    its commander(s)' color identity, so a candidate is admitted iff its identity is a
+    subset of that. Derive from the ``role == 'commander'`` card(s) when present; a bare
+    card list with no commander role falls back to the maindeck union. A sideboard /
+    considering card must never WIDEN the identity. ``[]`` is a decidable colorless
+    identity, not "unknown".
     """
-    return frozenset(x for c in deck_cards for x in (c.get('color_identity') or []))
+    commanders = [c for c in deck_cards if c.get('role') == 'commander']
+    basis = commanders or [c for c in deck_cards if c.get('role') != 'sideboard']
+    return frozenset(x for c in basis for x in (c.get('color_identity') or []))
 
 
 def _commander_legality(facts: dict) -> str | None:

@@ -544,7 +544,14 @@ def _lake_search(query_str: str) -> list[dict]:
     with otags attached."""
     import duckdb
 
-    data_dir = Path.home() / '.local' / 'share' / 'make-magic'
+    from pipeline.transforms.strategy.corpus import lake_root
+
+    # Resolve the lake through the one env-aware root (pipeline.store ->
+    # MAKE_MAGIC_DATA_DIR -> XDG) so retrieval reads the SAME lake the recommend
+    # precondition check and the judgment enricher read. A hardcoded home path
+    # here let a MAKE_MAGIC_DATA_DIR override split retrieval off onto a stale
+    # (or absent) home lake while the gates read the configured one (#119).
+    data_dir = lake_root()
     oracle_path = data_dir / 'raw' / 'oracle_cards.parquet'
     otag_path = data_dir / 'normalized' / 'card_otag.parquet'
 
@@ -642,7 +649,11 @@ def _load_lake_otag_by_oracle_id() -> dict[str, list[str]]:
     """Load ``oracle_id -> [otag, ...]`` from the lake (cached)."""
     import duckdb
 
-    data_dir = Path.home() / '.local' / 'share' / 'make-magic'
+    from pipeline.transforms.strategy.corpus import lake_root
+
+    # Same env-aware root as `_lake_search` so the corroboration otags come from the
+    # lake the rest of the pipeline reads, not a hardcoded home path (#119).
+    data_dir = lake_root()
     otag_path = data_dir / 'normalized' / 'card_otag.parquet'
     if not otag_path.exists():
         raise FileNotFoundError(f'card_otag.parquet not found at {otag_path}')

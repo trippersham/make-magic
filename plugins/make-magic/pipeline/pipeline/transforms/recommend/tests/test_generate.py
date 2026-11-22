@@ -71,6 +71,24 @@ def test_attribute_query_strips_edge_role_suffix() -> None:
     assert attribute_query('tutor-land[enabler]') == attribute_query('tutor-land')
 
 
+def test_attribute_query_preserves_subtype_concentration_argument() -> None:
+    # `subtype-concentration[Elf]` is a PARAMETERISED family: the bracket is the tribe
+    # (a semantic argument), not a role tag. It must resolve to an argument-aware query
+    # that targets Elf, never collapse to a bare `otag:subtype-concentration` that drops
+    # the tribe (#119 C2). Membership mirrors the engine's `type:<Subtype>` rule.
+    q = attribute_query('subtype-concentration[Elf]')
+    assert 'type:Elf' in q
+    assert 'subtype-concentration' not in q  # the family name is never a query slug
+
+
+def test_attribute_query_subtype_concentration_multiple_tribes_or_combined() -> None:
+    # Multiple dominant tribes OR together, one `type:<Subtype>` per tribe.
+    q = attribute_query('subtype-concentration[Elf,Goblin]')
+    assert 'type:Elf' in q
+    assert 'type:Goblin' in q
+    assert ' OR ' in q
+
+
 # --------------------------------------------------------------------------- #
 # Demand-set query — built from the catalog over the anchor's matched attrs.
 # --------------------------------------------------------------------------- #

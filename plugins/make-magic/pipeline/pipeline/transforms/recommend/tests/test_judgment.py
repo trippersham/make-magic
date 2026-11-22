@@ -187,6 +187,44 @@ def test_colorless_candidate_admitted(load_deck) -> None:
     assert _by_id(judged, 'oid-rock') is not None
 
 
+def test_sideboard_card_does_not_widen_color_identity() -> None:
+    """A green commander's deck has identity {G}; an off-color (blue) sideboard /
+    considering card must NOT widen it to admit a blue candidate. Unioning every deck
+    row (the former rule) let a sideboard card open the gate to off-identity cards (#119)."""
+    deck = {
+        'format': 'Commander',
+        'cards': [
+            {'oracle_id': 'cmd', 'name': 'Green Cmdr', 'role': 'commander', 'color_identity': ['G']},
+            {'oracle_id': 'sb', 'name': 'Blue Sideboard', 'role': 'sideboard', 'color_identity': ['U']},
+            {'oracle_id': 'land', 'name': 'Forest', 'role': 'library', 'color_identity': []},
+        ],
+    }
+    result = _result([_candidate('oid-blue', 'Counterspell')])
+    enrich = _enricher({'oid-blue': {'color_identity': ['U'], 'legalities': {'commander': 'legal'}}})
+
+    judged = judge(result, deck, enrich=enrich)
+    assert _by_id(judged, 'oid-blue') is None  # U is not within the commander's {G}
+    assert _rejected_by_id(judged, 'oid-blue') is not None
+
+
+def test_commander_identity_beats_maindeck_union() -> None:
+    """Identity is the commander's, not the maindeck union: a mono-green commander with
+    an off-color card already in the 99 still gates candidates to {G}, so a rogue row
+    can't quietly license off-identity suggestions (#119)."""
+    deck = {
+        'format': 'Commander',
+        'cards': [
+            {'oracle_id': 'cmd', 'name': 'Green Cmdr', 'role': 'commander', 'color_identity': ['G']},
+            {'oracle_id': 'rogue', 'name': 'Blue Intruder', 'role': 'library', 'color_identity': ['U']},
+        ],
+    }
+    result = _result([_candidate('oid-blue', 'Brainstorm')])
+    enrich = _enricher({'oid-blue': {'color_identity': ['U'], 'legalities': {'commander': 'legal'}}})
+
+    judged = judge(result, deck, enrich=enrich)
+    assert _by_id(judged, 'oid-blue') is None
+
+
 # --------------------------------------------------------------------------- #
 # does-not-want gate (Strategy's "what doesn't fit" hard pre-filter).
 # --------------------------------------------------------------------------- #

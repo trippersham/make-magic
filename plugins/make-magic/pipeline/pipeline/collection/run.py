@@ -2175,18 +2175,22 @@ def _recommend_deck(name: str | None, id_prefix: str | None) -> Deck:
     decks store (so ephemeral drafts work too) and re-hydrates each card through the
     package resolver so the strategy graph sees ``otags`` / ``color_identity`` (a
     name-only stored deck would otherwise enumerate no anchors). The card lake is a
-    hard precondition for recommendation (anchor enumeration + the default retrieval /
-    enrichment seams all read it), so an absent / stub lake is refused up front with
-    the same loud ``collection hydrate-lake`` message the scoring verbs use — never a
-    silently-empty candidate pool. No writes: this only reads and enriches in memory.
+    hard precondition (anchor enumeration + the retrieval / enrichment seams all read
+    it), so it is checked FIRST — before any deck-store access — and an absent / stub
+    lake is refused with the same loud ``collection hydrate-lake`` message the scoring
+    verbs use, so a refusal never does deck-side work. Enrichment is LAKE-ONLY
+    (``live_fallback=False``): recommendation issues no network and never lands a card
+    into the lake — a bulk-missed card stays name-only. (The local decks store still
+    performs its one-time legacy-uuid backfill shared by every deck verb; that aside,
+    this reads and enriches in memory only.)
     """
     from pipeline.collection import resolver as resolver_mod
 
-    deck = _deck_access().read_deck(name or '', id_prefix=id_prefix)
     status = resolver_mod.lake_status()
     if status != 'ready':
         raise _refuse_unhydrated_lake(status)
-    return _enrich_deck_for_scoring(deck, resolver_mod.default_card_resolver())
+    deck = _deck_access().read_deck(name or '', id_prefix=id_prefix)
+    return _enrich_deck_for_scoring(deck, resolver_mod.DuckDBCardResolver(live_fallback=False))
 
 
 def _print_recommend_explain(result: BaseModel) -> None:
