@@ -2163,6 +2163,144 @@ def _compare(argv: list[str]) -> None:
         print(render_text(payload))
 
 
+# --------------------------------------------------------------------------- #
+# Recommendation (REFINE) — graph-driven card suggestions (READ-ONLY)
+# --------------------------------------------------------------------------- #
+
+
+def _recommend_deck(name: str | None, id_prefix: str | None) -> Deck:
+    """Read + read-time-enrich a deck for recommendation, refusing loudly when unhydrated.
+
+    The read-only deck-load path for ``recommend``: reads the deck via the local
+    decks store (so ephemeral drafts work too) and re-hydrates each card through the
+    package resolver so the strategy graph sees ``otags`` / ``color_identity`` (a
+    name-only stored deck would otherwise enumerate no anchors). The card lake is a
+    hard precondition for recommendation (anchor enumeration + the default retrieval /
+    enrichment seams all read it), so an absent / stub lake is refused up front with
+    the same loud ``collection hydrate-lake`` message the scoring verbs use — never a
+    silently-empty candidate pool. No writes: this only reads and enriches in memory.
+    """
+    from pipeline.collection import resolver as resolver_mod
+
+    deck = _deck_access().read_deck(name or '', id_prefix=id_prefix)
+    status = resolver_mod.lake_status()
+    if status != 'ready':
+        raise _refuse_unhydrated_lake(status)
+    return _enrich_deck_for_scoring(deck, resolver_mod.default_card_resolver())
+
+
+def _print_recommend_explain(result: BaseModel) -> None:
+    """Human-readable ``--explain``-style summary of a recommendation result.
+
+    Groups each accepted candidate with its verdict/confidence, its anchors (the
+    structural reason), and the judgment prose; then lists the ``rejected`` set with
+    the deciding hard gate — so a reader sees both why a card is proposed and why a
+    structurally-fitting card was not. The typed JSON is the ``--json`` path; this is
+    the default, scan-friendly view.
+    """
+    from pipeline.transforms.recommend.contracts import Candidate, RecommendationResult
+
+    assert isinstance(result, RecommendationResult)
+    print(f'Recommendations for {result.deck_id} (target: {result.target_ref}, ordering: {result.ordering})')
+
+    def _anchor_line(cand: Candidate) -> str:
+        parts: list[str] = []
+        for a in cand.anchors:
+            side = f'/{a.direction}' if a.direction else ''
+            matched = ', '.join(a.fact_snapshot.matched_attributes)
+            parts.append(f'{a.target_kind}:{a.target_ref}{side}' + (f' (matched: {matched})' if matched else ''))
+        return '; '.join(parts)
+
+    print(f'\n{len(result.candidates)} candidate(s):')
+    for i, cand in enumerate(result.candidates, start=1):
+        r = cand.rationale
+        verdict = f'{r.verdict}/{r.confidence}' if r is not None else 'unjudged'
+        tags = f' [{", ".join(cand.membership_tags)}]' if cand.membership_tags else ''
+        print(f'  {i}. {cand.card.name} <{verdict}>{tags}')
+        print(f'     anchors: {_anchor_line(cand)}')
+        if r is not None and r.prose:
+            print(f'     why: {r.prose}')
+
+    if result.rejected:
+        print(f'\n{len(result.rejected)} rejected (hard gate):')
+        for cand in result.rejected:
+            r = cand.rationale
+            reason = '; '.join(f'{k}: {v}' for k, v in (r.context_flags.items() if r is not None else []))
+            print(f'  - {cand.card.name} — {reason or (r.prose if r is not None else "")}')
+
+    if result.notes:
+        print('\nnotes:')
+        for note in result.notes:
+            print(f'  - {note}')
+
+
+def _recommend(argv: list[str]) -> None:
+    """Recommend cards for a deck from its strategy-graph structure (READ-ONLY).
+
+    ``collection recommend "<deck>" [--target <ref>] [--augment] [--budget <n>]
+    [--json] [--id <prefix>]``. Reads the deck read-only (no store write), composes
+    the recommendation primitive (generate → judge), and prints either the typed
+    JSON (``--json``) or a scan-friendly explain summary (candidates grouped with
+    their anchors + rationale, then the hard-gated ``rejected`` set). ``--schema``
+    prints the MCP-ready ``RecommendationResult`` JSON schema and exits (no deck read).
+
+    ``--target`` is the polymorphic scope — a Strategy name, an Engine/event ref, or
+    a CardAttribute name — narrowing the suggestions to that one anchor instance; a
+    bare call recommends against the whole deck. The default retrieval / enrichment
+    seams read the local lake (OFFLINE); an absent lake is refused loudly up front.
+    """
+    parser = argparse.ArgumentParser(
+        prog='collection recommend',
+        description='Recommend cards for a deck from its strategy-graph structure (read-only).',
+    )
+    parser.add_argument('deck', nargs='?', help='Deck name (resolved read-only to its local copy).')
+    parser.add_argument('--id', dest='id_prefix', default=None, help='Address by deck_uuid prefix (overrides name).')
+    parser.add_argument(
+        '--target',
+        default=None,
+        help='Scope to one anchor: a Strategy name, an Engine/event ref, or a CardAttribute name.',
+    )
+    parser.add_argument(
+        '--augment',
+        action='store_true',
+        help='Also suggest for ALREADY-rich sides (deepen them), not only the thin structural holes.',
+    )
+    parser.add_argument(
+        '--budget',
+        type=float,
+        default=None,
+        help='Per-card budget ceiling. Inert without a price source (noted in the result); v1 wires none.',
+    )
+    parser.add_argument('--json', action='store_true', help='Emit the typed RecommendationResult JSON.')
+    parser.add_argument(
+        '--schema',
+        action='store_true',
+        help='Print the RecommendationResult JSON schema (MCP output contract) and exit.',
+    )
+    args = parser.parse_args(argv)
+
+    from pipeline.transforms.recommend.serve import recommend, recommendation_schema
+
+    if args.schema:
+        print(json.dumps(recommendation_schema(), indent=2))
+        return
+
+    if args.id_prefix is None and not args.deck:
+        raise CollectionError('recommend: a deck name or --id prefix is required')
+
+    deck = _recommend_deck(args.deck, args.id_prefix)
+    result = recommend(
+        deck.model_dump(mode='json'),
+        target=args.target,
+        include_augment=args.augment,
+        budget=args.budget,
+    )
+    if args.json:
+        print(result.model_dump_json(indent=2))
+    else:
+        _print_recommend_explain(result)
+
+
 def _hydrate_lake(argv: list[str]) -> None:
     """Bootstrap the local card lake — the public wrapper over the ingest + build stages.
 
@@ -2513,6 +2651,8 @@ VERBS = {
     'factsheet': _factsheet,
     'crispi': _crispi,
     'compare': _compare,
+    # recommendation (read-only, graph-driven card suggestions)
+    'recommend': _recommend,
 }
 
 __all__ = ('main',)

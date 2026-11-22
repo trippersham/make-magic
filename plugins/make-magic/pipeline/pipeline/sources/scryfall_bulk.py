@@ -144,6 +144,13 @@ def _project(card: dict[str, Any]) -> dict[str, Any]:
         'image_normal': image_uris.get('normal'),
         'scryfall_uri': card.get('scryfall_uri'),
         'set_name': card.get('set_name'),
+        # Commander legality, flattened to a scalar so the recommendation ban-gate
+        # can decide offline. Scryfall's `legalities` is a per-format dict; only the
+        # `commander` entry matters here, and a flat VARCHAR matches the parquet's
+        # scalar convention (power/toughness/set_name) better than a nested STRUCT —
+        # no other projected column is nested. Null when a card carries no legalities;
+        # the enricher degrades an unknown value to "allow + flag".
+        'legality_commander': (card.get('legalities') or {}).get('commander'),
     }
 
 
