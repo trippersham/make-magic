@@ -130,6 +130,12 @@ class Anchor:
     connectivity: int
     mode: AnchorMode
     matched_attributes: tuple[str, ...] = ()
+    #: The attributes on the FAR side of this anchor's structural edge (the consumers
+    #: for a producer side, the producers for a consumer side, the opposite-event
+    #: attrs for an undirected node / strategy). ``connectivity`` is the distinct
+    #: non-land card count over these; a candidate that ALSO matches one of them adds a
+    #: new neighbour, which is how Phase 3 computes the connectivity marginal.
+    opposite_attributes: tuple[str, ...] = ()
     path: tuple[str, ...] = ()
 
     def to_fact_snapshot(self) -> FactSnapshot:
@@ -235,6 +241,7 @@ def _event_side_anchors(ctx: FactsContext, inc: _Incidence, cfg: SaturationConfi
                 connectivity=cons_support,
                 mode=classify_saturation(prod_support, cons_support, cfg),
                 matched_attributes=tuple(producers),
+                opposite_attributes=tuple(consumers),
                 path=(f'{event}/producer', f'{event}/consumer'),
             )
         )
@@ -247,6 +254,7 @@ def _event_side_anchors(ctx: FactsContext, inc: _Incidence, cfg: SaturationConfi
                 connectivity=prod_support,
                 mode=classify_saturation(cons_support, prod_support, cfg),
                 matched_attributes=tuple(consumers),
+                opposite_attributes=tuple(producers),
                 path=(f'{event}/consumer', f'{event}/producer'),
             )
         )
@@ -284,6 +292,7 @@ def _engine_slot_anchors(ctx: FactsContext, inc: _Incidence, cfg: SaturationConf
                     connectivity=prod_support,
                     mode=classify_saturation(cons_support, prod_support, cfg),
                     matched_attributes=tuple(consumers),
+                    opposite_attributes=tuple(producers),
                     path=(f'{event}/payoff', f'{event}/producer'),
                 )
             )
@@ -299,6 +308,7 @@ def _engine_slot_anchors(ctx: FactsContext, inc: _Incidence, cfg: SaturationConf
                     connectivity=cons_support,
                     mode=classify_saturation(hub_support, cons_support, cfg),
                     matched_attributes=(hub,),
+                    opposite_attributes=tuple(consumers),
                     path=(f'{event}/hub', f'{event}/consumer'),
                 )
             )
@@ -316,7 +326,8 @@ def _card_attribute_anchors(ctx: FactsContext, inc: _Incidence, cfg: SaturationC
     anchors: list[Anchor] = []
     for attr in sorted(ctx.nodes):
         support = inc.support([attr])
-        connectivity = inc.support(inc.opposite.get(attr, frozenset()))
+        opposite = tuple(sorted(inc.opposite.get(attr, frozenset())))
+        connectivity = inc.support(opposite)
         anchors.append(
             Anchor(
                 kind='card_attribute',
@@ -326,6 +337,7 @@ def _card_attribute_anchors(ctx: FactsContext, inc: _Incidence, cfg: SaturationC
                 connectivity=connectivity,
                 mode=classify_saturation(support, connectivity, cfg),
                 matched_attributes=(attr,),
+                opposite_attributes=opposite,
                 path=(attr,),
             )
         )
@@ -357,6 +369,7 @@ def _strategy_anchors(ctx: FactsContext, inc: _Incidence, cfg: SaturationConfig)
                 connectivity=connectivity,
                 mode=classify_saturation(support, connectivity, cfg),
                 matched_attributes=contributing,
+                opposite_attributes=tuple(sorted(neighbours)),
                 path=(arch,),
             )
         )

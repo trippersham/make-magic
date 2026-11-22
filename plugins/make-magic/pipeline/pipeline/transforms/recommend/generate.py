@@ -59,7 +59,7 @@ from pipeline.transforms.recommend.contracts import (
     Rel,
     StrategyGraphMembership,
 )
-from pipeline.transforms.strategy.assets import VOCAB_FILE, StrategyAssets
+from pipeline.transforms.strategy.assets import VOCAB_FILE, StrategyAssets, is_land
 from pipeline.transforms.strategy.config import StrategyConfig
 from pipeline.transforms.strategy.distill_strategies import (
     SYNTH_ALWAYS_ATTRIBUTES,
@@ -251,22 +251,55 @@ def _matched_subset(card_view: CardView, anchor: Anchor, compiled: dict[str, Pre
     return hits
 
 
-def _fact_snapshot(matched: list[str], anchor: Anchor) -> FactSnapshot:
+def _matches_any(card_view: CardView, attrs: tuple[str, ...], compiled: dict[str, Predicate]) -> bool:
+    """Whether the card matches ANY of ``attrs`` (their resolved membership queries).
+
+    Used to decide the connectivity marginal: a candidate joins a NEW far-side
+    neighbour only if it also carries an opposite-side attribute. Shares the
+    per-unique-query predicate cache with :func:`_matched_subset`.
+    """
+    for attr in attrs:
+        sub = attribute_query(attr)
+        pred = compiled.get(sub)
+        if pred is None:
+            pred = compile_query(sub)
+            compiled[sub] = pred
+        if pred(card_view):
+            return True
+    return False
+
+
+def _fact_snapshot(
+    card: dict, card_view: CardView, matched: list[str], anchor: Anchor, compiled: dict[str, Predicate]
+) -> FactSnapshot:
     """Neutral per-anchor facts for a candidate joining this anchor's thin side.
 
-    Carries the before state from the anchor (Phase 2) and the structural ``*_after``
-    marginal: one card joins the side, so support rises by one; connectivity is
-    unchanged in singleton (a single card adds no new distinct neighbour to the
-    opposing side). The directed path prepends the candidate to the anchor's edge
-    descriptor to read as "this card joins <side>, which connects to <far side>".
+    The ``*_after`` deltas are the candidate's ACTUAL marginal, computed by the same
+    rules enumeration used (``support`` / ``connectivity`` count distinct NON-LAND
+    cards, per the engine's incidence):
+
+    * ``support_after`` rises by one only for a NON-LAND card — a land is excluded
+      from the side's support, so a land candidate leaves support unchanged (a flat
+      ``+1`` over-counted lands, e.g. a landfall producer).
+    * ``connectivity_after`` rises by one only when the candidate ALSO matches an
+      opposite-side attribute (and is non-land): it then adds a new distinct neighbour
+      across the structural edge — a both-sides card (a relay). A card that joins only
+      this side adds no far-side neighbour, so connectivity is unchanged.
+
+    The directed path prepends the candidate to the anchor's edge descriptor to read
+    as "this card joins <side>, which connects to <far side>".
     """
+    non_land = not is_land(card)
+    support_after = anchor.support + (1 if non_land else 0)
+    adds_neighbour = non_land and _matches_any(card_view, anchor.opposite_attributes, compiled)
+    connectivity_after = anchor.connectivity + (1 if adds_neighbour else 0)
     return FactSnapshot(
         matched_attributes=matched,
         path=['candidate', *anchor.path],
         support_before=anchor.support,
-        support_after=anchor.support + 1,
+        support_after=support_after,
         connectivity_before=anchor.connectivity,
-        connectivity_after=anchor.connectivity,
+        connectivity_after=connectivity_after,
     )
 
 
@@ -460,7 +493,7 @@ def generate_candidates(
                     target_kind=anchor.kind,
                     target_ref=anchor.ref,
                     direction=anchor.direction,
-                    fact_snapshot=_fact_snapshot(matched, anchor),
+                    fact_snapshot=_fact_snapshot(card, view, matched, anchor, compiled),
                 )
             )
 

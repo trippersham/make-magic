@@ -16,11 +16,13 @@ import pytest
 from pipeline.transforms.recommend import generate as generate_mod
 from pipeline.transforms.recommend.anchors import Anchor, enumerate_anchors
 from pipeline.transforms.recommend.generate import (
+    _fact_snapshot,
     attribute_query,
     demand_set_query,
     generate_candidates,
 )
 from pipeline.transforms.strategy.engine_hydration import make_fixture_search_client
+from pipeline.transforms.strategy.query import CardView
 
 from .conftest import LAKE_AVAILABLE
 
@@ -107,6 +109,54 @@ def test_demand_set_query_is_or_of_catalog_queries(load_deck) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# _fact_snapshot — the candidate's ACTUAL support/connectivity marginal.
+# --------------------------------------------------------------------------- #
+
+
+def _delta_anchor() -> Anchor:
+    # Opposite side is the raw otag slug `death-trigger` → attribute_query gives the
+    # exact `otag:death-trigger` membership, so these unit tests are deterministic and
+    # independent of the catalog.
+    return Anchor(
+        kind='event_side',
+        ref='evt',
+        direction='producer',
+        support=10,
+        connectivity=5,
+        mode='complement',
+        matched_attributes=('ramp',),
+        opposite_attributes=('death-trigger',),
+        path=('evt/producer', 'evt/consumer'),
+    )
+
+
+def test_fact_snapshot_nonland_single_side_raises_only_support() -> None:
+    # A non-land card that joins only THIS side: +1 support, connectivity unchanged.
+    card = {'type_line': 'Sorcery', 'otags': ['ramp'], 'oracle_text': '', 'mana_cost': ''}
+    snap = _fact_snapshot(card, CardView.from_card(card), ['ramp'], _delta_anchor(), {})
+    assert snap.support_after == 11
+    assert snap.connectivity_after == 5
+
+
+def test_fact_snapshot_land_does_not_raise_support() -> None:
+    # A LAND is excluded from the side's support (support counts non-land cards), so a
+    # land candidate leaves BOTH deltas flat — the old flat `+1` over-counted lands (#119).
+    card = {'type_line': 'Land', 'otags': ['death-trigger'], 'oracle_text': '', 'mana_cost': ''}
+    snap = _fact_snapshot(card, CardView.from_card(card), ['ramp'], _delta_anchor(), {})
+    assert snap.support_after == 10  # NOT 11
+    assert snap.connectivity_after == 5  # a land never adds a far-side neighbour either
+
+
+def test_fact_snapshot_both_sides_relay_raises_connectivity() -> None:
+    # A non-land card that ALSO carries an opposite-side attribute is a relay: it adds a
+    # new far-side neighbour, so connectivity rises too (the old flat `+0` missed this).
+    card = {'type_line': 'Creature', 'otags': ['ramp', 'death-trigger'], 'oracle_text': '', 'mana_cost': ''}
+    snap = _fact_snapshot(card, CardView.from_card(card), ['ramp'], _delta_anchor(), {})
+    assert snap.support_after == 11
+    assert snap.connectivity_after == 6
+
+
+# --------------------------------------------------------------------------- #
 # The core generation chain — one complement producer-side anchor.
 # --------------------------------------------------------------------------- #
 
@@ -143,12 +193,13 @@ def test_producer_candidate_carries_correct_sgm_and_after_delta(load_deck) -> No
     snap = sgm.fact_snapshot
     assert snap.matched_attributes == ['recursion-land']  # the attribute THIS card carried
     assert snap.path == ['candidate', 'land-enters-battlefield/producer', 'land-enters-battlefield/consumer']
-    # The before state is the anchor's; the card joins the thin side → +1 support,
-    # connectivity unchanged in singleton.
+    # The before state is the anchor's. This card is a NON-LAND, so it adds +1 support.
+    # It is also a both-sides RELAY: `recursion-land` is a member of the `landfall`
+    # consumer bucket too, so it adds a new far-side neighbour → connectivity +1.
     assert snap.support_before == anchor.support
     assert snap.support_after == anchor.support + 1
     assert snap.connectivity_before == anchor.connectivity
-    assert snap.connectivity_after == anchor.connectivity
+    assert snap.connectivity_after == anchor.connectivity + 1
 
 
 def test_already_in_deck_card_is_excluded(load_deck) -> None:

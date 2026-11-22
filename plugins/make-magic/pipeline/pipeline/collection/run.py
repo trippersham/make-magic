@@ -1834,9 +1834,18 @@ def _enrich_deck_for_scoring(deck: Deck, resolver: object) -> Deck:
     """
     from pipeline.contracts import DeckCard
 
+    # Prefer the durable oracle_id when the stored card already carries one: a name
+    # lookup can mis-hit an ambiguous name (a `Card // Card` art row, a reprint) and
+    # silently swap the card's identity + rules text, corrupting graph analysis and
+    # singleton detection. Fall back to the name only for an unresolved (id-less) row.
+    by_oid = getattr(resolver, 'get_card_by_oracle_id', None)
     cards: list[DeckCard] = []
     for card in deck.cards:
-        enriched = resolver.get_card(card.name)  # type: ignore[attr-defined]
+        enriched = None
+        if card.oracle_id and by_oid is not None:
+            enriched = by_oid(card.oracle_id)
+        if enriched is None:
+            enriched = resolver.get_card(card.name)  # type: ignore[attr-defined]
         if enriched is None:
             cards.append(card)
             continue

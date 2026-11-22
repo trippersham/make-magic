@@ -240,6 +240,41 @@ def test_resolves_plain_card_offline(lake: Path) -> None:
     assert card.set_name == 'Commander 2021'
 
 
+def test_get_card_by_oracle_id_resolves_exact(lake: Path) -> None:
+    """Resolving by oracle_id returns exactly that card (lake-only, no network)."""
+    resolver = DuckDBCardResolver(client=_BoomClient())
+    card = resolver.get_card_by_oracle_id('llanowar-oid')
+    assert card is not None
+    assert card.oracle_id == 'llanowar-oid'
+    assert card.name == 'Llanowar Elves'
+
+
+def test_get_card_by_oracle_id_beats_ambiguous_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Two lake rows can share a NAME with different oracle_ids (a playable card and a
+    `Card // Card` art row). A name lookup may pick the wrong one; resolving by the
+    durable oracle_id returns the intended card, not its namesake (#119 M3)."""
+    root = tmp_path / 'data'
+    monkeypatch.setenv(store.ENV_DATA_DIR, str(root))
+    playable = _empty_list_card('Ashen Reaper', 'playable-oid')
+    playable['oracle_text'] = 'the real card'
+    art = _empty_list_card('Ashen Reaper', 'art-card-oid')
+    art['oracle_text'] = 'art card'
+    _write_layer([playable, art], 'raw', 'oracle_cards')
+
+    resolver = DuckDBCardResolver(client=_BoomClient())
+    by_oid = resolver.get_card_by_oracle_id('playable-oid')
+    assert by_oid is not None
+    assert by_oid.oracle_id == 'playable-oid'  # exact, never the art-card namesake
+    assert by_oid.oracle_text == 'the real card'
+
+
+def test_get_card_by_oracle_id_miss_returns_none(lake: Path) -> None:
+    """A miss (or empty id) returns None so the caller can fall back to the name."""
+    resolver = DuckDBCardResolver(client=_BoomClient())
+    assert resolver.get_card_by_oracle_id('no-such-oid') is None
+    assert resolver.get_card_by_oracle_id('') is None
+
+
 def test_live_fallback_disabled_is_lake_only(lake: Path) -> None:
     """A lake-only resolver (``live_fallback=False``) never fetches or lands on a bulk
     miss: a missed name returns None with ZERO network, so a read-only / offline caller

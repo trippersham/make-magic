@@ -322,6 +322,38 @@ class DuckDBCardResolver:
         self._mem[name] = card
         return card
 
+    def get_card_by_oracle_id(self, oracle_id: str) -> Card | None:
+        """Resolve a card by its durable ``oracle_id`` — lake-only, exact.
+
+        Preferred over :meth:`get_card` when the caller already holds an oracle_id: a
+        name lookup can mis-hit an ambiguous name (a ``Card // Card`` art row, a
+        reprint) and silently swap the card's identity + rules text, corrupting graph
+        analysis and singleton detection. Returns None on a lake miss (the caller may
+        then fall back to the name) or an absent lake; never fetches live or writes.
+        """
+        if not oracle_id:
+            return None
+        key = f'\x00oid:{oracle_id}'  # NUL-prefixed so it can never collide with a name
+        if key in self._mem:
+            return self._mem[key]
+        card: Card | None = None
+        try:
+            if store.table_exists(*_ORACLE_CARDS):
+                with store.connect(read_only=True) as conn:
+                    path = store.StorePaths.resolve().parquet_path(*_ORACLE_CARDS, create=False)
+                    rel = conn.read_parquet(str(path))
+                    cols = ', '.join(_CARD_COLUMNS)
+                    esc = _sql_escape(str(oracle_id))
+                    row = rel.filter(f"CAST(oracle_id AS VARCHAR) = '{esc}'").select(cols).limit(1).fetchone()
+                    if row is not None:
+                        record: dict[str, Any] = dict(zip(_CARD_COLUMNS, row, strict=True))
+                        card = _card_from_row(record, self._otags_for(conn, record.get('oracle_id')))
+        except Exception as exc:
+            log.warning('card-dim: oracle_id lookup for %r failed (%s); None.', oracle_id, exc)
+            card = None
+        self._mem[key] = card
+        return card
+
     # -- lake read (offline-first) ---------------------------------------- #
 
     def _resolve_from_lake(self, name: str) -> Card | None:
