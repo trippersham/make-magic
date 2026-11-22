@@ -1,0 +1,2625 @@
+{
+  "name": "World Reclaimer",
+  "source": "comparison-phase3-spike",
+  "commander_hint": "Szarel, Genesis Shepherd",
+  "cards": [
+    {
+      "name": "Szarel, Genesis Shepherd",
+      "oracle_id": "1f3c3365-7dc8-47e1-b304-2a09aa229292",
+      "role": "commander",
+      "type_line": "Legendary Creature — Insect Druid",
+      "oracle_text": "Flying\nYou may play lands from your graveyard.\nWhenever you sacrifice another nontoken permanent during your turn, put a number of +1/+1 counters equal to Szarel's power on up to one other target creature.",
+      "mana_cost": "{2}{B}{R}{G}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "alliteration",
+        "alt-commander",
+        "card-names",
+        "crucible-of-worlds",
+        "evasion",
+        "gives-pp-counters",
+        "power-matters",
+        "power-matters-self",
+        "reanimate",
+        "reanimate-land",
+        "recursion",
+        "recursion-land",
+        "repeatable-crime",
+        "repeatable-pp-counters",
+        "sacrifice-matters",
+        "scales-with-power",
+        "triggered-ability",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "B",
+        "G",
+        "R"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Aftermath Analyst",
+      "oracle_id": "374e54d8-8e73-4268-9dde-c28c77bbbf32",
+      "role": null,
+      "type_line": "Creature — Elf Detective",
+      "oracle_text": "When this creature enters, mill three cards. (Put the top three cards of your library into your graveyard.)\n{3}{G}, Sacrifice this creature: Return all land cards from your graveyard to the battlefield tapped.",
+      "mana_cost": "{1}{G}",
+      "keywords": [
+        "Mill"
+      ],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "card-names",
+        "land-ramp",
+        "martyr",
+        "mass-reanimation",
+        "mill",
+        "mill-self",
+        "multi-land-ramp",
+        "ramp",
+        "reanimate",
+        "reanimate-land",
+        "recursion",
+        "recursion-land",
+        "sacrifice-self",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Ancient Greenwarden",
+      "oracle_id": "3bcf090c-e890-4a9f-a8aa-6079e4ec9947",
+      "role": null,
+      "type_line": "Creature — Elemental",
+      "oracle_text": "Reach (This creature can block creatures with flying.)\nYou may play lands from your graveyard.\nIf a land entering causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.",
+      "mana_cost": "{4}{G}{G}",
+      "keywords": [
+        "Reach"
+      ],
+      "otags": [
+        "crucible-of-worlds",
+        "cycle",
+        "cycle-znr-m-mono-creature",
+        "landfall",
+        "lands-matter",
+        "reanimate",
+        "reanimate-land",
+        "recursion",
+        "recursion-land",
+        "thingfall",
+        "trigger-doubler"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Avenger of Zendikar",
+      "oracle_id": "4ba5b3f6-503b-43e6-b66e-4f8c55cffed7",
+      "role": null,
+      "type_line": "Creature — Elemental",
+      "oracle_text": "When this creature enters, create a 0/1 green Plant creature token for each land you control.\nLandfall — Whenever a land you control enters, you may put a +1/+1 counter on each Plant creature you control.",
+      "mana_cost": "{5}{G}{G}",
+      "keywords": [
+        "Landfall"
+      ],
+      "otags": [
+        "enters-in-company",
+        "gives-pp-counters",
+        "land-count-matters",
+        "landfall",
+        "lands-matter",
+        "multiple-bodies",
+        "repeatable-pp-counters",
+        "thingfall",
+        "triggered-ability",
+        "typal",
+        "typal-creature",
+        "typal-plant"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 7.0
+    },
+    {
+      "name": "Baloth Prime",
+      "oracle_id": "dba3dcc1-2177-4a8c-8cf3-7d4fb83c7a16",
+      "role": null,
+      "type_line": "Creature — Beast",
+      "oracle_text": "This creature enters tapped with six stun counters on it. (If a permanent with a stun counter would become untapped, remove one from it instead.)\nWhenever you sacrifice a land, create a tapped 4/4 green Beast creature token and untap this creature.\n{4}, Sacrifice a land: You gain 2 life.",
+      "mana_cost": "{3}{G}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "drawback",
+        "lifegain",
+        "mana-sink",
+        "repeatable-creature-tokens",
+        "repeatable-lifegain",
+        "repeatable-sacrifice-outlet",
+        "repeatable-token-generator",
+        "sacrifice-matters",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "triggered-ability",
+        "untapper",
+        "untaps-self",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Blasphemous Act",
+      "oracle_id": "7a2484a9-04fd-41a0-8224-610c1c07ed10",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "This spell costs {1} less to cast for each creature on the battlefield.\nBlasphemous Act deals 13 damage to each creature.",
+      "mana_cost": "{8}{R}",
+      "keywords": [],
+      "otags": [
+        "affinity",
+        "affinity-for-creatures",
+        "burn",
+        "burn-creature",
+        "cheaper-than-mv",
+        "creature-count-matters",
+        "discount-self",
+        "hate",
+        "hate-wide",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "sweeper",
+        "symmetrical"
+      ],
+      "color_identity": [
+        "R"
+      ],
+      "cmc": 9.0
+    },
+    {
+      "name": "Bojuka Bog",
+      "oracle_id": "04b7362d-0490-4cb0-b5d7-2a7732f659ce",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped.\nWhen this land enters, exile target player's graveyard.\n{T}: Add {B}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "card-names",
+        "cycle",
+        "cycle-land",
+        "cycle-mono-land",
+        "cycle-wwk-utilityland",
+        "hate",
+        "hate-graveyard",
+        "sweeper-graveyard",
+        "tapland",
+        "triggered-ability",
+        "utility-land"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Braids, Arisen Nightmare",
+      "oracle_id": "e0445c80-fa53-4c3e-881e-940e9fce7f57",
+      "role": null,
+      "type_line": "Legendary Creature — Nightmare",
+      "oracle_text": "At the beginning of your end step, you may sacrifice an artifact, creature, enchantment, land, or planeswalker. If you do, each opponent may sacrifice a permanent of their choice that shares a card type with it. For each opponent who doesn't, that player loses 2 life and you draw a card.",
+      "mana_cost": "{1}{B}{B}",
+      "keywords": [],
+      "otags": [
+        "card-advantage",
+        "dilemma",
+        "draw",
+        "draw-engine",
+        "group-slug",
+        "martyr",
+        "multi-removal",
+        "multiplayer",
+        "mutual-sacrifice",
+        "opponent-loses-life",
+        "per-player",
+        "plunder",
+        "punisher",
+        "removal",
+        "removal-sacrifice",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-plunder",
+        "repeatable-removal",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-artifact",
+        "sacrifice-outlet-creature",
+        "sacrifice-outlet-enchantment",
+        "sacrifice-outlet-land",
+        "sacrifice-outlet-planeswalker",
+        "sacrifice-self",
+        "synergy-artifact",
+        "synergy-enchantment",
+        "synergy-planeswalker",
+        "triggered-ability",
+        "unique-type-line"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Cabaretti Courtyard",
+      "oracle_id": "65424bea-fd53-4f85-9757-0b91a6d40ba4",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "When this land enters, sacrifice it. When you do, search your library for a basic Mountain, Forest, or Plains card, put it onto the battlefield tapped, then shuffle and you gain 1 life.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "cycle",
+        "cycle-land",
+        "cycle-nonmana-land",
+        "cycle-snc-fetchland",
+        "fetchland",
+        "gainland",
+        "lifegain",
+        "reflexive-trigger",
+        "sacrifice-self",
+        "triggered-ability",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-basic-forest",
+        "tutor-land-basic-mountain",
+        "tutor-land-basic-plains",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield",
+        "utility-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Command Beacon",
+      "oracle_id": "7e8c2a18-e404-40ff-a9e0-ec3eeb6d576e",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{T}, Sacrifice this land: Put your commander into your hand from the command zone.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "commander-matters",
+        "commander-tax-evasion",
+        "sacrifice-self",
+        "synergy-commander",
+        "utility-land",
+        "virtual-legendary"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Cultivate",
+      "oracle_id": "8b755881-a72d-4e21-a369-d2924eb4585a",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.",
+      "mana_cost": "{2}{G}",
+      "keywords": [],
+      "otags": [
+        "card-names",
+        "land-ramp",
+        "ramp",
+        "single-english-word-name",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield",
+        "tutor-to-hand"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Dakmor Salvage",
+      "oracle_id": "cdc4048a-73ec-4ec1-a179-2b36c397bf1a",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped.\n{T}: Add {B}.\nDredge 2 (If you would draw a card, you may mill two cards instead. If you do, return this card from your graveyard to your hand.)",
+      "mana_cost": "",
+      "keywords": [
+        "Dredge",
+        "Mill"
+      ],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-fut-utilityland",
+        "cycle-land",
+        "cycle-mono-land",
+        "manaless-value",
+        "mill",
+        "mill-self",
+        "recursion",
+        "recursion-self",
+        "regrowth-self",
+        "tapland",
+        "utility-land"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Elvish Reclaimer",
+      "oracle_id": "94f01534-7bb3-4b1e-8f77-e84156408686",
+      "role": null,
+      "type_line": "Creature — Elf Warrior",
+      "oracle_text": "This creature gets +2/+2 as long as there are three or more land cards in your graveyard.\n{2}, {T}, Sacrifice a land: Search your library for a land card, put it onto the battlefield tapped, then shuffle.",
+      "mana_cost": "{G}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cards-in-graveyard-matter",
+        "green-effect",
+        "lands-in-graveyard-matter",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "tutor",
+        "tutor-land",
+        "tutor-land-any",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Evendo Brushrazer",
+      "oracle_id": "795bc0b0-4b0a-49d6-ac8e-a52a10a93be8",
+      "role": null,
+      "type_line": "Creature — Insect Warrior",
+      "oracle_text": "Whenever you sacrifice a nontoken permanent, exile the top card of your library.\nDuring your turn, as long as you've sacrificed a nontoken permanent this turn, you may play cards exiled with this creature.\n{T}, Sacrifice a land: Add {R}{R}.",
+      "mana_cost": "{2}{R}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "card-advantage",
+        "gives-castable-from-exile",
+        "gives-castable-from-nonhand",
+        "impulsive-draw",
+        "long-term-impulsive-draw",
+        "mana-dork",
+        "mana-producer",
+        "ramp",
+        "red-effect",
+        "repeatable-card-advantage",
+        "repeatable-impulsive-draw",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-matters",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "triggered-ability",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "R"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Evolving Wilds",
+      "oracle_id": "a75445d3-1303-4bb5-89ad-26ea93fecd48",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "fetchland",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Exploration Broodship",
+      "oracle_id": "8a83ecee-092b-456c-803f-a9aaa17c4da9",
+      "role": null,
+      "type_line": "Artifact — Spacecraft",
+      "oracle_text": "Station (Tap another creature you control: Put charge counters equal to its power on this Spacecraft. Station only as a sorcery. It's an artifact creature at 8+.)\n3+ | You may play an additional land on each of your turns.\n8+ | Flying\nOnce during each of your turns, you may cast a permanent spell from your graveyard by sacrificing a land in addition to paying its other costs.",
+      "mana_cost": "{G}",
+      "keywords": [
+        "Station"
+      ],
+      "otags": [
+        "activated-ability",
+        "animate",
+        "animate-self",
+        "evasion",
+        "extra-land",
+        "gains-flying",
+        "land-ramp",
+        "play-additional-land",
+        "power-matters",
+        "ramp",
+        "reanimate",
+        "reanimate-cast",
+        "reanimate-permanent",
+        "recursion",
+        "recursion-permanent",
+        "recycle",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "tap-fuel-creature",
+        "tap-fuel-power",
+        "tap-outlet",
+        "type-change"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Fabled Passage",
+      "oracle_id": "0c85b8f7-0bd0-4680-9ec5-d4b110460a54",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle. Then if you control four or more lands, untap that land.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "fetchland",
+        "land-count-matters",
+        "lands-matter",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Farseek",
+      "oracle_id": "495e52e6-4c2b-4574-9474-eadbdcc8b4ac",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Search your library for a Plains, Island, Swamp, or Mountain card, put it onto the battlefield tapped, then shuffle.",
+      "mana_cost": "{1}{G}",
+      "keywords": [],
+      "otags": [
+        "land-ramp",
+        "ramp",
+        "tutor",
+        "tutor-land",
+        "tutor-land-island",
+        "tutor-land-mountain",
+        "tutor-land-plains",
+        "tutor-land-swamp",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Mana Reflection",
+      "oracle_id": "a3a8a044-283d-443e-bc40-c2f826d70c22",
+      "role": null,
+      "type_line": "Enchantment",
+      "oracle_text": "If you tap a permanent for mana, it produces twice as much of that mana instead.",
+      "mana_cost": "{4}{G}{G}",
+      "keywords": [],
+      "otags": [
+        "cycle",
+        "cycle-shm-reflection",
+        "green-effect",
+        "mana-increaser",
+        "ramp"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Gaze of Granite",
+      "oracle_id": "103d9ad0-d655-4bd5-a899-e9f8869e333d",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Destroy each nonland permanent with mana value X or less.",
+      "mana_cost": "{X}{B}{B}{G}",
+      "keywords": [],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "mana-value-matters",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-destroy",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "sweeper",
+        "symmetrical",
+        "unique-mana-cost"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "God-Eternal Bontu",
+      "oracle_id": "183891b0-b5ec-47f4-8d09-b9d3cfc4e7f1",
+      "role": null,
+      "type_line": "Legendary Creature — Zombie God",
+      "oracle_text": "Menace\nWhen God-Eternal Bontu enters, sacrifice any number of other permanents, then draw that many cards.\nWhen God-Eternal Bontu dies or is put into exile from the battlefield, you may put her into her owner's library third from the top.",
+      "mana_cost": "{3}{B}{B}",
+      "keywords": [
+        "Menace"
+      ],
+      "otags": [
+        "burst-draw",
+        "card-advantage",
+        "cycle",
+        "cycle-war-god",
+        "death-trigger",
+        "death-trigger-self",
+        "draw",
+        "evasion",
+        "plunder",
+        "recursion",
+        "recursion-self",
+        "restock",
+        "restock-self",
+        "sacrifice-outlet",
+        "sacrifice-outlet-artifact",
+        "sacrifice-outlet-creature",
+        "sacrifice-outlet-enchantment",
+        "sacrifice-outlet-land",
+        "sacrifice-outlet-planeswalker",
+        "sacrifice-outlet-universal",
+        "triggered-ability",
+        "unexile"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Harrow",
+      "oracle_id": "705509e9-a034-4a5a-9c65-66f58748b8a2",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "As an additional cost to cast this spell, sacrifice a land.\nSearch your library for up to two basic land cards, put them onto the battlefield, then shuffle.",
+      "mana_cost": "{2}{G}",
+      "keywords": [],
+      "otags": [
+        "additional-cost",
+        "card-names",
+        "land-ramp",
+        "ramp",
+        "refund",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "single-english-word-name",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Hearthhull, the Worldseed",
+      "oracle_id": "8d6f82d9-5c5b-4c41-8857-c0936f2d894c",
+      "role": null,
+      "type_line": "Legendary Artifact — Spacecraft",
+      "oracle_text": "Station (Tap another creature you control: Put charge counters equal to its power on this Spacecraft. Station only as a sorcery. It's an artifact creature at 8+.)\n2+ | {1}, {T}, Sacrifice a land: Draw two cards. You may play an additional land this turn.\n8+ | Flying, vigilance, haste\nWhenever you sacrifice a land, each opponent loses 2 life.",
+      "mana_cost": "{1}{B}{R}{G}",
+      "keywords": [
+        "Station"
+      ],
+      "otags": [
+        "activated-ability",
+        "animate",
+        "animate-self",
+        "card-advantage",
+        "draw",
+        "draw-engine",
+        "evasion",
+        "extra-land",
+        "face-commander",
+        "gains-flying",
+        "gains-haste",
+        "gains-vigilance",
+        "group-slug",
+        "lands-matter",
+        "opponent-loses-life",
+        "play-additional-land",
+        "plunder",
+        "power-matters",
+        "ramp",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-plunder",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-matters",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "tap-fuel-creature",
+        "tap-fuel-power",
+        "tap-outlet",
+        "tome",
+        "triggered-ability",
+        "type-change",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "B",
+        "G",
+        "R"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Infernal Grasp",
+      "oracle_id": "94f0a572-e91c-4b56-a5d1-6cbbeabd210d",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Destroy target creature. You lose 2 life.",
+      "mana_cost": "{1}{B}",
+      "keywords": [],
+      "otags": [
+        "life-payment",
+        "removal",
+        "removal-creature",
+        "removal-destroy",
+        "single-target-instant-sorcery",
+        "spot-removal"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Juri, Master of the Revue",
+      "oracle_id": "3364bad6-6d0a-4141-b410-86e3d9e1916e",
+      "role": null,
+      "type_line": "Legendary Creature — Human Shaman",
+      "oracle_text": "Whenever you sacrifice a permanent, put a +1/+1 counter on Juri.\nWhen Juri dies, it deals damage equal to its power to any target.",
+      "mana_cost": "{B}{R}",
+      "keywords": [],
+      "otags": [
+        "burn",
+        "burn-any",
+        "burn-battle",
+        "burn-creature",
+        "burn-planeswalker",
+        "burn-player",
+        "cycle",
+        "cycle-cmr-draft-signpost",
+        "death-trigger",
+        "death-trigger-self",
+        "draft-signpost",
+        "gains-pp-counters",
+        "hate",
+        "hate-removal-sacrifice",
+        "power-matters",
+        "power-matters-self",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "removal-planeswalker",
+        "repeatable-pp-counters",
+        "sacrifice-matters",
+        "scales-with-power",
+        "spot-removal",
+        "triggered-ability",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "B",
+        "R"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Karplusan Forest",
+      "oracle_id": "bd912666-f37f-4767-af6f-9e6d0fcccacf",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{T}: Add {R} or {G}. This land deals 1 damage to you.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "burn-you",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-ice-painland",
+        "cycle-land",
+        "cycle-painland",
+        "dual-land",
+        "life-payment",
+        "mana-ability-with-extra-effect",
+        "painland"
+      ],
+      "color_identity": [
+        "G",
+        "R"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Korvold, Fae-Cursed King",
+      "oracle_id": "9ae669dd-7e60-4649-b96e-35da28be641a",
+      "role": null,
+      "type_line": "Legendary Creature — Dragon Noble",
+      "oracle_text": "Flying\nWhenever Korvold enters or attacks, sacrifice another permanent.\nWhenever you sacrifice a permanent, put a +1/+1 counter on Korvold and draw a card.",
+      "mana_cost": "{2}{B}{R}{G}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "alliteration",
+        "attack-trigger",
+        "attacking-matters-self",
+        "card-advantage",
+        "card-names",
+        "cycle",
+        "cycle-eld-brawler",
+        "draw",
+        "draw-engine",
+        "evasion",
+        "gains-pp-counters",
+        "hate",
+        "hate-removal-sacrifice",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pp-counters",
+        "repeatable-pure-draw",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-matters",
+        "sacrifice-outlet",
+        "sacrifice-outlet-artifact",
+        "sacrifice-outlet-creature",
+        "sacrifice-outlet-enchantment",
+        "sacrifice-outlet-land",
+        "sacrifice-outlet-planeswalker",
+        "sacrifice-outlet-universal",
+        "titan-trigger",
+        "triggered-ability",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "B",
+        "G",
+        "R"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Life from the Loam",
+      "oracle_id": "ac8fba34-512c-4f24-999a-ab72f1ce4acb",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Return up to three target land cards from your graveyard to your hand.\nDredge 3 (If you would draw a card, you may mill three cards instead. If you do, return this card from your graveyard to your hand.)",
+      "mana_cost": "{1}{G}",
+      "keywords": [
+        "Dredge",
+        "Mill"
+      ],
+      "otags": [
+        "alliteration",
+        "card-advantage",
+        "card-names",
+        "manaless-value",
+        "mill",
+        "mill-self",
+        "multiple-targets",
+        "recursion",
+        "recursion-land",
+        "recursion-self",
+        "regrowth",
+        "regrowth-land",
+        "regrowth-self",
+        "single-target-instant-sorcery"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Llanowar Wastes",
+      "oracle_id": "32116127-cf96-4a1b-8896-a1ebc087b597",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{T}: Add {B} or {G}. This land deals 1 damage to you.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "burn-you",
+        "cycle",
+        "cycle-apc-painland",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-painland",
+        "dual-land",
+        "life-payment",
+        "mana-ability-with-extra-effect",
+        "painland"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Lotus Cobra",
+      "oracle_id": "8ad91f64-ccab-4edc-bd54-b2ee9267d614",
+      "role": null,
+      "type_line": "Creature — Snake",
+      "oracle_text": "Landfall — Whenever a land you control enters, add one mana of any color.",
+      "mana_cost": "{1}{G}",
+      "keywords": [
+        "Landfall"
+      ],
+      "otags": [
+        "landfall",
+        "lands-matter",
+        "mana-dork",
+        "mana-producer",
+        "non-mana-ability-mana",
+        "ramp",
+        "refund",
+        "thingfall",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Maestros Theater",
+      "oracle_id": "9464ddf2-4bcb-44f6-b945-89a132544de6",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "When this land enters, sacrifice it. When you do, search your library for a basic Island, Swamp, or Mountain card, put it onto the battlefield tapped, then shuffle and you gain 1 life.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "cycle",
+        "cycle-land",
+        "cycle-nonmana-land",
+        "cycle-snc-fetchland",
+        "fetchland",
+        "gainland",
+        "lifegain",
+        "reflexive-trigger",
+        "sacrifice-self",
+        "triggered-ability",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-basic-island",
+        "tutor-land-basic-mountain",
+        "tutor-land-basic-swamp",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield",
+        "utility-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Mayhem Devil",
+      "oracle_id": "4709f11c-aef8-45ac-b2bf-e640c568dfac",
+      "role": null,
+      "type_line": "Creature — Devil",
+      "oracle_text": "Whenever a player sacrifices a permanent, this creature deals 1 damage to any target.",
+      "mana_cost": "{1}{B}{R}",
+      "keywords": [],
+      "otags": [
+        "burn",
+        "burn-any",
+        "burn-battle",
+        "burn-creature",
+        "burn-planeswalker",
+        "burn-player",
+        "cycle",
+        "cycle-rvr-u-two-color",
+        "cycle-war-draft-signpost",
+        "draft-signpost",
+        "hate",
+        "hate-removal-sacrifice",
+        "opponent-sacrifice-matters",
+        "pinger",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "removal-planeswalker",
+        "repeatable-crime",
+        "repeatable-removal",
+        "sacrifice-matters",
+        "spot-removal",
+        "triggered-ability",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "B",
+        "R"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Maze of Ith",
+      "oracle_id": "38a12bd7-4394-44a8-91a0-6a4ff7fa4f71",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Untap target attacking creature. Prevent all combat damage that would be dealt to and dealt by that creature this turn.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "attacking-matters",
+        "card-names",
+        "damage-prevention",
+        "hate",
+        "hate-attacker",
+        "manaless-land",
+        "namesake-spell",
+        "repeatable-crime",
+        "untapper",
+        "untapper-creature",
+        "utility-land",
+        "virtual-legendary"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Mazirek, Kraul Death Priest",
+      "oracle_id": "e0420f2c-d578-421e-ae75-e7dc5f70661a",
+      "role": null,
+      "type_line": "Legendary Creature — Insect Shaman",
+      "oracle_text": "Flying\nWhenever a player sacrifices another permanent, put a +1/+1 counter on each creature you control.",
+      "mana_cost": "{3}{B}{G}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "alt-commander",
+        "cycle",
+        "cycle-2xm-r-two-color",
+        "cycle-c15-alt-commander",
+        "evasion",
+        "gains-pp-counters",
+        "gives-pp-counters",
+        "gives-pp-counters-to-all",
+        "opponent-sacrifice-matters",
+        "power-boost-to-all",
+        "repeatable-pp-counters",
+        "sacrifice-matters",
+        "toughness-boost-to-all",
+        "triggered-ability",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Moraug, Fury of Akoum",
+      "oracle_id": "6288c0cb-cf32-4ae9-abf0-104ec71654fa",
+      "role": null,
+      "type_line": "Legendary Creature — Minotaur Warrior",
+      "oracle_text": "Each creature you control gets +1/+0 for each time it has attacked this turn.\nLandfall — Whenever a land you control enters, if it's your main phase, there's an additional combat phase after this phase. At the beginning of that combat, untap all creatures you control.",
+      "mana_cost": "{4}{R}{R}",
+      "keywords": [
+        "Landfall"
+      ],
+      "otags": [
+        "anthem",
+        "attacking-matters",
+        "cycle",
+        "cycle-znr-m-mono-legend",
+        "delayed-trigger",
+        "extra-combat-phase",
+        "extra-untap",
+        "intervening-if-clause",
+        "landfall",
+        "lands-matter",
+        "phase-manipulation",
+        "power-boost-to-all",
+        "thingfall",
+        "triggered-ability",
+        "unnoted-tracked-information",
+        "untapper",
+        "untapper-creature"
+      ],
+      "color_identity": [
+        "R"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Mountain Valley",
+      "oracle_id": "0b7393aa-d563-45bc-9946-8e7d1729d498",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped.\n{T}, Sacrifice this land: Search your library for a Mountain or Forest card, put it onto the battlefield, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-land",
+        "cycle-mir-fetchland",
+        "cycle-nonmana-land",
+        "fetchland",
+        "sacrifice-self",
+        "tapland",
+        "tutor",
+        "tutor-land",
+        "tutor-land-forest",
+        "tutor-land-mountain",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Ob Nixilis, the Fallen",
+      "oracle_id": "154104b7-4125-4276-8bc7-9a6edfe48cb9",
+      "role": null,
+      "type_line": "Legendary Creature — Demon",
+      "oracle_text": "Landfall — Whenever a land you control enters, you may have target player lose 3 life. If you do, put three +1/+1 counters on Ob Nixilis.",
+      "mana_cost": "{3}{B}{B}",
+      "keywords": [
+        "Landfall"
+      ],
+      "otags": [
+        "gains-pp-counters",
+        "landfall",
+        "lands-matter",
+        "opponent-loses-life",
+        "repeatable-crime",
+        "repeatable-pp-counters",
+        "thingfall",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Omnath, Locus of Rage",
+      "oracle_id": "1816eede-c5bd-49df-958f-a3af64cb2932",
+      "role": null,
+      "type_line": "Legendary Creature — Elemental",
+      "oracle_text": "Landfall — Whenever a land you control enters, create a 5/5 red and green Elemental creature token.\nWhenever Omnath or another Elemental you control dies, Omnath deals 3 damage to any target.",
+      "mana_cost": "{3}{R}{R}{G}{G}",
+      "keywords": [
+        "Landfall"
+      ],
+      "otags": [
+        "burn",
+        "burn-any",
+        "burn-battle",
+        "burn-creature",
+        "burn-planeswalker",
+        "burn-player",
+        "death-trigger",
+        "landfall",
+        "lands-matter",
+        "noncreature-typal",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "removal-planeswalker",
+        "repeatable-creature-tokens",
+        "repeatable-crime",
+        "repeatable-removal",
+        "repeatable-token-generator",
+        "spot-removal",
+        "thingfall",
+        "triggered-ability",
+        "typal",
+        "typal-creature",
+        "typal-elemental"
+      ],
+      "color_identity": [
+        "G",
+        "R"
+      ],
+      "cmc": 7.0
+    },
+    {
+      "name": "Oracle of Mul Daya",
+      "oracle_id": "6c5b02eb-7829-436a-8555-fea200e4b67f",
+      "role": null,
+      "type_line": "Creature — Elf Shaman",
+      "oracle_text": "You may play an additional land on each of your turns.\nPlay with the top card of your library revealed.\nYou may play lands from the top of your library.",
+      "mana_cost": "{3}{G}",
+      "keywords": [],
+      "otags": [
+        "card-advantage",
+        "extra-land",
+        "future-sight-engine",
+        "gives-castable-from-library",
+        "gives-castable-from-nonhand",
+        "land-ramp",
+        "peek",
+        "peek-library",
+        "play-additional-land",
+        "play-from-top",
+        "ramp",
+        "repeatable-card-advantage"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Planetary Annihilation",
+      "oracle_id": "1d45f248-5b83-4377-a3ba-4eae48e63ca1",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Each player chooses six lands they control, then sacrifices the rest. Planetary Annihilation deals 6 damage to each creature.",
+      "mana_cost": "{3}{R}{R}",
+      "keywords": [],
+      "otags": [
+        "burn",
+        "burn-creature",
+        "opponent-chooses",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "removal-land",
+        "removal-sacrifice",
+        "spot-removal",
+        "sweeper"
+      ],
+      "color_identity": [
+        "R"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Rampaging Baloths",
+      "oracle_id": "2d3e6549-6cc6-434f-a189-ba3b55e64c34",
+      "role": null,
+      "type_line": "Creature — Beast",
+      "oracle_text": "Trample\nLandfall — Whenever a land you control enters, create a 4/4 green Beast creature token.",
+      "mana_cost": "{4}{G}{G}",
+      "keywords": [
+        "Trample",
+        "Landfall"
+      ],
+      "otags": [
+        "landfall",
+        "lands-matter",
+        "repeatable-creature-tokens",
+        "repeatable-token-generator",
+        "thingfall",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Ramunap Excavator",
+      "oracle_id": "4f819ba4-52ef-4fdd-8e4c-5ae3b2f44db5",
+      "role": null,
+      "type_line": "Creature — Snake Cleric",
+      "oracle_text": "You may play lands from your graveyard.",
+      "mana_cost": "{2}{G}",
+      "keywords": [],
+      "otags": [
+        "crucible-of-worlds",
+        "reanimate",
+        "reanimate-land",
+        "recursion",
+        "recursion-land",
+        "type-errata",
+        "type-errata-genericise",
+        "type-errata-naga"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Reshape the Earth",
+      "oracle_id": "edc15ea8-d321-4884-bdcf-ae6198aab78b",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Search your library for up to ten land cards, put them onto the battlefield tapped, then shuffle.",
+      "mana_cost": "{6}{G}{G}{G}",
+      "keywords": [],
+      "otags": [
+        "cycle",
+        "cycle-cmr-m-sorcery",
+        "green-effect",
+        "land-ramp",
+        "multi-land-ramp",
+        "ramp",
+        "tutor",
+        "tutor-land",
+        "tutor-land-any",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 9.0
+    },
+    {
+      "name": "Riveteers Overlook",
+      "oracle_id": "5548ff43-e5f6-4a63-8562-a2b1de06d6f5",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "When this land enters, sacrifice it. When you do, search your library for a basic Swamp, Mountain, or Forest card, put it onto the battlefield tapped, then shuffle and you gain 1 life.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "cycle",
+        "cycle-land",
+        "cycle-nonmana-land",
+        "cycle-snc-fetchland",
+        "fetchland",
+        "gainland",
+        "lifegain",
+        "reflexive-trigger",
+        "sacrifice-self",
+        "triggered-ability",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-basic-forest",
+        "tutor-land-basic-mountain",
+        "tutor-land-basic-swamp",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield",
+        "utility-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Rocky Tar Pit",
+      "oracle_id": "8709b5b1-ef9e-45b2-bf4f-ef4c4d613dcd",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped.\n{T}, Sacrifice this land: Search your library for a Swamp or Mountain card, put it onto the battlefield, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-land",
+        "cycle-mir-fetchland",
+        "cycle-nonmana-land",
+        "fetchland",
+        "sacrifice-self",
+        "tapland",
+        "tutor",
+        "tutor-land",
+        "tutor-land-mountain",
+        "tutor-land-swamp",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Roiling Regrowth",
+      "oracle_id": "65d63518-3261-40b5-87b8-19c152b29ee3",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Sacrifice a land. Search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.",
+      "mana_cost": "{2}{G}",
+      "keywords": [],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "land-ramp",
+        "ramp",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Scouring Swarm",
+      "oracle_id": "aa64f830-b9b6-4d5e-9a5d-f9e120089335",
+      "role": null,
+      "type_line": "Creature — Insect",
+      "oracle_text": "Flying\nWhenever you sacrifice a land, create a tapped token that's a copy of this creature if seven or more land cards are in your graveyard. Otherwise, create a tapped 1/1 black Insect creature token with flying.",
+      "mana_cost": "{1}{B}{G}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "cards-in-graveyard-matter",
+        "copy",
+        "copy-self",
+        "evasion",
+        "exponential",
+        "fun-ruling",
+        "lands-in-graveyard-matter",
+        "repeatable-creature-tokens",
+        "repeatable-token-generator",
+        "sacrifice-matters",
+        "triggered-ability",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Scute Swarm",
+      "oracle_id": "aa854d50-444c-49d9-bfb1-5476b33c1c0b",
+      "role": null,
+      "type_line": "Creature — Insect",
+      "oracle_text": "Landfall — Whenever a land you control enters, create a 1/1 green Insect creature token. If you control six or more lands, create a token that's a copy of this creature instead.",
+      "mana_cost": "{2}{G}",
+      "keywords": [
+        "Landfall"
+      ],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "copy",
+        "copy-self",
+        "exponential",
+        "land-count-matters",
+        "landfall",
+        "lands-matter",
+        "repeatable-creature-tokens",
+        "repeatable-token-generator",
+        "self-replacement-effect",
+        "thingfall",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Soul of Windgrace",
+      "oracle_id": "2d73a3bd-f052-4f48-9a72-12db03e27249",
+      "role": null,
+      "type_line": "Legendary Creature — Cat Avatar",
+      "oracle_text": "Whenever Soul of Windgrace enters or attacks, you may put a land card from a graveyard onto the battlefield tapped under your control.\n{G}, Discard a land card: You gain 3 life.\n{1}{R}, Discard a land card: Draw a card.\n{2}{B}, Discard a land card: Soul of Windgrace gains indestructible until end of turn. Tap it.",
+      "mana_cost": "{1}{B}{R}{G}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "attack-trigger",
+        "attacking-matters-self",
+        "card-advantage",
+        "combat-ramp",
+        "control-changing-effects",
+        "cycle",
+        "cycle-dmu-tricolor-legend",
+        "discard-outlet",
+        "discard-outlet-land",
+        "draw",
+        "gains-indestructible",
+        "land-ramp",
+        "lifegain",
+        "mana-sink",
+        "neo-regenerate",
+        "protects-self",
+        "ramp",
+        "reanimate",
+        "reanimate-from-any",
+        "reanimate-from-opponent",
+        "reanimate-land",
+        "recursion",
+        "recursion-land",
+        "red-effect",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-rummage",
+        "rummage",
+        "theft",
+        "titan-trigger",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B",
+        "G",
+        "R"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Splendid Reclamation",
+      "oracle_id": "13fe5e46-77a6-45d8-ac0b-c3d740eccf86",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Return all land cards from your graveyard to the battlefield tapped.",
+      "mana_cost": "{3}{G}",
+      "keywords": [],
+      "otags": [
+        "land-ramp",
+        "mass-reanimation",
+        "multi-land-ramp",
+        "ramp",
+        "reanimate",
+        "reanimate-land",
+        "recursion",
+        "recursion-land"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Sulfurous Springs",
+      "oracle_id": "f5c38c01-4a40-469f-91a0-7479daf4e8e7",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{T}: Add {B} or {R}. This land deals 1 damage to you.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "burn-you",
+        "card-names",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-ice-painland",
+        "cycle-land",
+        "cycle-painland",
+        "dual-land",
+        "life-payment",
+        "mana-ability-with-extra-effect",
+        "painland"
+      ],
+      "color_identity": [
+        "B",
+        "R"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Terramorphic Expanse",
+      "oracle_id": "1bd3e453-aa21-4ee6-95c2-d6d920ee8e7a",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "fetchland",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "The Gitrog Monster",
+      "oracle_id": "a5e54d2b-aad8-4ddd-af4b-13668913762b",
+      "role": null,
+      "type_line": "Legendary Creature — Frog Horror",
+      "oracle_text": "Deathtouch\nAt the beginning of your upkeep, sacrifice The Gitrog Monster unless you sacrifice a land.\nYou may play an additional land on each of your turns.\nWhenever one or more land cards are put into your graveyard from anywhere, draw a card.",
+      "mana_cost": "{3}{B}{G}",
+      "keywords": [
+        "Deathtouch"
+      ],
+      "otags": [
+        "card-advantage",
+        "draw",
+        "draw-engine",
+        "extra-land",
+        "land-ramp",
+        "play-additional-land",
+        "pure-draw",
+        "ramp",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "synergy-land-graveyard",
+        "triggered-ability",
+        "upkeep-cost"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Tireless Provisioner",
+      "oracle_id": "ab8d5f5c-1976-4f77-8ed2-8d28ee666741",
+      "role": null,
+      "type_line": "Creature — Elf Scout",
+      "oracle_text": "Landfall — Whenever a land you control enters, create a Food token or a Treasure token. (Food is an artifact with \"{2}, {T}, Sacrifice this token: You gain 3 life.\" Treasure is an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")",
+      "mana_cost": "{2}{G}",
+      "keywords": [
+        "Treasure",
+        "Food",
+        "Landfall"
+      ],
+      "otags": [
+        "landfall",
+        "lands-matter",
+        "lifegain",
+        "mana-dork",
+        "mana-producer",
+        "ramp",
+        "refund",
+        "repeatable-artifact-tokens",
+        "repeatable-food",
+        "repeatable-lifegain",
+        "repeatable-noncreature-tokens",
+        "repeatable-token-generator",
+        "repeatable-treasures",
+        "thingfall",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Tireless Tracker",
+      "oracle_id": "e6555cca-e608-4c87-b835-9cd47fd1f543",
+      "role": null,
+      "type_line": "Creature — Human Scout",
+      "oracle_text": "Landfall — Whenever a land you control enters, investigate. (Create a Clue token. It's an artifact with \"{2}, Sacrifice this token: Draw a card.\")\nWhenever you sacrifice a Clue, put a +1/+1 counter on this creature.",
+      "mana_cost": "{2}{G}",
+      "keywords": [
+        "Investigate",
+        "Landfall"
+      ],
+      "otags": [
+        "alliteration",
+        "card-advantage",
+        "card-names",
+        "draw",
+        "draw-engine",
+        "gains-pp-counters",
+        "landfall",
+        "lands-matter",
+        "mix-and-match",
+        "pure-draw",
+        "repeatable-artifact-tokens",
+        "repeatable-card-advantage",
+        "repeatable-clues",
+        "repeatable-draw",
+        "repeatable-noncreature-tokens",
+        "repeatable-pp-counters",
+        "repeatable-pure-draw",
+        "repeatable-token-generator",
+        "sacrifice-matters",
+        "synergy-clue",
+        "thingfall",
+        "triggered-ability",
+        "your-sacrifice-matters"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Titania, Protector of Argoth",
+      "oracle_id": "d0ade00d-a496-441d-9b7e-7dc033d3292c",
+      "role": null,
+      "type_line": "Legendary Creature — Elemental",
+      "oracle_text": "When Titania enters, return target land card from your graveyard to the battlefield.\nWhenever a land you control is put into a graveyard from the battlefield, create a 5/3 green Elemental creature token.",
+      "mana_cost": "{3}{G}{G}",
+      "keywords": [],
+      "otags": [
+        "cycle",
+        "cycle-c14-historical-legend",
+        "death-trigger",
+        "land-ramp",
+        "lands-matter",
+        "ramp",
+        "reanimate",
+        "reanimate-land",
+        "recursion",
+        "recursion-land",
+        "repeatable-creature-tokens",
+        "repeatable-token-generator",
+        "synergy-land-graveyard",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Twilight Mire",
+      "oracle_id": "db623754-e078-4030-ba07-818803c348a8",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{B/G}, {T}: Add {B}{B}, {B}{G}, or {G}{G}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-eve-filterland",
+        "cycle-hybrid-filterland",
+        "cycle-land",
+        "dual-land",
+        "filterland",
+        "mana-filter"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Viridescent Bog",
+      "oracle_id": "6bd6d259-1af7-4dff-a79c-48a616d2a36e",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{1}, {T}: Add {B}{G}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-ody-filterland",
+        "cycle-pip-enemy-filterland",
+        "dual-land",
+        "filterland",
+        "mana-filter"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Windgrace's Judgment",
+      "oracle_id": "de1ca6ed-b275-4f62-ba05-f31b3659b352",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "For any number of opponents, destroy target nonland permanent that player controls.",
+      "mana_cost": "{3}{B}{G}",
+      "keywords": [],
+      "otags": [
+        "card-names",
+        "cycle",
+        "cycle-c18-signature-spell",
+        "multi-removal",
+        "multiple-targets",
+        "namesake-spell",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-destroy",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "single-target-instant-sorcery",
+        "spot-removal"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "World Breaker",
+      "oracle_id": "deeb7e22-b207-42de-b9d4-f790403d52a9",
+      "role": null,
+      "type_line": "Creature — Eldrazi",
+      "oracle_text": "Devoid (This card has no color.)\nWhen you cast this spell, exile target artifact, enchantment, or land.\nReach\n{2}{C}, Sacrifice a land: Return this card from your graveyard to your hand. ({C} represents colorless mana.)",
+      "mana_cost": "{6}{G}",
+      "keywords": [
+        "Reach",
+        "Devoid"
+      ],
+      "otags": [
+        "activate-from-graveyard",
+        "activated-ability",
+        "cast-trigger",
+        "cast-trigger-self",
+        "cda-color",
+        "characteristic-defining-ability",
+        "disenchant-naturalize",
+        "recursion",
+        "recursion-self",
+        "recycle",
+        "regrowth-self",
+        "removal",
+        "removal-artifact",
+        "removal-enchantment",
+        "removal-exile",
+        "removal-land",
+        "repeatable-removal",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "spot-removal",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 7.0
+    },
+    {
+      "name": "World Shaper",
+      "oracle_id": "3c075bb6-1831-4521-bd8d-4ed2825ae796",
+      "role": null,
+      "type_line": "Creature — Merfolk Shaman",
+      "oracle_text": "Whenever this creature attacks, you may mill three cards.\nWhen this creature dies, return all land cards from your graveyard to the battlefield tapped.",
+      "mana_cost": "{3}{G}",
+      "keywords": [
+        "Mill"
+      ],
+      "otags": [
+        "attack-trigger",
+        "attacking-matters-self",
+        "death-trigger",
+        "death-trigger-self",
+        "land-ramp",
+        "mass-reanimation",
+        "mill",
+        "mill-self",
+        "multi-land-ramp",
+        "ramp",
+        "reanimate",
+        "reanimate-land",
+        "recursion",
+        "recursion-land",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Worldsoul's Rage",
+      "oracle_id": "3b6ef144-bb98-4686-9718-204f1c3cf020",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Worldsoul's Rage deals X damage to any target. Put up to X land cards from your hand and/or graveyard onto the battlefield tapped.",
+      "mana_cost": "{X}{R}{G}",
+      "keywords": [],
+      "otags": [
+        "burn",
+        "burn-any",
+        "burn-battle",
+        "burn-creature",
+        "burn-planeswalker",
+        "burn-player",
+        "cost-ignorer",
+        "cycle",
+        "cycle-mkm-r-2c-noncreature",
+        "extra-land",
+        "land-ramp",
+        "mass-reanimation",
+        "multi-land-ramp",
+        "ramp",
+        "reanimate",
+        "reanimate-land",
+        "recursion",
+        "recursion-land",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "removal-planeswalker",
+        "single-target-instant-sorcery",
+        "sneak",
+        "sneak-land",
+        "spot-removal"
+      ],
+      "color_identity": [
+        "G",
+        "R"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Zuran Orb",
+      "oracle_id": "08cb8a30-9cb4-4517-bee5-8848aa60d1a2",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "Sacrifice a land: You gain 2 life.",
+      "mana_cost": "{0}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "free-sacrifice-outlet",
+        "lifegain",
+        "manaless-value",
+        "namesake-spell",
+        "repeatable-lifegain",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Multani, Yavimaya's Avatar",
+      "oracle_id": "4b8bf64b-4800-45ff-81c6-2857f34999b5",
+      "role": null,
+      "type_line": "Legendary Creature — Elemental Avatar",
+      "oracle_text": "Reach, trample\nMultani gets +1/+1 for each land you control and each land card in your graveyard.\n{1}{G}, Return two lands you control to their owner's hand: Return this card from your graveyard to your hand.",
+      "mana_cost": "{4}{G}{G}",
+      "keywords": [
+        "Reach",
+        "Trample"
+      ],
+      "otags": [
+        "activate-from-graveyard",
+        "activated-ability",
+        "bounce",
+        "cards-in-graveyard-matter",
+        "cycle",
+        "cycle-dom-m-legend",
+        "land-count-matters",
+        "lands-in-graveyard-matter",
+        "lands-matter",
+        "lhurgoyf",
+        "maro-sorcerer",
+        "recursion",
+        "recursion-self",
+        "regrowth-self",
+        "repeatable-rescue",
+        "rescue",
+        "rescue-land"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Myriad Landscape",
+      "oracle_id": "2549bc57-9ffb-4053-9f10-f2a5f792b845",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped.\n{T}: Add {C}.\n{2}, {T}, Sacrifice this land: Search your library for up to two basic land cards that share a land type, put them onto the battlefield tapped, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "fetchland",
+        "land-ramp",
+        "ramp",
+        "sacrifice-self",
+        "tapland",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield",
+        "utility-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Nature's Lore",
+      "oracle_id": "78826359-fe63-44ad-adc4-a17ffcd710e4",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Search your library for a Forest card, put that card onto the battlefield, then shuffle.",
+      "mana_cost": "{1}{G}",
+      "keywords": [],
+      "otags": [
+        "land-ramp",
+        "ramp",
+        "refund",
+        "tutor",
+        "tutor-land",
+        "tutor-land-forest",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Nissa, Resurgent Animist",
+      "oracle_id": "c1fc5923-c3cd-448a-98d1-c154661c2812",
+      "role": null,
+      "type_line": "Legendary Creature — Elf Scout",
+      "oracle_text": "Landfall — Whenever a land you control enters, add one mana of any color. Then if this is the second time this ability has resolved this turn, reveal cards from the top of your library until you reveal an Elf or Elemental card. Put that card into your hand and the rest on the bottom of your library in a random order.",
+      "mana_cost": "{2}{G}",
+      "keywords": [
+        "Landfall"
+      ],
+      "otags": [
+        "card-advantage",
+        "consult",
+        "landfall",
+        "lands-matter",
+        "mana-dork",
+        "mana-producer",
+        "non-mana-ability-mana",
+        "noncreature-typal",
+        "ramp",
+        "refund",
+        "repeatable-card-advantage",
+        "thingfall",
+        "times-resolved-matters",
+        "triggered-ability",
+        "typal",
+        "typal-coupling",
+        "typal-creature",
+        "typal-elemental",
+        "typal-elf"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Sylvan Safekeeper",
+      "oracle_id": "bddf8f4a-3149-4dd6-a9e5-7747e7e45a1c",
+      "role": null,
+      "type_line": "Creature — Human Wizard",
+      "oracle_text": "Sacrifice a land: Target creature you control gains shroud until end of turn. (It can't be the target of spells or abilities.)",
+      "mana_cost": "{G}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "card-names",
+        "free-sacrifice-outlet",
+        "gains-shroud",
+        "gives-shroud",
+        "invitational-card",
+        "protection",
+        "protects-creature",
+        "protects-self",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "type-addition-human",
+        "type-errata",
+        "type-errata-addition"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Sylvan Scrying",
+      "oracle_id": "ee24bf27-484d-4e1c-998e-6a74e3d3f6c4",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Search your library for a land card, reveal it, put it into your hand, then shuffle.",
+      "mana_cost": "{1}{G}",
+      "keywords": [],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "green-effect",
+        "misnomer",
+        "tutor",
+        "tutor-land",
+        "tutor-land-any",
+        "tutor-to",
+        "tutor-to-hand"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Tear Asunder",
+      "oracle_id": "610af0f7-b5e3-43fb-9d02-7c59bd99034c",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Kicker {1}{B} (You may pay an additional {1}{B} as you cast this spell.)\nExile target artifact or enchantment. If this spell was kicked, exile target nonland permanent instead.",
+      "mana_cost": "{1}{G}",
+      "keywords": [
+        "Kicker"
+      ],
+      "otags": [
+        "additional-cost",
+        "cycle",
+        "cycle-dmu-u-back-en-kicker",
+        "disenchant-naturalize",
+        "more-expensive-than-mv",
+        "naturalize-with-set-mechanic",
+        "offcolor-additional-cost",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-exile",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "single-target-instant-sorcery",
+        "spot-removal",
+        "staple-with-set-s-mechanic"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Command Tower",
+      "oracle_id": "0895c9b7-ae7d-4bb3-af17-3b75deb50a25",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "commander-identity-matters",
+        "commander-matters",
+        "rainbow-land",
+        "synergy-color-share",
+        "synergy-commander",
+        "tutored-by-name",
+        "virtual-legendary"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Sewer Nemesis",
+      "oracle_id": "c7f1a49a-cc22-432f-bf3e-50ba61982b87",
+      "role": null,
+      "type_line": "Creature — Horror",
+      "oracle_text": "As this creature enters, choose a player.\nSewer Nemesis's power and toughness are each equal to the number of cards in the chosen player's graveyard.\nWhenever the chosen player casts a spell, that player mills a card.",
+      "mana_cost": "{3}{B}",
+      "keywords": [
+        "Mill"
+      ],
+      "otags": [
+        "cards-in-graveyard-matter",
+        "cast-trigger",
+        "cda-power",
+        "cda-toughness",
+        "characteristic-defining-ability",
+        "cycle",
+        "faux-targeting",
+        "lhurgoyf",
+        "mill",
+        "mill-any",
+        "mill-opponent",
+        "mill-self",
+        "nemesis-mega-cycle",
+        "synergy-mill",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Apex Devastator",
+      "oracle_id": "b4d6747c-3516-4e71-be30-af007c6b1dc4",
+      "role": null,
+      "type_line": "Creature — Chimera Hydra",
+      "oracle_text": "Cascade, cascade, cascade, cascade (When you cast this spell, exile cards from the top of your library until you exile a nonland card that costs less. You may cast it without paying its mana cost. Put the exiled cards on the bottom in a random order. Multiple instances of cascade each trigger separately.)",
+      "mana_cost": "{8}{G}{G}",
+      "keywords": [
+        "Cascade"
+      ],
+      "otags": [
+        "card-advantage",
+        "cast-trigger",
+        "cast-trigger-self",
+        "consult",
+        "consult-cast",
+        "cost-ignorer",
+        "flavors-of-vanilla",
+        "free-cast-another",
+        "french-vanilla",
+        "fun-ruling",
+        "gives-castable-from-exile",
+        "gives-castable-from-nonhand",
+        "repeated-effect",
+        "repeated-keyword",
+        "triggered-ability",
+        "unique-type-line"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 10.0
+    },
+    {
+      "name": "Binding the Old Gods",
+      "oracle_id": "4050e5b3-07c2-461c-9852-a2c081c0198d",
+      "role": null,
+      "type_line": "Enchantment — Saga",
+      "oracle_text": "(As this Saga enters and after your draw step, add a lore counter. Sacrifice after III.)\nI — Destroy target nonland permanent an opponent controls.\nII — Search your library for a Forest card, put it onto the battlefield tapped, then shuffle.\nIII — Creatures you control gain deathtouch until end of turn.",
+      "mana_cost": "{2}{B}{G}",
+      "keywords": [],
+      "otags": [
+        "cycle",
+        "cycle-khm-draft-signpost",
+        "cycle-khm-u-saga",
+        "draft-signpost",
+        "gives-deathtouch",
+        "intervening-if-clause",
+        "land-ramp",
+        "ramp",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-destroy",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "spot-removal",
+        "triggered-ability",
+        "tutor",
+        "tutor-land",
+        "tutor-land-forest",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Canyon Slough",
+      "oracle_id": "2031b17c-0536-446f-a9aa-b46fe79b7ea7",
+      "role": null,
+      "type_line": "Land — Swamp Mountain",
+      "oracle_text": "({T}: Add {B} or {R}.)\nThis land enters tapped.\nCycling {2} ({2}, Discard this card: Draw a card.)",
+      "mana_cost": "",
+      "keywords": [
+        "Cycling"
+      ],
+      "otags": [
+        "activate-from-hand",
+        "activated-ability",
+        "card-advantage",
+        "cycle",
+        "cycle-akh-dual-cycling-land",
+        "cycle-cycling-land",
+        "cycle-dual-cycling-land",
+        "cycle-dual-land",
+        "cycle-land",
+        "draw",
+        "dual-land",
+        "nonbasic-basic-land-type",
+        "pure-draw",
+        "tapland",
+        "utility-land"
+      ],
+      "color_identity": [
+        "B",
+        "R"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Cinder Glade",
+      "oracle_id": "dfac0258-e148-4d7d-8ded-fc2466d9caa6",
+      "role": null,
+      "type_line": "Land — Mountain Forest",
+      "oracle_text": "({T}: Add {R} or {G}.)\nThis land enters tapped unless you control two or more basic lands.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-bfz-tangoland",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-tangoland",
+        "dual-land",
+        "lands-matter",
+        "nonbasic-basic-land-type",
+        "synergy-basic"
+      ],
+      "color_identity": [
+        "G",
+        "R"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Putrefy",
+      "oracle_id": "9b271430-f53d-42d6-a547-2f286dd9bcb6",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Destroy target artifact or creature. It can't be regenerated.",
+      "mana_cost": "{1}{B}{G}",
+      "keywords": [],
+      "otags": [
+        "card-names",
+        "cycle",
+        "cycle-mm3-draft-signpost",
+        "cycle-rvr-u-two-color",
+        "draft-signpost",
+        "hate",
+        "hate-regenerate",
+        "removal",
+        "removal-artifact",
+        "removal-creature",
+        "removal-destroy",
+        "single-english-word-name",
+        "single-target-instant-sorcery",
+        "spot-removal"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Sheltered Thicket",
+      "oracle_id": "db8d8643-3d0b-4f20-bf53-f4cd26a0e8df",
+      "role": null,
+      "type_line": "Land — Mountain Forest",
+      "oracle_text": "({T}: Add {R} or {G}.)\nThis land enters tapped.\nCycling {2} ({2}, Discard this card: Draw a card.)",
+      "mana_cost": "",
+      "keywords": [
+        "Cycling"
+      ],
+      "otags": [
+        "activate-from-hand",
+        "activated-ability",
+        "card-advantage",
+        "cycle",
+        "cycle-akh-dual-cycling-land",
+        "cycle-cycling-land",
+        "cycle-dual-cycling-land",
+        "cycle-dual-land",
+        "cycle-land",
+        "draw",
+        "dual-land",
+        "nonbasic-basic-land-type",
+        "pure-draw",
+        "tapland",
+        "utility-land"
+      ],
+      "color_identity": [
+        "G",
+        "R"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Skyshroud Claim",
+      "oracle_id": "376c9d3f-21d3-4251-bb6a-026fa9e1b0e1",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Search your library for up to two Forest cards, put them onto the battlefield, then shuffle.",
+      "mana_cost": "{3}{G}",
+      "keywords": [],
+      "otags": [
+        "land-ramp",
+        "mini-refund",
+        "multi-land-ramp",
+        "ramp",
+        "refund",
+        "tutor",
+        "tutor-land",
+        "tutor-land-forest",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Smoldering Marsh",
+      "oracle_id": "390f1b56-264e-4336-83be-dc1fe79bfdcf",
+      "role": null,
+      "type_line": "Land — Swamp Mountain",
+      "oracle_text": "({T}: Add {B} or {R}.)\nThis land enters tapped unless you control two or more basic lands.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-bfz-tangoland",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-tangoland",
+        "dual-land",
+        "lands-matter",
+        "nonbasic-basic-land-type",
+        "synergy-basic"
+      ],
+      "color_identity": [
+        "B",
+        "R"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Sol Ring",
+      "oracle_id": "6ad8011d-3471-4369-9d68-b264cc027487",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{T}: Add {C}{C}.",
+      "mana_cost": "{1}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "full-refund",
+        "mana-producer",
+        "mana-rock",
+        "ramp",
+        "refund"
+      ],
+      "color_identity": [],
+      "cmc": 1.0
+    },
+    {
+      "name": "Vernal Fen",
+      "oracle_id": "40544d12-0391-4a61-af95-9b8ec01ed8fc",
+      "role": null,
+      "type_line": "Land — Swamp Forest",
+      "oracle_text": "({T}: Add {B} or {G}.)\nThis land enters tapped unless you control two or more basic lands.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-tangoland",
+        "dual-land",
+        "lands-matter",
+        "nonbasic-basic-land-type",
+        "synergy-basic"
+      ],
+      "color_identity": [
+        "B",
+        "G"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Escape Tunnel",
+      "oracle_id": "0056fc91-4398-471c-b561-7ff99750ac8a",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.\n{T}, Sacrifice this land: Target creature with power 2 or less can't be blocked this turn.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "fetchland",
+        "gives-evasion",
+        "gives-unblockable",
+        "power-matters",
+        "sacrifice-self",
+        "synergy-low-power",
+        "tunneling",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield",
+        "utility-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Panglacial Worm",
+      "oracle_id": "49d4aef7-d2d1-4f66-bc2a-79ec8cc96565",
+      "role": null,
+      "type_line": "Creature — Wurm",
+      "oracle_text": "Trample\nWhile you're searching your library, you may cast this card from your library.",
+      "mana_cost": "{5}{G}{G}",
+      "keywords": [
+        "Trample"
+      ],
+      "otags": [],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 7.0
+    },
+    {
+      "name": "Swamp",
+      "oracle_id": null,
+      "role": null,
+      "type_line": "Basic Land — Swamp",
+      "oracle_text": null,
+      "mana_cost": null,
+      "keywords": [],
+      "otags": [],
+      "color_identity": [],
+      "cmc": null
+    },
+    {
+      "name": "Mountain",
+      "oracle_id": null,
+      "role": null,
+      "type_line": "Basic Land — Mountain",
+      "oracle_text": null,
+      "mana_cost": null,
+      "keywords": [],
+      "otags": [],
+      "color_identity": [],
+      "cmc": null
+    },
+    {
+      "name": "Forest",
+      "oracle_id": null,
+      "role": null,
+      "type_line": "Basic Land — Forest",
+      "oracle_text": null,
+      "mana_cost": null,
+      "keywords": [],
+      "otags": [],
+      "color_identity": [],
+      "cmc": null
+    }
+  ]
+}

@@ -17,6 +17,7 @@ import pytest
 from pydantic import ValidationError
 
 from pipeline.transforms.comparison.contracts import (
+    MarginalParticipation,
     StrengthAgnostic,
     StrengthRecord,
     StrengthRelative,
@@ -218,3 +219,53 @@ def test_bad_confidence_rejected() -> None:
     """confidence is a closed vocabulary."""
     with pytest.raises(ValidationError):
         StrengthRecord(confidence='stellar')  # type: ignore[arg-type]
+
+
+# --------------------------------------------------------------------------- #
+# MarginalParticipation — the prospective-add engine delta (entry point 2)
+# --------------------------------------------------------------------------- #
+
+
+def test_marginal_participation_defaults_are_a_null_delta() -> None:
+    """An all-default MarginalParticipation is a valid 'no effect' reading."""
+    mp = MarginalParticipation()
+    assert mp.anchor_event is None
+    assert mp.delta_support == 0.0
+    assert mp.delta_connectivity == 0.0
+    assert mp.closes_loop is False
+    assert mp.adds_payoff_axis is False
+    assert mp.becomes_relay is False
+    assert mp.commander_coupled is False
+
+
+def test_marginal_participation_has_exactly_the_contracted_fields() -> None:
+    """The six named deltas + the anchor echo — the shape the sibling consumes."""
+    assert set(MarginalParticipation.model_fields) == {
+        'anchor_event',
+        'delta_support',
+        'delta_connectivity',
+        'closes_loop',
+        'adds_payoff_axis',
+        'becomes_relay',
+        'commander_coupled',
+    }
+
+
+def test_marginal_participation_round_trips() -> None:
+    """model_validate(model_dump()) reconstructs an equal delta (shared seam)."""
+    mp = MarginalParticipation(
+        anchor_event='permanent-sacrificed',
+        delta_support=12.0,
+        delta_connectivity=1.0,
+        closes_loop=True,
+        adds_payoff_axis=True,
+        becomes_relay=True,
+        commander_coupled=True,
+    )
+    assert MarginalParticipation.model_validate(mp.model_dump()) == mp
+
+
+def test_marginal_participation_rejects_unknown_key() -> None:
+    """extra='forbid' — no silent schema drift on the delta contract."""
+    with pytest.raises(ValidationError):
+        MarginalParticipation.model_validate({'nope': 1})

@@ -1,0 +1,782 @@
+{
+ "world_reclaimer": {
+  "name": "World Reclaimer",
+  "bracket": 3,
+  "entries": [
+   [
+    "Szarel, Genesis Shepherd",
+    true
+   ],
+   [
+    "Aftermath Analyst",
+    false
+   ],
+   [
+    "Ancient Greenwarden",
+    false
+   ],
+   [
+    "Avenger of Zendikar",
+    false
+   ],
+   [
+    "Baloth Prime",
+    false
+   ],
+   [
+    "Blasphemous Act",
+    false
+   ],
+   [
+    "Bojuka Bog",
+    false
+   ],
+   [
+    "Braids, Arisen Nightmare",
+    false
+   ],
+   [
+    "Cabaretti Courtyard",
+    false
+   ],
+   [
+    "Command Beacon",
+    false
+   ],
+   [
+    "Cultivate",
+    false
+   ],
+   [
+    "Dakmor Salvage",
+    false
+   ],
+   [
+    "Elvish Reclaimer",
+    false
+   ],
+   [
+    "Evendo Brushrazer",
+    false
+   ],
+   [
+    "Evolving Wilds",
+    false
+   ],
+   [
+    "Exploration Broodship",
+    false
+   ],
+   [
+    "Fabled Passage",
+    false
+   ],
+   [
+    "Farseek",
+    false
+   ],
+   [
+    "Mana Reflection",
+    false
+   ],
+   [
+    "Gaze of Granite",
+    false
+   ],
+   [
+    "God-Eternal Bontu",
+    false
+   ],
+   [
+    "Harrow",
+    false
+   ],
+   [
+    "Hearthhull, the Worldseed",
+    false
+   ],
+   [
+    "Infernal Grasp",
+    false
+   ],
+   [
+    "Juri, Master of the Revue",
+    false
+   ],
+   [
+    "Karplusan Forest",
+    false
+   ],
+   [
+    "Korvold, Fae-Cursed King",
+    false
+   ],
+   [
+    "Life from the Loam",
+    false
+   ],
+   [
+    "Llanowar Wastes",
+    false
+   ],
+   [
+    "Lotus Cobra",
+    false
+   ],
+   [
+    "Maestros Theater",
+    false
+   ],
+   [
+    "Mayhem Devil",
+    false
+   ],
+   [
+    "Maze of Ith",
+    false
+   ],
+   [
+    "Mazirek, Kraul Death Priest",
+    false
+   ],
+   [
+    "Moraug, Fury of Akoum",
+    false
+   ],
+   [
+    "Mountain Valley",
+    false
+   ],
+   [
+    "Ob Nixilis, the Fallen",
+    false
+   ],
+   [
+    "Omnath, Locus of Rage",
+    false
+   ],
+   [
+    "Oracle of Mul Daya",
+    false
+   ],
+   [
+    "Planetary Annihilation",
+    false
+   ],
+   [
+    "Rampaging Baloths",
+    false
+   ],
+   [
+    "Ramunap Excavator",
+    false
+   ],
+   [
+    "Reshape the Earth",
+    false
+   ],
+   [
+    "Riveteers Overlook",
+    false
+   ],
+   [
+    "Rocky Tar Pit",
+    false
+   ],
+   [
+    "Roiling Regrowth",
+    false
+   ],
+   [
+    "Scouring Swarm",
+    false
+   ],
+   [
+    "Scute Swarm",
+    false
+   ],
+   [
+    "Soul of Windgrace",
+    false
+   ],
+   [
+    "Splendid Reclamation",
+    false
+   ],
+   [
+    "Sulfurous Springs",
+    false
+   ],
+   [
+    "Terramorphic Expanse",
+    false
+   ],
+   [
+    "The Gitrog Monster",
+    false
+   ],
+   [
+    "Tireless Provisioner",
+    false
+   ],
+   [
+    "Tireless Tracker",
+    false
+   ],
+   [
+    "Titania, Protector of Argoth",
+    false
+   ],
+   [
+    "Twilight Mire",
+    false
+   ],
+   [
+    "Viridescent Bog",
+    false
+   ],
+   [
+    "Windgrace's Judgment",
+    false
+   ],
+   [
+    "World Breaker",
+    false
+   ],
+   [
+    "World Shaper",
+    false
+   ],
+   [
+    "Worldsoul's Rage",
+    false
+   ],
+   [
+    "Zuran Orb",
+    false
+   ],
+   [
+    "Multani, Yavimaya's Avatar",
+    false
+   ],
+   [
+    "Myriad Landscape",
+    false
+   ],
+   [
+    "Nature's Lore",
+    false
+   ],
+   [
+    "Nissa, Resurgent Animist",
+    false
+   ],
+   [
+    "Sylvan Safekeeper",
+    false
+   ],
+   [
+    "Sylvan Scrying",
+    false
+   ],
+   [
+    "Tear Asunder",
+    false
+   ],
+   [
+    "Command Tower",
+    false
+   ],
+   [
+    "Sewer Nemesis",
+    false
+   ],
+   [
+    "Apex Devastator",
+    false
+   ],
+   [
+    "Binding the Old Gods",
+    false
+   ],
+   [
+    "Canyon Slough",
+    false
+   ],
+   [
+    "Cinder Glade",
+    false
+   ],
+   [
+    "Putrefy",
+    false
+   ],
+   [
+    "Sheltered Thicket",
+    false
+   ],
+   [
+    "Skyshroud Claim",
+    false
+   ],
+   [
+    "Smoldering Marsh",
+    false
+   ],
+   [
+    "Sol Ring",
+    false
+   ],
+   [
+    "Vernal Fen",
+    false
+   ],
+   [
+    "Escape Tunnel",
+    false
+   ],
+   [
+    "Panglacial Worm",
+    false
+   ],
+   [
+    "Swamp",
+    false
+   ],
+   [
+    "Mountain",
+    false
+   ],
+   [
+    "Forest",
+    false
+   ]
+  ]
+ },
+ "world_shaper": {
+  "name": "WorldShaper_EOE",
+  "bracket": 2,
+  "entries": [
+   [
+    "Szarel, Genesis Shepherd",
+    true
+   ],
+   [
+    "Hearthhull, the Worldseed",
+    false
+   ],
+   [
+    "Aftermath Analyst",
+    false
+   ],
+   [
+    "Augur of Autumn",
+    false
+   ],
+   [
+    "Baloth Prime",
+    false
+   ],
+   [
+    "Braids, Arisen Nightmare",
+    false
+   ],
+   [
+    "Centaur Vinecrasher",
+    false
+   ],
+   [
+    "Eumidian Wastewaker",
+    false
+   ],
+   [
+    "Evendo Brushrazer",
+    false
+   ],
+   [
+    "God-Eternal Bontu",
+    false
+   ],
+   [
+    "Groundskeeper",
+    false
+   ],
+   [
+    "Horizon Explorer",
+    false
+   ],
+   [
+    "Juri, Master of the Revue",
+    false
+   ],
+   [
+    "Korvold, Fae-Cursed King",
+    false
+   ],
+   [
+    "Loamcrafter Faun",
+    false
+   ],
+   [
+    "Mayhem Devil",
+    false
+   ],
+   [
+    "Mazirek, Kraul Death Priest",
+    false
+   ],
+   [
+    "Moraug, Fury of Akoum",
+    false
+   ],
+   [
+    "Multani, Yavimaya's Avatar",
+    false
+   ],
+   [
+    "Omnath, Locus of Rage",
+    false
+   ],
+   [
+    "Oracle of Mul Daya",
+    false
+   ],
+   [
+    "Rampaging Baloths",
+    false
+   ],
+   [
+    "Satyr Wayfinder",
+    false
+   ],
+   [
+    "Scouring Swarm",
+    false
+   ],
+   [
+    "Soul of Windgrace",
+    false
+   ],
+   [
+    "Springbloom Druid",
+    false
+   ],
+   [
+    "Sprouting Goblin",
+    false
+   ],
+   [
+    "The Gitrog Monster",
+    false
+   ],
+   [
+    "Tireless Tracker",
+    false
+   ],
+   [
+    "Titania, Protector of Argoth",
+    false
+   ],
+   [
+    "Uurg, Spawn of Turg",
+    false
+   ],
+   [
+    "World Breaker",
+    false
+   ],
+   [
+    "Beast Within",
+    false
+   ],
+   [
+    "Harrow",
+    false
+   ],
+   [
+    "Infernal Grasp",
+    false
+   ],
+   [
+    "Putrefy",
+    false
+   ],
+   [
+    "Rakdos Charm",
+    false
+   ],
+   [
+    "Roiling Regrowth",
+    false
+   ],
+   [
+    "Tear Asunder",
+    false
+   ],
+   [
+    "Windgrace's Judgment",
+    false
+   ],
+   [
+    "Blasphemous Act",
+    false
+   ],
+   [
+    "Cultivate",
+    false
+   ],
+   [
+    "Escape to the Wilds",
+    false
+   ],
+   [
+    "Farseek",
+    false
+   ],
+   [
+    "Formless Genesis",
+    false
+   ],
+   [
+    "Gaze of Granite",
+    false
+   ],
+   [
+    "Nature's Lore",
+    false
+   ],
+   [
+    "Night's Whisper",
+    false
+   ],
+   [
+    "Pest Infestation",
+    false
+   ],
+   [
+    "Planetary Annihilation",
+    false
+   ],
+   [
+    "Skyshroud Claim",
+    false
+   ],
+   [
+    "Splendid Reclamation",
+    false
+   ],
+   [
+    "Worldsoul's Rage",
+    false
+   ],
+   [
+    "Arcane Signet",
+    false
+   ],
+   [
+    "Exploration Broodship",
+    false
+   ],
+   [
+    "Hammer of Purphoros",
+    false
+   ],
+   [
+    "Sol Ring",
+    false
+   ],
+   [
+    "Binding the Old Gods",
+    false
+   ],
+   [
+    "Bojuka Bog",
+    false
+   ],
+   [
+    "Cabaretti Courtyard",
+    false
+   ],
+   [
+    "Canyon Slough",
+    false
+   ],
+   [
+    "Cinder Glade",
+    false
+   ],
+   [
+    "Command Tower",
+    false
+   ],
+   [
+    "Dakmor Salvage",
+    false
+   ],
+   [
+    "Escape Tunnel",
+    false
+   ],
+   [
+    "Eumidian Hatchery",
+    false
+   ],
+   [
+    "Evolving Wilds",
+    false
+   ],
+   [
+    "Fabled Passage",
+    false
+   ],
+   [
+    "Festering Thicket",
+    false
+   ],
+   [
+    "Karplusan Forest",
+    false
+   ],
+   [
+    "Llanowar Wastes",
+    false
+   ],
+   [
+    "Maestros Theater",
+    false
+   ],
+   [
+    "Mountain Valley",
+    false
+   ],
+   [
+    "Myriad Landscape",
+    false
+   ],
+   [
+    "Riveteers Overlook",
+    false
+   ],
+   [
+    "Rocky Tar Pit",
+    false
+   ],
+   [
+    "Sheltered Thicket",
+    false
+   ],
+   [
+    "Smoldering Marsh",
+    false
+   ],
+   [
+    "Sulfurous Springs",
+    false
+   ],
+   [
+    "Terramorphic Expanse",
+    false
+   ],
+   [
+    "Twilight Mire",
+    false
+   ],
+   [
+    "Vernal Fen",
+    false
+   ],
+   [
+    "Viridescent Bog",
+    false
+   ],
+   [
+    "Forest",
+    false
+   ],
+   [
+    "Forest",
+    false
+   ],
+   [
+    "Forest",
+    false
+   ],
+   [
+    "Forest",
+    false
+   ],
+   [
+    "Forest",
+    false
+   ],
+   [
+    "Forest",
+    false
+   ],
+   [
+    "Forest",
+    false
+   ],
+   [
+    "Forest",
+    false
+   ],
+   [
+    "Mountain",
+    false
+   ],
+   [
+    "Mountain",
+    false
+   ],
+   [
+    "Mountain",
+    false
+   ],
+   [
+    "Swamp",
+    false
+   ],
+   [
+    "Swamp",
+    false
+   ],
+   [
+    "Swamp",
+    false
+   ],
+   [
+    "Swamp",
+    false
+   ],
+   [
+    "Swamp",
+    false
+   ],
+   [
+    "Wastes",
+    false
+   ]
+  ]
+ },
+ "expected": {
+  "world_reclaimer": {
+   "ramp_n": 24,
+   "mean_cmc": 3.83,
+   "identity": [
+    "landfall",
+    "lands-matter",
+    "aristocrats/sacrifice"
+   ]
+  },
+  "world_shaper": {
+   "ramp_n": 22,
+   "mean_cmc": 3.52,
+   "identity": [
+    "landfall",
+    "lands-matter",
+    "aristocrats/sacrifice"
+   ]
+  }
+ }
+}

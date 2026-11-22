@@ -1,0 +1,2290 @@
+{
+  "name": "Wakanda Fourever",
+  "source": "comparison-phase3-spike",
+  "commander_hint": "T'Challa, the Black Panther",
+  "cards": [
+    {
+      "name": "T'Challa, the Black Panther",
+      "oracle_id": "ae10eb15-28e7-46d1-9a2e-85763d93febf",
+      "role": "commander",
+      "type_line": "Legendary Creature — Human Noble Hero",
+      "oracle_text": "Whenever T'Challa enters or attacks, create a tapped Vibranium token. (It's an artifact with indestructible and \"{T}: Add {C}. This mana can't be spent to cast a nonartifact spell.\")\nWhenever you cast an artifact spell with mana value 4 or greater, put two +1/+1 counters on T'Challa.",
+      "mana_cost": "{1}{G}{W}",
+      "keywords": [],
+      "otags": [
+        "attack-trigger",
+        "attacking-matters-self",
+        "card-names",
+        "cast-trigger",
+        "cast-trigger-you",
+        "cycle",
+        "cycle-msc-face-commander",
+        "face-commander",
+        "gains-pp-counters",
+        "high-mana-value-matters",
+        "mana-value-matters",
+        "misnomer",
+        "powerstone-mana",
+        "repeatable-artifact-tokens",
+        "repeatable-noncreature-tokens",
+        "repeatable-pp-counters",
+        "repeatable-token-generator",
+        "repeatable-vibranium",
+        "restricted-mana",
+        "synergy-artifact",
+        "titan-trigger",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Bast, Panther Goddess",
+      "oracle_id": "e3233686-7703-460c-80ee-8cd37b3014ff",
+      "role": null,
+      "type_line": "Legendary Creature — Cat God",
+      "oracle_text": "Reach, trample, indestructible\nBast can't attack or block unless you control three or more creatures.\nWhenever you attack, target attacking creature gets +X/+X until end of turn, where X is the number of creatures you control.",
+      "mana_cost": "{2}{G}{W}",
+      "keywords": [
+        "Reach",
+        "Indestructible",
+        "Trample"
+      ],
+      "otags": [
+        "attack-trigger",
+        "attacking-matters",
+        "creature-count-matters",
+        "drawback",
+        "enlarge",
+        "protects-self",
+        "restricted-attacker",
+        "restricted-blocker",
+        "triggered-ability",
+        "unique-type-line"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Birds of Paradise",
+      "oracle_id": "d3a0b660-358c-41bd-9cd2-41fbf3491b1a",
+      "role": null,
+      "type_line": "Creature — Bird",
+      "oracle_text": "Flying\n{T}: Add one mana of any color.",
+      "mana_cost": "{G}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "cycle",
+        "cycle-lea-slush-art",
+        "evasion",
+        "mana-dork",
+        "mana-producer",
+        "ramp",
+        "real-life-animal-name",
+        "type-errata",
+        "type-errata-genericise",
+        "type-errata-specific",
+        "type-errata-specific-bird"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Dora Milaje Elite",
+      "oracle_id": "406f1982-5d0c-4dba-9010-28b1c6a3602c",
+      "role": null,
+      "type_line": "Creature — Human Warrior",
+      "oracle_text": "First strike\nWhen this creature enters, if an opponent controls more lands than you, create a tapped Vibranium token. (It's an artifact with indestructible and \"{T}: Add {C}. This mana can't be spent to cast a nonartifact spell.\")\nSacrifice this creature: Legendary permanents you control gain indestructible until end of turn.",
+      "mana_cost": "{1}{W}",
+      "keywords": [
+        "First strike"
+      ],
+      "otags": [
+        "activated-ability",
+        "catch-up",
+        "gives-indestructible",
+        "intervening-if-clause",
+        "mana-producer",
+        "mana-rock",
+        "martyr",
+        "opponent-land-count-matters",
+        "powerstone-mana",
+        "protection",
+        "protects-all",
+        "protects-creature",
+        "protects-permanent",
+        "ramp",
+        "restricted-mana",
+        "sacrifice-self",
+        "synergy-legendary",
+        "triggered-ability",
+        "utility-mana-rock"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Everett K. Ross, Hapless Attaché",
+      "oracle_id": "e017e323-e297-40de-bc77-dd49b610cf5a",
+      "role": null,
+      "type_line": "Legendary Creature — Human Advisor",
+      "oracle_text": "Commander creatures you control get +1/+1 and have lifelink.\nWhenever an opponent attacks you with two or more creatures, draw a card.",
+      "mana_cost": "{2}{W}",
+      "keywords": [],
+      "otags": [
+        "attack-trigger",
+        "card-advantage",
+        "commander-lord",
+        "draw",
+        "draw-engine",
+        "gains-lifelink",
+        "gives-lifelink",
+        "hate",
+        "hate-attacker",
+        "lifegain",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-pure-draw",
+        "synergy-commander",
+        "tax",
+        "toll",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Fleecemane Lion",
+      "oracle_id": "e3c8cdf7-a26a-45eb-9498-99b618cfba99",
+      "role": null,
+      "type_line": "Creature — Cat",
+      "oracle_text": "{3}{G}{W}: Monstrosity 1. (If this creature isn't monstrous, put a +1/+1 counter on it and it becomes monstrous.)\nAs long as this creature is monstrous, it has hexproof and indestructible.",
+      "mana_cost": "{G}{W}",
+      "keywords": [
+        "Monstrosity"
+      ],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-ths-r-two-color",
+        "gains-hexproof",
+        "gains-indestructible",
+        "gains-pp-counters",
+        "indefinite-effect",
+        "monstrosity",
+        "protects-self",
+        "untracked-indefinite-effect"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Hatut Zeraze Strike Force",
+      "oracle_id": "92ac307e-6531-4465-8870-07988458f5d4",
+      "role": null,
+      "type_line": "Creature — Human Spy Warrior",
+      "oracle_text": "When you cast this spell, copy it for each time you've cast your commander from the command zone this game.\nWhen this creature enters, destroy up to one target artifact or enchantment.",
+      "mana_cost": "{3}{W}",
+      "keywords": [],
+      "otags": [
+        "cast-trigger",
+        "cast-trigger-self",
+        "commander-matters",
+        "copy",
+        "copy-self",
+        "disenchant-naturalize",
+        "flavors-of-vanilla",
+        "multi-removal",
+        "recasting-commander-matters",
+        "removal",
+        "removal-artifact",
+        "removal-destroy",
+        "removal-enchantment",
+        "spot-removal",
+        "storm-like",
+        "synergy-commander",
+        "triggered-ability",
+        "unique-type-line",
+        "virtual-vanilla"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Ingenious Smith",
+      "oracle_id": "f3988b96-9e00-445c-b3e1-6b2df9b13dac",
+      "role": null,
+      "type_line": "Creature — Human Artificer",
+      "oracle_text": "When this creature enters, look at the top four cards of your library. You may reveal an artifact card from among them and put it into your hand. Put the rest on the bottom of your library in a random order.\nWhenever one or more artifacts you control enter, put a +1/+1 counter on this creature. This ability triggers only once each turn.",
+      "mana_cost": "{1}{W}",
+      "keywords": [],
+      "otags": [
+        "artifactfall",
+        "card-advantage",
+        "gains-pp-counters",
+        "impulse",
+        "impulse-artifact",
+        "repeatable-pp-counters",
+        "synergy-artifact",
+        "thingfall",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Loyal Guardian",
+      "oracle_id": "de1cfa83-2049-48ab-b093-2f120a3ef4f2",
+      "role": null,
+      "type_line": "Creature — Rhino",
+      "oracle_text": "Trample\nLieutenant — At the beginning of combat on your turn, if you control your commander, put a +1/+1 counter on each creature you control.",
+      "mana_cost": "{4}{G}",
+      "keywords": [
+        "Trample",
+        "Lieutenant"
+      ],
+      "otags": [
+        "cycle",
+        "cycle-c18-lieutenant",
+        "gains-pp-counters",
+        "gives-pp-counters",
+        "gives-pp-counters-to-all",
+        "intervening-if-clause",
+        "power-boost-to-all",
+        "repeatable-pp-counters",
+        "synergy-commander",
+        "toughness-boost-to-all",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Loyal Retainers",
+      "oracle_id": "55b88d43-ec45-4435-a316-1c8aee249ff0",
+      "role": null,
+      "type_line": "Creature — Human Advisor",
+      "oracle_text": "Sacrifice this creature: Return target legendary creature card from your graveyard to the battlefield. Activate only during your turn, before attackers are declared.",
+      "mana_cost": "{2}{W}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "martyr",
+        "reanimate",
+        "reanimate-creature",
+        "recursion",
+        "recursion-creature",
+        "sacrifice-self",
+        "synergy-legendary",
+        "type-addition-human",
+        "type-errata",
+        "type-errata-addition"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Metalwork Colossus",
+      "oracle_id": "64ffe529-ba53-48ec-8af1-b046fbd1f0cc",
+      "role": null,
+      "type_line": "Artifact Creature — Construct",
+      "oracle_text": "This spell costs {X} less to cast, where X is the total mana value of noncreature artifacts you control.\nSacrifice two artifacts: Return this card from your graveyard to your hand.",
+      "mana_cost": "{11}",
+      "keywords": [],
+      "otags": [
+        "activate-from-graveyard",
+        "activated-ability",
+        "affinity",
+        "affinity-for-artifacts",
+        "artifact-count-matters",
+        "cheaper-than-mv",
+        "discount-self",
+        "free-sacrifice-outlet",
+        "mana-value-matters",
+        "potentially-free",
+        "recursion",
+        "recursion-self",
+        "recycle",
+        "regrowth-self",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-artifact",
+        "scales-with-mana-value",
+        "synergy-artifact"
+      ],
+      "color_identity": [],
+      "cmc": 11.0
+    },
+    {
+      "name": "Panther Robot",
+      "oracle_id": "89115ed5-95bf-4b81-b352-5481c3addbed",
+      "role": null,
+      "type_line": "Artifact Creature — Cat Robot",
+      "oracle_text": "Affinity for artifacts (This spell costs {1} less to cast for each artifact you control.)\nReach, trample",
+      "mana_cost": "{10}",
+      "keywords": [
+        "Reach",
+        "Affinity",
+        "Trample"
+      ],
+      "otags": [
+        "affinity",
+        "affinity-for-artifacts",
+        "artifact-count-matters",
+        "cheaper-than-mv",
+        "discount-self",
+        "flavors-of-vanilla",
+        "french-vanilla",
+        "synergy-artifact"
+      ],
+      "color_identity": [],
+      "cmc": 10.0
+    },
+    {
+      "name": "Shuri, the Black Panther",
+      "oracle_id": "1ea7b298-be87-4032-9f45-37f9b39ce3fa",
+      "role": null,
+      "type_line": "Legendary Creature — Human Noble Hero",
+      "oracle_text": "Lifelink\nWhenever Shuri attacks, draw a card if you control three or more artifacts. Then if you control six or more artifacts, creatures you control get +2/+2 until end of turn.",
+      "mana_cost": "{G}{W}",
+      "keywords": [
+        "Lifelink"
+      ],
+      "otags": [
+        "artifact-count-matters",
+        "attack-trigger",
+        "attacking-matters-self",
+        "card-advantage",
+        "card-names",
+        "draw",
+        "draw-engine",
+        "lifegain",
+        "metalcraft",
+        "misnomer",
+        "power-boost-to-all",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-pure-draw",
+        "synergy-artifact",
+        "toughness-boost-to-all",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Storm, Queen of Wakanda",
+      "oracle_id": "d8e585c5-1de3-4558-8a2f-0d9fb07edad6",
+      "role": null,
+      "type_line": "Legendary Creature — Mutant Noble Hero",
+      "oracle_text": "Flying\nWhenever Storm attacks, until end of turn, another target attacking creature gains flying and gets +X/+0, where X is Storm's power.\nWhenever a creature with flying attacks you, Storm deals damage equal to her power to that creature.",
+      "mana_cost": "{3}{G}{W}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "attack-trigger",
+        "attacking-matters",
+        "attacking-matters-self",
+        "burn",
+        "burn-creature",
+        "evasion",
+        "gives-evasion",
+        "gives-flying",
+        "hate",
+        "hate-attacker",
+        "hate-flying",
+        "jump",
+        "one-sided-fight",
+        "power-matters",
+        "power-matters-self",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "scales-with-power",
+        "spot-removal",
+        "triggered-ability",
+        "unique-type-line",
+        "wingman"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "W'Kabi, Shield of the Nation",
+      "oracle_id": "66950068-adf4-42d7-ad72-fdb4a0e58922",
+      "role": null,
+      "type_line": "Legendary Creature — Human Warrior Hero",
+      "oracle_text": "Vigilance\nWhenever you attack with your commander, if you control an artifact with mana value 4 or greater, create a 4/4 green Rhino creature token with trample.",
+      "mana_cost": "{1}{G}",
+      "keywords": [
+        "Vigilance"
+      ],
+      "otags": [
+        "attack-trigger",
+        "attacking-matters",
+        "creates-bigger-body",
+        "high-mana-value-matters",
+        "intervening-if-clause",
+        "mana-value-matters",
+        "repeatable-creature-tokens",
+        "repeatable-token-generator",
+        "synergy-artifact",
+        "synergy-commander",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Zuri, Warrior of Wakanda",
+      "oracle_id": "aa792980-0811-4c08-8343-00fba0c5cf5e",
+      "role": null,
+      "type_line": "Legendary Creature — Human Warrior Hero",
+      "oracle_text": "Trample\nWhenever you cast an artifact spell with mana value 4 or greater, put a +1/+1 counter on each creature you control.",
+      "mana_cost": "{1}{G}",
+      "keywords": [
+        "Trample"
+      ],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "cast-trigger",
+        "cast-trigger-you",
+        "gains-pp-counters",
+        "gives-pp-counters",
+        "gives-pp-counters-to-all",
+        "high-mana-value-matters",
+        "mana-value-matters",
+        "power-boost-to-all",
+        "repeatable-pp-counters",
+        "synergy-artifact",
+        "toughness-boost-to-all",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Beast Within",
+      "oracle_id": "7735eeba-693b-47e2-bd51-414379cf1016",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Destroy target permanent. Its controller creates a 3/3 green Beast creature token.",
+      "mana_cost": "{2}{G}",
+      "keywords": [],
+      "otags": [
+        "color-break",
+        "donate-token",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-destroy",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-land",
+        "removal-permanent",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "single-target-instant-sorcery",
+        "spot-removal",
+        "swap-removal"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Fight for the Throne",
+      "oracle_id": "53129de9-4809-4c8c-9d11-37369899e70a",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Put a +1/+1 counter on target creature you control. Then it fights target creature an opponent controls. When the creature an opponent controls dies this turn, if you control your commander, you become the monarch.",
+      "mana_cost": "{1}{G}",
+      "keywords": [
+        "Fight"
+      ],
+      "otags": [
+        "burn",
+        "burn-creature",
+        "card-advantage",
+        "combat-trick",
+        "death-trigger",
+        "death-trigger-opponent",
+        "delayed-trigger",
+        "draw",
+        "draw-engine",
+        "gives-pp-counters",
+        "intervening-if-clause",
+        "multiple-targets",
+        "pure-draw",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "removal-fight",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "spot-removal",
+        "synergy-commander",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Generous Gift",
+      "oracle_id": "fae37e28-e137-4177-b973-fa8b4dd8f409",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Destroy target permanent. Its controller creates a 3/3 green Elephant creature token.",
+      "mana_cost": "{2}{W}",
+      "keywords": [],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "donate-token",
+        "out-of-color-token",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-destroy",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-land",
+        "removal-permanent",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "single-target-instant-sorcery",
+        "spot-removal",
+        "swap-removal"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Ancestral Communion",
+      "oracle_id": "a45bb088-16fd-4d91-8fd6-3c52f1c24748",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "When you cast this spell while you control your commander, copy this spell. You may choose a new target for the copy.\nReturn target permanent card from your graveyard to your hand.",
+      "mana_cost": "{1}{G}",
+      "keywords": [],
+      "otags": [
+        "card-advantage",
+        "cast-trigger",
+        "cast-trigger-self",
+        "copy",
+        "copy-self",
+        "copy-spell",
+        "recursion",
+        "recursion-permanent",
+        "regrowth",
+        "regrowth-permanent",
+        "single-target-instant-sorcery",
+        "synergy-commander",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Martial Coup",
+      "oracle_id": "2b7c4dab-e432-4b34-b058-3cec5c0d72df",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Create X 1/1 white Soldier creature tokens. If X is 5 or more, destroy all other creatures.",
+      "mana_cost": "{X}{W}{W}",
+      "keywords": [],
+      "otags": [
+        "high-x-matters",
+        "multiple-bodies",
+        "removal",
+        "removal-creature",
+        "removal-destroy",
+        "sweeper"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Overwhelming Stampede",
+      "oracle_id": "e1e96802-fd0c-41f1-aa21-3287d75a0e88",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Until end of turn, creatures you control gain trample and get +X/+X, where X is the greatest power among creatures you control.",
+      "mana_cost": "{3}{G}{G}",
+      "keywords": [],
+      "otags": [
+        "gives-trample",
+        "overrun",
+        "power-boost-to-all",
+        "power-doubler",
+        "power-matters",
+        "scales-with-power",
+        "toughness-boost-to-all"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Wakanda Forever!",
+      "oracle_id": "b8add484-8ed1-4a1c-aff9-dec65d60e4b1",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Reveal the top six cards of your library. You may put a permanent card from among them onto the battlefield with an indestructible counter on it. You may put a permanent card from among them into your hand. Put the rest into your graveyard.",
+      "mana_cost": "{4}{G}{G}",
+      "keywords": [],
+      "otags": [
+        "card-advantage",
+        "cost-ignorer",
+        "genesis-effect",
+        "gives-indestructible",
+        "impulse",
+        "impulse-onto-battlefield",
+        "impulse-permanent",
+        "impulse-to-zone",
+        "indestructible-counter",
+        "keyword-counter",
+        "mill",
+        "mill-self",
+        "mulch",
+        "protection",
+        "protects-creature",
+        "protects-permanent",
+        "sneak-from-library"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Greater Good",
+      "oracle_id": "dc0593c2-ccb4-4648-a592-c5bcd121dc72",
+      "role": null,
+      "type_line": "Enchantment",
+      "oracle_text": "Sacrifice a creature: Draw cards equal to the sacrificed creature's power, then discard three cards.",
+      "mana_cost": "{2}{G}{G}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "blue-effect",
+        "burst-draw",
+        "card-advantage",
+        "card-names",
+        "discard-outlet",
+        "draw",
+        "draw-engine",
+        "free-sacrifice-outlet",
+        "loot",
+        "plunder",
+        "power-matters",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-loot",
+        "repeatable-plunder",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-creature",
+        "scales-with-power",
+        "usg-storyline-in-cards"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Conduit of Worlds",
+      "oracle_id": "ed14be15-8f8d-4fe3-a147-f5da8ed873bf",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "You may play lands from your graveyard.\n{T}: Choose target nonland permanent card in your graveyard. If you haven't cast a spell this turn, you may cast that card. If you do, you can't cast additional spells this turn. Activate only as a sorcery.",
+      "mana_cost": "{2}{G}{G}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cast-on-resolution",
+        "crucible-of-worlds",
+        "gives-castable-from-graveyard",
+        "gives-castable-from-nonhand",
+        "reanimate",
+        "reanimate-cast",
+        "reanimate-land",
+        "reanimate-nonland",
+        "recursion",
+        "recursion-land"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Hammer of Nazahn",
+      "oracle_id": "e3955573-3db5-490e-903e-65e0172a9202",
+      "role": null,
+      "type_line": "Legendary Artifact — Equipment",
+      "oracle_text": "Whenever Hammer of Nazahn or another Equipment you control enters, you may attach that Equipment to target creature you control.\nEquipped creature gets +2/+0 and has indestructible.\nEquip {4}",
+      "mana_cost": "{4}",
+      "keywords": [
+        "Equip"
+      ],
+      "otags": [
+        "activated-ability",
+        "auto-equip",
+        "card-names",
+        "gives-indestructible",
+        "namesake-spell",
+        "protection",
+        "protects-creature",
+        "quick-attach",
+        "quick-equip",
+        "synergy-equipment",
+        "triggered-ability"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Helm of the Host",
+      "oracle_id": "83b43aba-bf9c-4da2-967d-9daa632e97d2",
+      "role": null,
+      "type_line": "Legendary Artifact — Equipment",
+      "oracle_text": "At the beginning of combat on your turn, create a token that's a copy of equipped creature, except the token isn't legendary. That token gains haste.\nEquip {5}",
+      "mana_cost": "{4}",
+      "keywords": [
+        "Equip"
+      ],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "card-names",
+        "copy",
+        "copy-creature",
+        "copy-legendary",
+        "gives-haste",
+        "repeatable-creature-tokens",
+        "repeatable-token-generator",
+        "triggered-ability"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Kimoyo Beads",
+      "oracle_id": "c7bdbf7a-8054-4e91-bb32-84f47e98553c",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "At the beginning of your end step, choose one that hasn't been chosen —\n• AV Bead — Draw a card.\n• Communication Bead — Create two 1/1 white Soldier creature tokens.\n• Prime Bead — You gain 3 life. Exile this artifact, then return it to the battlefield under its owner's control.",
+      "mana_cost": "{4}",
+      "keywords": [
+        "AV Bead",
+        "Prime Bead",
+        "Communication Bead"
+      ],
+      "otags": [
+        "card-advantage",
+        "draw",
+        "draw-engine",
+        "exile-self",
+        "flicker",
+        "flicker-self",
+        "lifegain",
+        "modal",
+        "out-of-color-token",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-creature-tokens",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-modal-choice",
+        "repeatable-pure-draw",
+        "repeatable-token-generator",
+        "triggered-ability"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Mind's Eye",
+      "oracle_id": "63fd2a57-7a47-4e07-947c-f4e9da7ee538",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "Whenever an opponent draws a card, you may pay {1}. If you do, draw a card.",
+      "mana_cost": "{5}",
+      "keywords": [],
+      "otags": [
+        "card-advantage",
+        "draw",
+        "draw-engine",
+        "draw-hate",
+        "hate",
+        "mana-sink",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "tax",
+        "toll",
+        "tome",
+        "triggered-ability"
+      ],
+      "color_identity": [],
+      "cmc": 5.0
+    },
+    {
+      "name": "Panther Habit",
+      "oracle_id": "75ec25b3-ae91-46be-af8b-2649727638f4",
+      "role": null,
+      "type_line": "Artifact — Equipment",
+      "oracle_text": "If equipped creature would be dealt damage, prevent that damage and put that many +1/+1 counters on it.\nEquip {2}",
+      "mana_cost": "{4}",
+      "keywords": [
+        "Equip"
+      ],
+      "otags": [
+        "activated-ability",
+        "damage-prevention-creature",
+        "gives-pp-counters",
+        "protection",
+        "protects-creature",
+        "repeatable-pp-counters",
+        "vigor-effect"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Royal Talon Fighter Jet",
+      "oracle_id": "d6f36172-d3ef-49e9-a55f-ce2983bb2439",
+      "role": null,
+      "type_line": "Artifact — Vehicle",
+      "oracle_text": "Flying\nThis Vehicle enters with X +1/+1 counters on it.\nWhenever this Vehicle enters or attacks, create a number of 1/1 white Soldier creature tokens equal to the number of +1/+1 counters on it.\nCrew 2",
+      "mana_cost": "{X}{W}{W}",
+      "keywords": [
+        "Flying",
+        "Crew"
+      ],
+      "otags": [
+        "activated-ability",
+        "animate",
+        "animate-self",
+        "attack-trigger",
+        "attacking-matters-self",
+        "bring-your-own-crew",
+        "counters-matter",
+        "crew",
+        "evasion",
+        "gains-pp-counters",
+        "multiple-bodies",
+        "power-matters",
+        "pp-counters-matter",
+        "repeatable-creature-tokens",
+        "repeatable-token-generator",
+        "tap-fuel-creature",
+        "tap-fuel-power",
+        "tap-outlet",
+        "titan-trigger",
+        "triggered-ability",
+        "type-change"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Shuri's Fabricator",
+      "oracle_id": "127f6985-c1f4-487f-b5ee-c84524cd6c55",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "When this artifact enters, create two tapped Vibranium tokens. (They're artifacts with indestructible and \"{T}: Add {C}. This mana can't be spent to cast a nonartifact spell.\")\n{6}, {T}: Return target artifact card from your graveyard to the battlefield with a finality counter on it. Activate only as a sorcery. (If a permanent with a finality counter on it would be put into a graveyard, exile it instead.)",
+      "mana_cost": "{4}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "finality",
+        "finality-counter",
+        "mana-producer",
+        "mana-rock",
+        "mana-sink",
+        "namesake-spell",
+        "powerstone-mana",
+        "ramp",
+        "reanimate",
+        "reanimate-artifact",
+        "recursion",
+        "recursion-artifact",
+        "restricted-mana",
+        "triggered-ability",
+        "utility-mana-rock"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "The Spear of Bashenga",
+      "oracle_id": "e7a0b370-913d-4e96-8fb4-5df168405073",
+      "role": null,
+      "type_line": "Legendary Artifact — Equipment",
+      "oracle_text": "When The Spear of Bashenga enters, if there is no monarch, you become the monarch.\nEquipped creature gets +2/+2 and has vigilance.\nWhenever equipped creature attacks the monarch, destroy target tapped nonland permanent that player controls.\nEquip {2}",
+      "mana_cost": "{4}{W}",
+      "keywords": [
+        "Equip"
+      ],
+      "otags": [
+        "activated-ability",
+        "attack-trigger",
+        "attacking-matters",
+        "card-advantage",
+        "draw",
+        "draw-engine",
+        "gives-vigilance",
+        "hate",
+        "hate-tapped",
+        "intervening-if-clause",
+        "monarch-matters",
+        "pure-draw",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-destroy",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "repeatable-card-advantage",
+        "repeatable-crime",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "repeatable-removal",
+        "spot-removal",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Trading Post",
+      "oracle_id": "63788566-e25a-44bb-bb55-197e1b93b3e8",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{1}, {T}, Discard a card: You gain 4 life.\n{1}, {T}, Pay 1 life: Create a 0/1 white Goat creature token.\n{1}, {T}, Sacrifice a creature: Return target artifact card from your graveyard to your hand.\n{1}, {T}, Sacrifice an artifact: Draw a card.",
+      "mana_cost": "{4}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-advantage",
+        "discard-outlet",
+        "draw",
+        "draw-engine",
+        "life-payment",
+        "lifegain",
+        "out-of-color-token",
+        "plunder",
+        "recursion",
+        "recursion-artifact",
+        "recycle",
+        "regrowth",
+        "regrowth-artifact",
+        "repeatable-card-advantage",
+        "repeatable-creature-tokens",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-plunder",
+        "repeatable-sacrifice-outlet",
+        "repeatable-token-generator",
+        "sacrifice-outlet",
+        "sacrifice-outlet-artifact",
+        "sacrifice-outlet-creature",
+        "synergy-artifact",
+        "tome",
+        "trading-post-like"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Vibranium Mining Mech",
+      "oracle_id": "1bea6d02-186e-46d8-b788-d4cc37dbb480",
+      "role": null,
+      "type_line": "Artifact — Vehicle",
+      "oracle_text": "Trample\nWhenever this Vehicle enters or attacks, create a tapped Vibranium token. (It's an artifact with indestructible and \"{T}: Add {C}. This mana can't be spent to cast a nonartifact spell.\")\n{2}: This Vehicle gets +1/+0 until end of turn.\nCrew 2",
+      "mana_cost": "{4}",
+      "keywords": [
+        "Crew",
+        "Trample"
+      ],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "animate",
+        "animate-self",
+        "attack-trigger",
+        "attacking-matters-self",
+        "bottomless-mana-sink",
+        "card-names",
+        "crew",
+        "firebreathing",
+        "mana-producer",
+        "mana-rock",
+        "mana-sink",
+        "power-matters",
+        "powerstone-mana",
+        "ramp",
+        "repeatable-artifact-tokens",
+        "repeatable-noncreature-tokens",
+        "repeatable-token-generator",
+        "repeatable-vibranium",
+        "restricted-mana",
+        "tap-fuel-creature",
+        "tap-fuel-power",
+        "tap-outlet",
+        "titan-trigger",
+        "triggered-ability",
+        "type-change",
+        "utility-mana-rock"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Vibranium Strike Gauntlets",
+      "oracle_id": "4a9d36eb-db72-459a-8de9-6d04a1d7563c",
+      "role": null,
+      "type_line": "Artifact — Equipment",
+      "oracle_text": "Flash\nWhen this Equipment enters, attach it to target creature you control.\nEquipped creature gets +3/+0 and has trample and \"Whenever this creature deals combat damage to a player, draw a card.\"\nEquip {3}",
+      "mana_cost": "{4}",
+      "keywords": [
+        "Equip",
+        "Flash"
+      ],
+      "otags": [
+        "activated-ability",
+        "auto-equip",
+        "card-advantage",
+        "combat-trick",
+        "curiosity",
+        "curiosity-like",
+        "draw",
+        "draw-engine",
+        "gives-saboteur",
+        "gives-trample",
+        "pure-draw",
+        "quick-attach",
+        "quick-equip",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "saboteur",
+        "triggered-ability"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Bountiful Promenade",
+      "oracle_id": "761cb262-f83b-4a99-9345-b773182a7671",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you have two or more opponents.\n{T}: Add {G} or {W}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-bbd-bond-land",
+        "cycle-bondland",
+        "cycle-dual-land",
+        "cycle-land",
+        "dual-land",
+        "multiplayer"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Fortified Village",
+      "oracle_id": "56f1a16a-9f41-41fb-b580-c200bca27cd6",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "As this land enters, you may reveal a Forest or Plains card from your hand. If you don't, this land enters tapped.\n{T}: Add {G} or {W}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-reveal-land",
+        "cycle-soi-reveal-land",
+        "dual-land",
+        "synergy-forest",
+        "synergy-plains"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Razorverge Thicket",
+      "oracle_id": "94f6c407-e665-4032-be13-a01e40c1f306",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you control two or fewer other lands.\n{T}: Add {G} or {W}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-fastland",
+        "cycle-land",
+        "cycle-som-fastland",
+        "dual-land"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Scattered Groves",
+      "oracle_id": "3c87ea85-ca29-45a7-b5b2-758c62898b0a",
+      "role": null,
+      "type_line": "Land — Forest Plains",
+      "oracle_text": "({T}: Add {G} or {W}.)\nThis land enters tapped.\nCycling {2} ({2}, Discard this card: Draw a card.)",
+      "mana_cost": "",
+      "keywords": [
+        "Cycling"
+      ],
+      "otags": [
+        "activate-from-hand",
+        "activated-ability",
+        "card-advantage",
+        "cycle",
+        "cycle-akh-dual-cycling-land",
+        "cycle-cycling-land",
+        "cycle-dual-cycling-land",
+        "cycle-dual-land",
+        "cycle-land",
+        "draw",
+        "dual-land",
+        "nonbasic-basic-land-type",
+        "pure-draw",
+        "tapland",
+        "utility-land"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Scavenger Grounds",
+      "oracle_id": "5ece7d03-9ee7-4953-a06e-9d8e41874903",
+      "role": null,
+      "type_line": "Land — Desert",
+      "oracle_text": "{T}: Add {C}.\n{2}, {T}, Sacrifice a Desert: Exile all graveyards.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "hate",
+        "hate-graveyard",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-land",
+        "sacrifice-self",
+        "sweeper-graveyard",
+        "symmetrical",
+        "synergy-desert",
+        "utility-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Sungrass Prairie",
+      "oracle_id": "0a28dff0-2bd6-4105-b73a-b6c4735833fd",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{1}, {T}: Add {G}{W}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-ody-ally-filterland",
+        "cycle-ody-filterland",
+        "dual-land",
+        "filterland",
+        "mana-filter"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "The Great Mound",
+      "oracle_id": "6b78e417-44f8-4ab6-9d3c-e71704fc648e",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{3}, {T}: Create a tapped Vibranium token. (It's an artifact with indestructible and \"{T}: Add {C}. This mana can't be spent to cast a nonartifact spell.\")\n{6}, {T}: Draw a card.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-advantage",
+        "draw",
+        "draw-engine",
+        "mana-sink",
+        "powerstone-mana",
+        "pure-draw",
+        "ramp",
+        "repeatable-artifact-tokens",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-noncreature-tokens",
+        "repeatable-pure-draw",
+        "repeatable-token-generator",
+        "repeatable-vibranium",
+        "restricted-mana",
+        "utility-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Valorous Stance",
+      "oracle_id": "1f938353-9081-4dc1-b8e7-d18ece038bd4",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Choose one —\n• Target creature gains indestructible until end of turn. (Damage and effects that say \"destroy\" don't destroy it.)\n• Destroy target creature with toughness 4 or greater.",
+      "mana_cost": "{1}{W}",
+      "keywords": [],
+      "otags": [
+        "combat-trick",
+        "cycle",
+        "cycle-frf-modal-spell",
+        "doom-blade",
+        "gives-indestructible",
+        "hate",
+        "hate-high-pt",
+        "modal",
+        "protection",
+        "protects-creature",
+        "removal",
+        "removal-creature",
+        "removal-destroy",
+        "single-target-instant-sorcery",
+        "spot-removal",
+        "toughness-matters"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Nature's Lore",
+      "oracle_id": "78826359-fe63-44ad-adc4-a17ffcd710e4",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Search your library for a Forest card, put that card onto the battlefield, then shuffle.",
+      "mana_cost": "{1}{G}",
+      "keywords": [],
+      "otags": [
+        "land-ramp",
+        "ramp",
+        "refund",
+        "tutor",
+        "tutor-land",
+        "tutor-land-forest",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Vanquish the Horde",
+      "oracle_id": "a332e80a-dc51-4dc6-bc85-e114a1c6fdb8",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "This spell costs {1} less to cast for each creature on the battlefield.\nDestroy all creatures.",
+      "mana_cost": "{6}{W}{W}",
+      "keywords": [],
+      "otags": [
+        "affinity",
+        "affinity-for-creatures",
+        "cheaper-than-mv",
+        "creature-count-matters",
+        "discount-self",
+        "hate",
+        "hate-wide",
+        "multiplayer",
+        "removal",
+        "removal-creature",
+        "removal-destroy",
+        "sweeper",
+        "symmetrical"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 8.0
+    },
+    {
+      "name": "Gilded Lotus",
+      "oracle_id": "9a02a9a7-39d9-4763-85d3-747a0540b60b",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{T}: Add three mana of any one color.",
+      "mana_cost": "{5}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "mana-producer",
+        "mana-rock",
+        "mini-refund",
+        "ramp",
+        "refund"
+      ],
+      "color_identity": [],
+      "cmc": 5.0
+    },
+    {
+      "name": "Thran Dynamo",
+      "oracle_id": "a699c663-8131-4045-9265-a83e86609374",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{T}: Add {C}{C}{C}.",
+      "mana_cost": "{4}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "mana-producer",
+        "mana-rock",
+        "ramp",
+        "refund"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Whispersilk Cloak",
+      "oracle_id": "9ad4f730-a18e-4a7c-a468-a926c718c741",
+      "role": null,
+      "type_line": "Artifact — Equipment",
+      "oracle_text": "Equipped creature can't be blocked and has shroud. (It can't be the target of spells or abilities.)\nEquip {2}",
+      "mana_cost": "{3}",
+      "keywords": [
+        "Equip"
+      ],
+      "otags": [
+        "activated-ability",
+        "gives-evasion",
+        "gives-shroud",
+        "gives-unblockable",
+        "protection",
+        "protects-creature"
+      ],
+      "color_identity": [],
+      "cmc": 3.0
+    },
+    {
+      "name": "Canopy Vista",
+      "oracle_id": "dcb7e046-f01b-497c-88e5-57794eb30ce5",
+      "role": null,
+      "type_line": "Land — Forest Plains",
+      "oracle_text": "({T}: Add {G} or {W}.)\nThis land enters tapped unless you control two or more basic lands.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-bfz-tangoland",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-tangoland",
+        "dual-land",
+        "lands-matter",
+        "nonbasic-basic-land-type",
+        "synergy-basic"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Command Tower",
+      "oracle_id": "0895c9b7-ae7d-4bb3-af17-3b75deb50a25",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "commander-identity-matters",
+        "commander-matters",
+        "rainbow-land",
+        "synergy-color-share",
+        "synergy-commander",
+        "tutored-by-name",
+        "virtual-legendary"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Evolving Wilds",
+      "oracle_id": "a75445d3-1303-4bb5-89ad-26ea93fecd48",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "fetchland",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Sunpetal Grove",
+      "oracle_id": "402ec768-76fb-474e-ae74-babc90d833c4",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you control a Forest or a Plains.\n{T}: Add {G} or {W}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-checkland",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-m10-checkland",
+        "dual-land",
+        "synergy-forest",
+        "synergy-plains"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Terramorphic Expanse",
+      "oracle_id": "1bd3e453-aa21-4ee6-95c2-d6d920ee8e7a",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "fetchland",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Forsaken Monument",
+      "oracle_id": "7777fab1-df3f-467f-b9e2-46dd2bd2166e",
+      "role": null,
+      "type_line": "Legendary Artifact",
+      "oracle_text": "Colorless creatures you control get +2/+2.\nWhenever you tap a permanent for {C}, add an additional {C}.\nWhenever you cast a colorless spell, you gain 2 life.",
+      "mana_cost": "{5}",
+      "keywords": [],
+      "otags": [
+        "anthem",
+        "cast-trigger",
+        "cast-trigger-you",
+        "green-effect",
+        "lifegain",
+        "mana-increaser",
+        "power-boost-to-all",
+        "ramp",
+        "repeatable-lifegain",
+        "synergy-colorless",
+        "synergy-colorless-mana",
+        "toughness-boost-to-all",
+        "triggered-ability"
+      ],
+      "color_identity": [],
+      "cmc": 5.0
+    },
+    {
+      "name": "Cityscape Leveler",
+      "oracle_id": "d4d65797-2b92-4265-9169-133120c86c7f",
+      "role": null,
+      "type_line": "Artifact Creature — Construct",
+      "oracle_text": "Trample\nWhen you cast this spell and whenever this creature attacks, destroy up to one target nonland permanent. Its controller creates a tapped Powerstone token.\nUnearth {8}",
+      "mana_cost": "{8}",
+      "keywords": [
+        "Unearth",
+        "Trample"
+      ],
+      "otags": [
+        "activate-from-graveyard",
+        "activated-ability",
+        "attack-trigger",
+        "attacking-matters-self",
+        "cast-trigger",
+        "cast-trigger-self",
+        "delayed-trigger",
+        "donate-token",
+        "exile-self",
+        "finality",
+        "gains-haste",
+        "mix-and-match",
+        "powerstone-mana",
+        "ramp",
+        "reanimate",
+        "reanimate-self",
+        "recursion",
+        "recursion-self",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-destroy",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "repeatable-artifact-tokens",
+        "repeatable-crime",
+        "repeatable-noncreature-tokens",
+        "repeatable-powerstones",
+        "repeatable-removal",
+        "repeatable-token-generator",
+        "restricted-mana",
+        "spot-removal",
+        "swap-removal",
+        "temporary-reanimation",
+        "triggered-ability",
+        "unearth"
+      ],
+      "color_identity": [],
+      "cmc": 8.0
+    },
+    {
+      "name": "Chimil, the Inner Sun",
+      "oracle_id": "119d9671-61ba-4629-89b1-f94bdec5cb74",
+      "role": null,
+      "type_line": "Legendary Artifact",
+      "oracle_text": "Spells you control can't be countered.\nAt the beginning of your end step, discover 5. (Exile cards from the top of your library until you exile a nonland card with mana value 5 or less. Cast it without paying its mana cost or put it into your hand. Put the rest on the bottom in a random order.)",
+      "mana_cost": "{6}",
+      "keywords": [
+        "Discover"
+      ],
+      "otags": [
+        "card-advantage",
+        "cast-on-resolution",
+        "consult",
+        "consult-cast",
+        "cost-ignorer",
+        "free-cast-another",
+        "gives-castable-from-exile",
+        "gives-castable-from-nonhand",
+        "gives-uncounterable",
+        "hate",
+        "hate-counterspell",
+        "repeatable-card-advantage",
+        "triggered-ability"
+      ],
+      "color_identity": [],
+      "cmc": 6.0
+    },
+    {
+      "name": "Arcane Signet",
+      "oracle_id": "0bc7f093-bef0-4f1a-852c-4b75ebf54838",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
+      "mana_cost": "{2}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "commander-identity-matters",
+        "commander-matters",
+        "mana-producer",
+        "mana-rock",
+        "mana-rock-with-set-s-mechanic",
+        "mini-refund",
+        "ramp",
+        "refund",
+        "staple-with-set-s-mechanic",
+        "synergy-commander"
+      ],
+      "color_identity": [],
+      "cmc": 2.0
+    },
+    {
+      "name": "Sol Ring",
+      "oracle_id": "6ad8011d-3471-4369-9d68-b264cc027487",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{T}: Add {C}{C}.",
+      "mana_cost": "{1}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "full-refund",
+        "mana-producer",
+        "mana-rock",
+        "ramp",
+        "refund"
+      ],
+      "color_identity": [],
+      "cmc": 1.0
+    },
+    {
+      "name": "Path of Ancestry",
+      "oracle_id": "b473e293-59e3-4e04-acf2-622604aeb25f",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped.\n{T}: Add one mana of any color in your commander's color identity. When that mana is spent to cast a creature spell that shares a creature type with your commander, scry 1. (Look at the top card of your library. You may put that card on the bottom.)",
+      "mana_cost": "",
+      "keywords": [
+        "Scry"
+      ],
+      "otags": [
+        "activated-ability",
+        "bottom-deck-manipulation",
+        "buff-mana",
+        "cast-trigger",
+        "cast-trigger-you",
+        "commander-identity-matters",
+        "commander-matters",
+        "delayed-trigger",
+        "library-manipulation",
+        "peek",
+        "peek-library",
+        "rainbow-land",
+        "repeatable-scry",
+        "scry",
+        "staple-with-set-s-mechanic",
+        "synergy-color-share",
+        "synergy-commander",
+        "tapland",
+        "tapland-with-set-s-mechanic",
+        "top-deck-manipulation",
+        "triggered-ability",
+        "typal",
+        "typal-creature",
+        "typal-share",
+        "utility-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Harmonize",
+      "oracle_id": "7eff84f1-f772-497a-b350-bbc93d0230f7",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Draw three cards.",
+      "mana_cost": "{2}{G}{G}",
+      "keywords": [],
+      "otags": [
+        "burst-draw",
+        "card-advantage",
+        "card-names",
+        "color-break",
+        "draw",
+        "misnomer",
+        "pure-draw",
+        "shares-name-with-a-mechanic",
+        "single-english-word-name"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Symmetry Matrix",
+      "oracle_id": "2f6d129c-e6ad-4f35-b8b1-56a101fdd5db",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "Whenever a creature you control with power equal to its toughness enters, you may pay {1}. If you do, draw a card.",
+      "mana_cost": "{4}",
+      "keywords": [],
+      "otags": [
+        "card-advantage",
+        "creature-engine",
+        "creaturefall",
+        "draw",
+        "draw-engine",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "square-stats-matter",
+        "thingfall",
+        "triggered-ability"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Rust Goliath",
+      "oracle_id": "61df991d-32e7-4b6b-b8e6-700ba915c3f2",
+      "role": null,
+      "type_line": "Artifact Creature — Construct",
+      "oracle_text": "Prototype {3}{G}{G} — 3/5 (You may cast this spell with different mana cost, color, and size. It keeps its abilities and types.)\nReach, trample",
+      "mana_cost": "{10}",
+      "keywords": [
+        "Reach",
+        "Trample",
+        "Prototype"
+      ],
+      "otags": [
+        "cheaper-than-mv",
+        "flavors-of-vanilla",
+        "french-vanilla"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 10.0
+    },
+    {
+      "name": "Argivian Avenger",
+      "oracle_id": "d215cd4a-412c-4632-ab2d-de51103e6a7d",
+      "role": null,
+      "type_line": "Artifact Creature — Shapeshifter",
+      "oracle_text": "{1}: Until end of turn, this creature gets -1/-1 and gains your choice of flying, vigilance, deathtouch, or haste.",
+      "mana_cost": "{6}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "card-names",
+        "evasion",
+        "gains-deathtouch",
+        "gains-flying",
+        "gains-haste",
+        "gains-vigilance"
+      ],
+      "color_identity": [],
+      "cmc": 6.0
+    },
+    {
+      "name": "Cradle Clearcutter",
+      "oracle_id": "225f53ef-da42-47a0-b773-d2aad3338c72",
+      "role": null,
+      "type_line": "Artifact Creature — Golem",
+      "oracle_text": "Prototype {2}{G} — 1/3 (You may cast this spell with different mana cost, color, and size. It keeps its abilities and types.)\n{T}: Add an amount of {G} equal to this creature's power.",
+      "mana_cost": "{6}",
+      "keywords": [
+        "Prototype"
+      ],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "alliteration",
+        "card-names",
+        "cheaper-than-mv",
+        "mana-dork",
+        "mana-producer",
+        "power-matters",
+        "power-matters-self",
+        "ramp",
+        "scales-with-power"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Doubling Season",
+      "oracle_id": "01546b7d-a233-4176-8843-d732074dc5b6",
+      "role": null,
+      "type_line": "Enchantment",
+      "oracle_text": "If an effect would create one or more tokens under your control, it creates twice that many of those tokens instead.\nIf an effect would put one or more counters on a permanent you control, it puts twice that many of those counters on that permanent instead.",
+      "mana_cost": "{4}{G}",
+      "keywords": [],
+      "otags": [
+        "counter-doubler",
+        "counter-increaser",
+        "synergy-planeswalker",
+        "synergy-token",
+        "token-doubler",
+        "token-increaser"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Walking Ballista",
+      "oracle_id": "4b515bb0-f275-4400-8032-3173b799ab40",
+      "role": null,
+      "type_line": "Artifact Creature — Construct",
+      "oracle_text": "This creature enters with X +1/+1 counters on it.\n{4}: Put a +1/+1 counter on this creature.\nRemove a +1/+1 counter from this creature: It deals 1 damage to any target.",
+      "mana_cost": "{X}{X}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "bottomless-mana-sink",
+        "burn",
+        "burn-any",
+        "burn-battle",
+        "burn-creature",
+        "burn-planeswalker",
+        "burn-player",
+        "counter-fuel",
+        "counter-fuel-pp",
+        "counters-matter",
+        "gains-pp-counters",
+        "mana-sink",
+        "pinger",
+        "pp-counters-matter",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "removal-planeswalker",
+        "remove-counters",
+        "remove-counters-you",
+        "repeatable-crime",
+        "repeatable-pp-counters",
+        "repeatable-removal",
+        "spot-removal"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "The Skullspore Nexus",
+      "oracle_id": "ba26ff0a-e714-44f2-95cf-1a5a6088edf9",
+      "role": null,
+      "type_line": "Legendary Artifact",
+      "oracle_text": "This spell costs {X} less to cast, where X is the greatest power among creatures you control.\nWhenever one or more nontoken creatures you control die, create a green Fungus Dinosaur creature token with base power and toughness each equal to the total power of those creatures.\n{2}, {T}: Double target creature's power until end of turn.",
+      "mana_cost": "{6}{G}{G}",
+      "keywords": [
+        "Double"
+      ],
+      "otags": [
+        "activated-ability",
+        "cheaper-than-mv",
+        "death-trigger",
+        "discount-self",
+        "power-doubler",
+        "power-matters",
+        "power-matters-total",
+        "repeatable-creature-tokens",
+        "repeatable-crime",
+        "repeatable-token-generator",
+        "scales-with-power",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 8.0
+    },
+    {
+      "name": "Blightsteel Colossus",
+      "oracle_id": "e80772e2-8623-4094-81a2-70828b2b151c",
+      "role": null,
+      "type_line": "Artifact Creature — Phyrexian Golem",
+      "oracle_text": "Trample, infect, indestructible\nIf Blightsteel Colossus would be put into a graveyard from anywhere, reveal Blightsteel Colossus and shuffle it into its owner's library instead.",
+      "mana_cost": "{12}",
+      "keywords": [
+        "Indestructible",
+        "Trample",
+        "Infect"
+      ],
+      "otags": [
+        "card-names",
+        "gives-mm-counters",
+        "poison-mechanics",
+        "poisonous",
+        "protects-self",
+        "recursion",
+        "recursion-self",
+        "restock",
+        "restock-self",
+        "titan-immortality",
+        "type-addition-phyrexian",
+        "type-errata",
+        "type-errata-addition",
+        "virtual-legendary"
+      ],
+      "color_identity": [],
+      "cmc": 12.0
+    },
+    {
+      "name": "Portal to Phyrexia",
+      "oracle_id": "301d1d8e-d3fc-4010-8b29-4724fa0b31cd",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "When this artifact enters, each opponent sacrifices three creatures of their choice.\nAt the beginning of your upkeep, put target creature card from a graveyard onto the battlefield under your control. It's a Phyrexian in addition to its other types.",
+      "mana_cost": "{9}",
+      "keywords": [],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "control-changing-effects",
+        "multi-removal",
+        "reanimate",
+        "reanimate-creature",
+        "reanimate-from-any",
+        "reanimate-from-opponent",
+        "recursion",
+        "recursion-creature",
+        "removal",
+        "removal-creature",
+        "removal-sacrifice",
+        "repeatable-crime",
+        "spot-removal",
+        "theft",
+        "triggered-ability",
+        "type-change"
+      ],
+      "color_identity": [],
+      "cmc": 9.0
+    },
+    {
+      "name": "Krang, Utrom Warlord",
+      "oracle_id": "2d56a491-b3eb-4f3e-82ab-981d3036c45d",
+      "role": null,
+      "type_line": "Legendary Artifact Creature — Utrom Robot",
+      "oracle_text": "Flying, trample, indestructible, haste\nOther artifact creatures you control have flying, trample, indestructible, and haste.",
+      "mana_cost": "{9}",
+      "keywords": [
+        "Flying",
+        "Indestructible",
+        "Haste",
+        "Trample"
+      ],
+      "otags": [
+        "evasion",
+        "gives-evasion",
+        "gives-flying",
+        "gives-haste",
+        "gives-indestructible",
+        "gives-trample",
+        "keyword-anthem",
+        "protection",
+        "protects-all",
+        "protects-creature",
+        "protects-self",
+        "synergy-artifact-creature"
+      ],
+      "color_identity": [],
+      "cmc": 9.0
+    },
+    {
+      "name": "Jaheira, Friend of the Forest",
+      "oracle_id": "0aeeb0d7-15a3-4722-ad67-8fc7fe89220d",
+      "role": null,
+      "type_line": "Legendary Creature — Human Elf Druid",
+      "oracle_text": "Tokens you control have \"{T}: Add {G}.\"\nChoose a Background (You can have a Background as a second commander.)",
+      "mana_cost": "{2}{G}",
+      "keywords": [
+        "Choose a background"
+      ],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "cycle",
+        "cycle-clb-r-mono-legend",
+        "dnd",
+        "dnd-character",
+        "gives-mana-ability",
+        "gives-tap-ability",
+        "multiple-species-types",
+        "pair-commander",
+        "ramp",
+        "synergy-token",
+        "tap-fuel-token",
+        "tap-outlet"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "The Great Henge",
+      "oracle_id": "78427103-9543-41fb-b6d4-72963fe87275",
+      "role": null,
+      "type_line": "Legendary Artifact",
+      "oracle_text": "This spell costs {X} less to cast, where X is the greatest power among creatures you control.\n{T}: Add {G}{G}. You gain 2 life.\nWhenever a nontoken creature you control enters, put a +1/+1 counter on it and draw a card.",
+      "mana_cost": "{7}{G}{G}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "card-advantage",
+        "cheaper-than-mv",
+        "creature-engine",
+        "creaturefall",
+        "cycle",
+        "cycle-eld-court-artifact",
+        "discount-self",
+        "draw",
+        "draw-engine",
+        "full-refund",
+        "gives-pp-counters",
+        "lifegain",
+        "mana-ability-with-extra-effect",
+        "mana-producer",
+        "mana-rock",
+        "power-matters",
+        "pure-draw",
+        "ramp",
+        "refund",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-pp-counters",
+        "repeatable-pure-draw",
+        "scales-with-power",
+        "thingfall",
+        "triggered-ability",
+        "utility-mana-rock"
+      ],
+      "color_identity": [
+        "G"
+      ],
+      "cmc": 9.0
+    },
+    {
+      "name": "Grim Monolith",
+      "oracle_id": "229d6627-1292-4ae1-8849-b0f956fa6540",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "This artifact doesn't untap during your untap step.\n{T}: Add {C}{C}{C}.\n{4}: Untap this artifact.",
+      "mana_cost": "{2}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "doesn-t-untap",
+        "full-refund",
+        "mana-producer",
+        "mana-rock",
+        "ramp",
+        "refund",
+        "untapper",
+        "untaps-self"
+      ],
+      "color_identity": [],
+      "cmc": 2.0
+    },
+    {
+      "name": "Savannah",
+      "oracle_id": "703243f0-8cb3-420f-958f-5fd4bde30293",
+      "role": null,
+      "type_line": "Land — Forest Plains",
+      "oracle_text": "({T}: Add {G} or {W}.)",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "cycle",
+        "cycle-abu-dual-land",
+        "cycle-dual-land",
+        "cycle-land",
+        "dual-land",
+        "nonbasic-basic-land-type",
+        "single-english-word-name"
+      ],
+      "color_identity": [
+        "G",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Mox Opal",
+      "oracle_id": "de2440de-e948-4811-903c-0bbe376ff64d",
+      "role": null,
+      "type_line": "Legendary Artifact",
+      "oracle_text": "Metalcraft — {T}: Add one mana of any color. Activate only if you control three or more artifacts.",
+      "mana_cost": "{0}",
+      "keywords": [
+        "Metalcraft"
+      ],
+      "otags": [
+        "activated-ability",
+        "artifact-count-matters",
+        "mana-producer",
+        "mana-rock",
+        "mana-rock-with-set-s-mechanic",
+        "manaless-value",
+        "metalcraft",
+        "moxen",
+        "ramp",
+        "staple-with-set-s-mechanic",
+        "synergy-artifact"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Unwinding Clock",
+      "oracle_id": "153fac93-5d2b-4348-a468-a5eef6a12da3",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "Untap all artifacts you control during each other player's untap step.",
+      "mana_cost": "{4}",
+      "keywords": [],
+      "otags": [
+        "extra-untap",
+        "synergy-artifact",
+        "untapper",
+        "untapper-artifact"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Plains",
+      "oracle_id": null,
+      "role": null,
+      "type_line": "Basic Land — Plains",
+      "oracle_text": null,
+      "mana_cost": null,
+      "keywords": [],
+      "otags": [],
+      "color_identity": [],
+      "cmc": null
+    },
+    {
+      "name": "Forest",
+      "oracle_id": null,
+      "role": null,
+      "type_line": "Basic Land — Forest",
+      "oracle_text": null,
+      "mana_cost": null,
+      "keywords": [],
+      "otags": [],
+      "color_identity": [],
+      "cmc": null
+    }
+  ]
+}

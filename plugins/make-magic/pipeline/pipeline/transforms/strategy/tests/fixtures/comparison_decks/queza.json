@@ -1,0 +1,2690 @@
+{
+  "name": "Control the Draw, Control the Universe",
+  "source": "comparison-phase3-spike",
+  "commander_hint": "Queza, Augur of Agonies",
+  "cards": [
+    {
+      "name": "Queza, Augur of Agonies",
+      "oracle_id": "c983338d-ae6b-4a15-9931-daa20fca8269",
+      "role": "commander",
+      "type_line": "Legendary Creature — Octopus Advisor",
+      "oracle_text": "Whenever you draw a card, target opponent loses 1 life and you gain 1 life.",
+      "mana_cost": "{1}{W}{U}{B}",
+      "keywords": [],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "cycle",
+        "cycle-snc-u-legend",
+        "drain-life",
+        "draw-matters",
+        "inverted-effects",
+        "lifegain",
+        "opponent-loses-life",
+        "repeatable-crime",
+        "repeatable-lifegain",
+        "sea-monster",
+        "triggered-ability",
+        "type-errata",
+        "type-errata-cephalid",
+        "type-errata-genericise"
+      ],
+      "color_identity": [
+        "B",
+        "U",
+        "W"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Ancient Tomb",
+      "oracle_id": "23467047-6dba-4498-b783-1ebc4f74b8c2",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}{C}. This land deals 2 damage to you.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "burn-you",
+        "card-names",
+        "drawback",
+        "life-payment",
+        "mana-ability-with-extra-effect",
+        "painland",
+        "ramp",
+        "sol-land",
+        "virtual-legendary"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Bolas's Citadel",
+      "oracle_id": "2bd111bb-ce02-414c-b5b7-e0e037d8d96b",
+      "role": null,
+      "type_line": "Legendary Artifact",
+      "oracle_text": "You may look at the top card of your library any time.\nYou may play lands and cast spells from the top of your library. If you cast a spell this way, pay life equal to its mana value rather than pay its mana cost.\n{T}, Sacrifice ten nonland permanents: Each opponent loses 10 life.",
+      "mana_cost": "{3}{B}{B}{B}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "black-effect",
+        "card-advantage",
+        "card-names",
+        "cycle",
+        "cycle-war-color-artifact",
+        "gives-castable-from-library",
+        "gives-castable-from-nonhand",
+        "group-slug",
+        "life-for-cards",
+        "life-payment",
+        "namesake-spell",
+        "opponent-loses-life",
+        "peek",
+        "peek-library",
+        "play-from-top",
+        "precognition",
+        "precognition-engine",
+        "repeatable-card-advantage",
+        "repeatable-sacrifice-outlet",
+        "sacrifice-outlet",
+        "sacrifice-outlet-artifact",
+        "sacrifice-outlet-creature",
+        "sacrifice-outlet-enchantment",
+        "sacrifice-outlet-nonland"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Demonic Tutor",
+      "oracle_id": "82004860-e589-4e38-8d61-8c0210e4ea39",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Search your library for a card, put that card into your hand, then shuffle.",
+      "mana_cost": "{1}{B}",
+      "keywords": [],
+      "otags": [
+        "black-effect",
+        "tutor",
+        "tutor-card",
+        "tutor-to",
+        "tutor-to-hand"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Mana Vault",
+      "oracle_id": "736892cb-a34b-4bb9-b56c-e26e3db207a2",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "This artifact doesn't untap during your untap step.\nAt the beginning of your upkeep, you may pay {4}. If you do, untap this artifact.\nAt the beginning of your draw step, if this artifact is tapped, it deals 1 damage to you.\n{T}: Add {C}{C}{C}.",
+      "mana_cost": "{1}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "burn-you",
+        "doesn-t-untap",
+        "drawback",
+        "full-refund",
+        "intervening-if-clause",
+        "mana-producer",
+        "mana-rock",
+        "ramp",
+        "refund",
+        "triggered-ability",
+        "untapper",
+        "untaps-self"
+      ],
+      "color_identity": [],
+      "cmc": 1.0
+    },
+    {
+      "name": "The One Ring",
+      "oracle_id": "3aa83ed2-f48b-4ce6-a614-2c54ddf50538",
+      "role": null,
+      "type_line": "Legendary Artifact",
+      "oracle_text": "Indestructible\nWhen The One Ring enters, if you cast it, you gain protection from everything until your next turn.\nAt the beginning of your upkeep, you lose 1 life for each burden counter on The One Ring.\n{T}: Put a burden counter on The One Ring, then draw a card for each burden counter on The One Ring.",
+      "mana_cost": "{4}",
+      "keywords": [
+        "Indestructible"
+      ],
+      "otags": [
+        "activated-ability",
+        "black-effect",
+        "burst-draw",
+        "card-advantage",
+        "counters-matter",
+        "creature-ability-noncreature",
+        "damage-prevention",
+        "damage-prevention-you",
+        "draw",
+        "draw-engine",
+        "drawback",
+        "fog",
+        "fog-selective",
+        "gives-player-ability",
+        "gives-player-protection",
+        "intervening-if-clause",
+        "life-for-cards",
+        "life-payment",
+        "protection",
+        "protects-self",
+        "pure-draw",
+        "quadratic",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "tome",
+        "triggered-ability",
+        "unique-counter"
+      ],
+      "color_identity": [],
+      "cmc": 4.0
+    },
+    {
+      "name": "Urborg, Tomb of Yawgmoth",
+      "oracle_id": "db6174d7-211d-4817-b8e4-8384594c83f9",
+      "role": null,
+      "type_line": "Legendary Land",
+      "oracle_text": "Each land is a Swamp in addition to its other land types.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "card-names",
+        "chromatic-lantern",
+        "land-conversion",
+        "namesake-spell",
+        "symmetrical",
+        "type-change",
+        "universal-type-change"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Vampiric Tutor",
+      "oracle_id": "ededbdae-d9dc-4206-9335-d7158f2d7700",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Search your library for a card, then shuffle and put that card on top. You lose 2 life.",
+      "mana_cost": "{B}",
+      "keywords": [],
+      "otags": [
+        "black-effect",
+        "cycle",
+        "cycle-1mv-tutor",
+        "cycle-ema-tutor",
+        "library-manipulation",
+        "life-payment",
+        "top-deck-manipulation",
+        "tutor",
+        "tutor-card",
+        "tutor-to",
+        "tutor-to-top"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Chrome Mox",
+      "oracle_id": "ec3d4466-547c-4e02-b1b5-a156ec4637e9",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "Imprint — When this artifact enters, you may exile a nonartifact, nonland card from your hand.\n{T}: Add one mana of any of the exiled card's colors.",
+      "mana_cost": "{0}",
+      "keywords": [
+        "Imprint"
+      ],
+      "otags": [
+        "activated-ability",
+        "imprint",
+        "mana-producer",
+        "mana-rock",
+        "mana-rock-with-set-s-mechanic",
+        "manaless-value",
+        "moxen",
+        "ramp",
+        "staple-with-set-s-mechanic",
+        "synergy-color-share",
+        "triggered-ability"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "City of Brass",
+      "oracle_id": "f25351e3-539b-4bbc-b92d-6480acf4d722",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "Whenever this land becomes tapped, it deals 1 damage to you.\n{T}: Add one mana of any color.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "burn-you",
+        "card-names",
+        "drawback",
+        "life-payment",
+        "painland",
+        "rainbow-land",
+        "triggered-ability",
+        "uninspired",
+        "virtual-legendary"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Swords to Plowshares",
+      "oracle_id": "b1544f21-7e98-461b-aed5-e748b0168c52",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Exile target creature. Its controller gains life equal to its power.",
+      "mana_cost": "{W}",
+      "keywords": [],
+      "otags": [
+        "drawback",
+        "lifegain",
+        "opponent-lifegain",
+        "removal",
+        "removal-creature",
+        "removal-exile",
+        "single-target-instant-sorcery",
+        "spot-removal"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Drowned Catacomb",
+      "oracle_id": "819fc966-434e-470f-91e9-a38df974ad17",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you control an Island or a Swamp.\n{T}: Add {U} or {B}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-checkland",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-m10-checkland",
+        "dual-land",
+        "synergy-island",
+        "synergy-swamp"
+      ],
+      "color_identity": [
+        "B",
+        "U"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Azorius Signet",
+      "oracle_id": "e018773f-95b3-49a3-9674-6f04ddef2092",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{1}, {T}: Add {W}{U}.",
+      "mana_cost": "{2}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-rav-signet",
+        "mana-filter",
+        "mana-producer",
+        "mana-rock",
+        "ramp",
+        "refund"
+      ],
+      "color_identity": [
+        "U",
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Phyrexian Arena",
+      "oracle_id": "ee579a32-a048-4335-b966-231ba731cdea",
+      "role": null,
+      "type_line": "Enchantment",
+      "oracle_text": "At the beginning of your upkeep, you draw a card and lose 1 life.",
+      "mana_cost": "{1}{B}{B}",
+      "keywords": [],
+      "otags": [
+        "black-effect",
+        "card-advantage",
+        "cycle",
+        "cycle-apc-phyrexian-vertical",
+        "deal-with-the-devil",
+        "draw",
+        "draw-engine",
+        "drawback",
+        "life-for-cards",
+        "life-payment",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "triggered-ability",
+        "vertical-cycle"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Arcane Signet",
+      "oracle_id": "0bc7f093-bef0-4f1a-852c-4b75ebf54838",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
+      "mana_cost": "{2}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "commander-identity-matters",
+        "commander-matters",
+        "mana-producer",
+        "mana-rock",
+        "mana-rock-with-set-s-mechanic",
+        "mini-refund",
+        "ramp",
+        "refund",
+        "staple-with-set-s-mechanic",
+        "synergy-commander"
+      ],
+      "color_identity": [],
+      "cmc": 2.0
+    },
+    {
+      "name": "Command Tower",
+      "oracle_id": "0895c9b7-ae7d-4bb3-af17-3b75deb50a25",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "commander-identity-matters",
+        "commander-matters",
+        "rainbow-land",
+        "synergy-color-share",
+        "synergy-commander",
+        "tutored-by-name",
+        "virtual-legendary"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Sensei's Divining Top",
+      "oracle_id": "13575cf9-65c1-4861-b21e-eb2155e07766",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{1}: Look at the top three cards of your library, then put them back in any order.\n{T}: Draw a card, then put this artifact on top of its owner's library.",
+      "mana_cost": "{1}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-advantage",
+        "draw",
+        "draw-engine",
+        "library-manipulation",
+        "peek",
+        "peek-library",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "soothsaying",
+        "top-deck-manipulation",
+        "tuck",
+        "tuck-self"
+      ],
+      "color_identity": [],
+      "cmc": 1.0
+    },
+    {
+      "name": "Sol Ring",
+      "oracle_id": "6ad8011d-3471-4369-9d68-b264cc027487",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{T}: Add {C}{C}.",
+      "mana_cost": "{1}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "adds-multiple-mana",
+        "full-refund",
+        "mana-producer",
+        "mana-rock",
+        "ramp",
+        "refund"
+      ],
+      "color_identity": [],
+      "cmc": 1.0
+    },
+    {
+      "name": "Thought Vessel",
+      "oracle_id": "9965d9c5-2ebf-4a6c-930e-55c5890979be",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "You have no maximum hand size.\n{T}: Add {C}.",
+      "mana_cost": "{2}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "hand-size-increase",
+        "mana-producer",
+        "mana-rock",
+        "ramp",
+        "refund",
+        "utility-mana-rock"
+      ],
+      "color_identity": [],
+      "cmc": 2.0
+    },
+    {
+      "name": "Toxic Deluge",
+      "oracle_id": "afaef788-34d1-460b-b884-9d7ae6ddeb18",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "As an additional cost to cast this spell, pay X life.\nAll creatures get -X/-X until end of turn.",
+      "mana_cost": "{2}{B}",
+      "keywords": [],
+      "otags": [
+        "additional-cost",
+        "life-payment",
+        "removal",
+        "removal-creature",
+        "removal-toughness",
+        "sweeper",
+        "symmetrical"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Laboratory Maniac",
+      "oracle_id": "aa286dd5-aa19-446d-9003-684d81eb57ca",
+      "role": null,
+      "type_line": "Creature — Human Wizard",
+      "oracle_text": "If you would draw a card while your library has no cards in it, you win the game instead.",
+      "mana_cost": "{2}{U}",
+      "keywords": [],
+      "otags": [
+        "alternate-win-condition",
+        "empty-library",
+        "library-size-matters",
+        "synergy-mill"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Baleful Mastery",
+      "oracle_id": "adfcdadd-ddda-477b-8e72-0cae2430fb63",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "You may pay {1}{B} rather than pay this spell's mana cost.\nIf the {1}{B} cost was paid, an opponent draws a card.\nExile target creature or planeswalker.",
+      "mana_cost": "{3}{B}",
+      "keywords": [],
+      "otags": [
+        "alternative-cost",
+        "cheaper-than-mv",
+        "cycle",
+        "cycle-stx-mastery",
+        "force-draw",
+        "group-hug",
+        "removal",
+        "removal-creature",
+        "removal-exile",
+        "removal-planeswalker",
+        "selective-group-hug",
+        "single-target-instant-sorcery",
+        "spot-removal",
+        "swap-removal"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Alhammarret's Archive",
+      "oracle_id": "d5c4d36c-54b3-4149-906b-a57a670260fc",
+      "role": null,
+      "type_line": "Legendary Artifact",
+      "oracle_text": "If you would gain life, you gain twice that much life instead.\nIf you would draw a card except the first one you draw in each of your draw steps, draw two cards instead.",
+      "mana_cost": "{5}",
+      "keywords": [],
+      "otags": [
+        "alliteration",
+        "card-names",
+        "draw-matters",
+        "lifegain-increaser",
+        "lifegain-matters",
+        "namesake-spell"
+      ],
+      "color_identity": [],
+      "cmc": 5.0
+    },
+    {
+      "name": "Anguished Unmaking",
+      "oracle_id": "ad09b3c3-c8e7-481c-8c45-e7f234935117",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Exile target nonland permanent. You lose 3 life.",
+      "mana_cost": "{1}{W}{B}",
+      "keywords": [],
+      "otags": [
+        "cycle",
+        "cycle-soi-r-two-color",
+        "life-payment",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-exile",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "single-target-instant-sorcery",
+        "spot-removal"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Archangel of Thune",
+      "oracle_id": "4f2d4538-dc1d-4c09-964b-b0d7c240fb7d",
+      "role": null,
+      "type_line": "Creature — Angel",
+      "oracle_text": "Flying\nLifelink (Damage dealt by this creature also causes you to gain that much life.)\nWhenever you gain life, put a +1/+1 counter on each creature you control.",
+      "mana_cost": "{3}{W}{W}",
+      "keywords": [
+        "Flying",
+        "Lifelink"
+      ],
+      "otags": [
+        "cycle",
+        "cycle-m14-iconic-creature",
+        "evasion",
+        "gains-pp-counters",
+        "gives-pp-counters",
+        "gives-pp-counters-to-all",
+        "lifegain",
+        "lifegain-matters",
+        "power-boost-to-all",
+        "pridemate",
+        "repeatable-lifegain",
+        "repeatable-pp-counters",
+        "toughness-boost-to-all",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Blind Obedience",
+      "oracle_id": "5d998c09-7d89-4265-ada4-6d80cbf56dae",
+      "role": null,
+      "type_line": "Enchantment",
+      "oracle_text": "Extort (Whenever you cast a spell, you may pay {W/B}. If you do, each opponent loses 1 life and you gain that much life.)\nArtifacts and creatures your opponents control enter tapped.",
+      "mana_cost": "{1}{W}",
+      "keywords": [
+        "Extort"
+      ],
+      "otags": [
+        "cast-trigger",
+        "cast-trigger-you",
+        "drain-life",
+        "hate",
+        "hate-artifact",
+        "inverted-effects",
+        "kismet-effect",
+        "lifegain",
+        "multiplayer",
+        "opponent-loses-life",
+        "per-player",
+        "repeatable-lifegain",
+        "tapper",
+        "tapper-artifact",
+        "tapper-creature",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Bloodthirsty Conqueror",
+      "oracle_id": "fd505c02-c59e-476d-8e88-35da862ddc23",
+      "role": null,
+      "type_line": "Creature — Vampire Knight",
+      "oracle_text": "Flying, deathtouch\nWhenever an opponent loses life, you gain that much life. (Damage causes loss of life.)",
+      "mana_cost": "{3}{B}{B}",
+      "keywords": [
+        "Deathtouch",
+        "Flying"
+      ],
+      "otags": [
+        "evasion",
+        "life-loss-matters",
+        "lifegain",
+        "repeatable-lifegain",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Consecrated Sphinx",
+      "oracle_id": "311a449d-dc74-46e6-9a47-6a597931f736",
+      "role": null,
+      "type_line": "Creature — Sphinx",
+      "oracle_text": "Flying\nWhenever an opponent draws a card, you may draw two cards.",
+      "mana_cost": "{4}{U}{U}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "card-advantage",
+        "draw",
+        "draw-engine",
+        "draw-hate",
+        "evasion",
+        "hate",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "tax",
+        "toll",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Cyclonic Rift",
+      "oracle_id": "d75b9c82-1b49-4c3e-a1b5-aeef57d6644b",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Return target nonland permanent you don't control to its owner's hand.\nOverload {6}{U} (You may cast this spell for its overload cost. If you do, change \"target\" in its text to \"each.\")",
+      "mana_cost": "{1}{U}",
+      "keywords": [
+        "Overload"
+      ],
+      "otags": [
+        "alternative-cost",
+        "blue-effect",
+        "bounce",
+        "more-expensive-than-mv",
+        "pseudo-fog",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-bounce",
+        "removal-creature",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "single-target-instant-sorcery",
+        "spot-removal",
+        "sweeper",
+        "sweeper-one-sided"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Doctor Doom, Unrivaled",
+      "oracle_id": "cb3dd50b-ce78-4727-b174-06f99fc5ec74",
+      "role": null,
+      "type_line": "Legendary Creature — Human Sorcerer Villain",
+      "oracle_text": "Lifelink\n{T}: You draw a card and lose 1 life. Then if your library has no cards in it, you win the game. (You win even if you have 0 life or didn't draw a card.)",
+      "mana_cost": "{2}{B}{B}",
+      "keywords": [
+        "Lifelink"
+      ],
+      "otags": [
+        "activated-ability",
+        "alternate-win-condition",
+        "black-effect",
+        "card-advantage",
+        "draw",
+        "draw-engine",
+        "empty-library",
+        "library-size-matters",
+        "life-for-cards",
+        "life-payment",
+        "lifegain",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-pure-draw",
+        "synergy-mill",
+        "unique-type-line"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Enduring Tenacity",
+      "oracle_id": "98e698ae-1a69-469c-9cfb-0e3fedeb71d4",
+      "role": null,
+      "type_line": "Enchantment Creature — Snake Glimmer",
+      "oracle_text": "Whenever you gain life, target opponent loses that much life.\nWhen Enduring Tenacity dies, if it was a creature, return it to the battlefield under its owner's control. It's an enchantment. (It's not a creature.)",
+      "mana_cost": "{2}{B}{B}",
+      "keywords": [],
+      "otags": [
+        "cheat-death",
+        "cheat-death-self",
+        "cycle",
+        "cycle-dsk-glimmer",
+        "deanimate-self",
+        "death-trigger",
+        "death-trigger-self",
+        "intervening-if-clause",
+        "lifegain-matters",
+        "lifegain-to-damage",
+        "opponent-loses-life",
+        "repeatable-crime",
+        "triggered-ability",
+        "type-change",
+        "unique-type-line"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Enlightened Tutor",
+      "oracle_id": "c5229c17-b7be-4b05-b683-f2277edc4849",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Search your library for an artifact or enchantment card, reveal it, then shuffle and put that card on top.",
+      "mana_cost": "{W}",
+      "keywords": [],
+      "otags": [
+        "cycle",
+        "cycle-1mv-tutor",
+        "cycle-ema-tutor",
+        "library-manipulation",
+        "top-deck-manipulation",
+        "tutor",
+        "tutor-artifact",
+        "tutor-enchantment",
+        "tutor-to",
+        "tutor-to-top"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Esper Sentinel",
+      "oracle_id": "5def9f38-0a0b-4e8d-9f9d-29dcb46520b4",
+      "role": null,
+      "type_line": "Artifact Creature — Human Soldier",
+      "oracle_text": "Whenever an opponent casts their first noncreature spell each turn, draw a card unless that player pays {X}, where X is this creature's power.",
+      "mana_cost": "{W}",
+      "keywords": [],
+      "otags": [
+        "card-advantage",
+        "cast-tax",
+        "cast-trigger",
+        "cast-trigger-other",
+        "draw",
+        "draw-engine",
+        "hate",
+        "hate-noncreature",
+        "hatebear",
+        "power-matters",
+        "power-matters-self",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "rhystic",
+        "scales-with-power",
+        "tax",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Exquisite Blood",
+      "oracle_id": "8f933fae-6c0c-42d7-a817-14760d8285cd",
+      "role": null,
+      "type_line": "Enchantment",
+      "oracle_text": "Whenever an opponent loses life, you gain that much life.",
+      "mana_cost": "{4}{B}",
+      "keywords": [],
+      "otags": [
+        "life-loss-matters",
+        "lifegain",
+        "repeatable-lifegain",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Farewell",
+      "oracle_id": "4eb813fd-2d5a-4b02-8193-662681ef4e7d",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Choose one or more —\n• Exile all artifacts.\n• Exile all creatures.\n• Exile all enchantments.\n• Exile all graveyards.",
+      "mana_cost": "{4}{W}{W}",
+      "keywords": [],
+      "otags": [
+        "card-names",
+        "hate",
+        "hate-graveyard",
+        "modal",
+        "removal",
+        "removal-artifact",
+        "removal-creature",
+        "removal-enchantment",
+        "removal-exile",
+        "single-english-word-name",
+        "sweeper",
+        "sweeper-graveyard",
+        "symmetrical"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Fierce Guardianship",
+      "oracle_id": "d09c9cba-fdd2-479b-ad5d-d05181c3e3f9",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "If you control a commander, you may cast this spell without paying its mana cost.\nCounter target noncreature spell.",
+      "mana_cost": "{2}{U}",
+      "keywords": [],
+      "otags": [
+        "alternative-cost",
+        "blue-effect",
+        "cheaper-than-mv",
+        "counterspell",
+        "counterspell-free",
+        "counterspell-noncreature",
+        "counterspell-with-set-mechanic",
+        "cycle",
+        "cycle-c20-free-spell",
+        "manaless-value",
+        "potentially-free",
+        "single-target-instant-sorcery",
+        "staple-with-set-s-mechanic",
+        "synergy-commander"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Flooded Strand",
+      "oracle_id": "f3c7af78-a77d-4134-82a2-a5ce84285a84",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Pay 1 life, Sacrifice this land: Search your library for a Plains or Island card, put it onto the battlefield, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-fetchland",
+        "cycle-land",
+        "cycle-nonmana-land",
+        "cycle-ons-fetchland",
+        "fetchland",
+        "life-payment",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-island",
+        "tutor-land-plains",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Force of Negation",
+      "oracle_id": "ac2173f9-f223-440a-9231-fd98762bdc6f",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "If it's not your turn, you may exile a blue card from your hand rather than pay this spell's mana cost.\nCounter target noncreature spell. If that spell is countered this way, exile it instead of putting it into its owner's graveyard.",
+      "mana_cost": "{1}{U}{U}",
+      "keywords": [],
+      "otags": [
+        "alternative-cost",
+        "blue-effect",
+        "cheaper-than-mv",
+        "counterspell",
+        "counterspell-exile",
+        "counterspell-free",
+        "counterspell-noncreature",
+        "cycle",
+        "cycle-mh1-force",
+        "manaless-value",
+        "off-turn-casting-matters",
+        "pitch-spell",
+        "self-replacement-effect",
+        "single-target-instant-sorcery",
+        "synergy-blue"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Force of Will",
+      "oracle_id": "956381ba-6d37-4a8a-846c-bad79222dbee",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "You may pay 1 life and exile a blue card from your hand rather than pay this spell's mana cost.\nCounter target spell.",
+      "mana_cost": "{3}{U}{U}",
+      "keywords": [],
+      "otags": [
+        "alternate-cost-life",
+        "alternative-cost",
+        "blue-effect",
+        "cheaper-than-mv",
+        "counterspell",
+        "counterspell-free",
+        "counterspell-with-set-mechanic",
+        "cycle",
+        "cycle-all-pitch-spell",
+        "deprecated-card-types",
+        "interrupt",
+        "life-payment",
+        "manaless-value",
+        "pitch-spell",
+        "single-target-instant-sorcery",
+        "staple-with-set-s-mechanic",
+        "synergy-blue"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Godless Shrine",
+      "oracle_id": "73864fcc-1bde-4bc0-831e-2b93e546e417",
+      "role": null,
+      "type_line": "Land — Plains Swamp",
+      "oracle_text": "({T}: Add {W} or {B}.)\nAs this land enters, you may pay 2 life. If you don't, it enters tapped.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-rav-shockland",
+        "dual-land",
+        "life-payment",
+        "nonbasic-basic-land-type",
+        "shockland"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Grand Abolisher",
+      "oracle_id": "c749f23c-40c0-4159-b84c-a70cbb062c14",
+      "role": null,
+      "type_line": "Creature — Human Cleric",
+      "oracle_text": "During your turn, your opponents can't cast spells or activate abilities of artifacts, creatures, or enchantments.",
+      "mana_cost": "{W}{W}",
+      "keywords": [],
+      "otags": [
+        "hate",
+        "hate-artifact",
+        "hate-enchantment",
+        "hate-flash",
+        "hatebear",
+        "prevent-activation",
+        "prevent-cast",
+        "silence",
+        "white-effect"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Hallowed Fountain",
+      "oracle_id": "f1750962-a87c-49f6-b731-02ae971ac6ea",
+      "role": null,
+      "type_line": "Land — Plains Island",
+      "oracle_text": "({T}: Add {W} or {U}.)\nAs this land enters, you may pay 2 life. If you don't, it enters tapped.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-rav-shockland",
+        "dual-land",
+        "life-payment",
+        "nonbasic-basic-land-type",
+        "shockland"
+      ],
+      "color_identity": [
+        "U",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Lotus Petal",
+      "oracle_id": "32e5339e-9e4f-46f8-b305-f9d6d3ba8bb5",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{T}, Sacrifice this artifact: Add one mana of any color.",
+      "mana_cost": "{0}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "egg",
+        "mana-egg",
+        "manaless-value",
+        "ramp",
+        "sacrifice-self"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Mana Confluence",
+      "oracle_id": "d0ee5bdc-2b69-4b73-9a20-ffcc18783b29",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Pay 1 life: Add one mana of any color.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "drawback",
+        "life-payment",
+        "painland",
+        "rainbow-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Mana Drain",
+      "oracle_id": "74d3277a-38e5-4732-afed-084a56148f20",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Counter target spell. At the beginning of your next main phase, add an amount of {C} equal to that spell's mana value.",
+      "mana_cost": "{U}{U}",
+      "keywords": [],
+      "otags": [
+        "adds-multiple-mana",
+        "aikido",
+        "blue-effect",
+        "counterspell",
+        "delayed-trigger",
+        "deprecated-card-types",
+        "hate",
+        "hate-high-mv",
+        "interrupt",
+        "mana-value-matters",
+        "ramp",
+        "ritual",
+        "scales-with-mana-value",
+        "single-target-instant-sorcery",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Marsh Flats",
+      "oracle_id": "dab520d0-20b4-4273-ba6b-eb07f85ea433",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Pay 1 life, Sacrifice this land: Search your library for a Plains or Swamp card, put it onto the battlefield, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-fetchland",
+        "cycle-land",
+        "cycle-nonmana-land",
+        "cycle-zen-fetchland",
+        "fetchland",
+        "life-payment",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-plains",
+        "tutor-land-swamp",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Morphic Pool",
+      "oracle_id": "bd004c9d-771e-4e63-a97d-a2259c096af8",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you have two or more opponents.\n{T}: Add {U} or {B}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-bbd-bond-land",
+        "cycle-bondland",
+        "cycle-dual-land",
+        "cycle-land",
+        "dual-land",
+        "multiplayer"
+      ],
+      "color_identity": [
+        "B",
+        "U"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Mox Diamond",
+      "oracle_id": "f3c5978a-70fa-431f-933b-b954bd0db0ea",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "If this artifact would enter, you may discard a land card instead. If you do, put this artifact onto the battlefield. If you don't, put it into its owner's graveyard.\n{T}: Add one mana of any color.",
+      "mana_cost": "{0}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "discard-outlet",
+        "discard-outlet-land",
+        "mana-producer",
+        "mana-rock",
+        "manaless-value",
+        "moxen",
+        "ramp"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Notion Thief",
+      "oracle_id": "f8dab16e-1d50-443e-9431-8b6f1cf61c9c",
+      "role": null,
+      "type_line": "Creature — Human Rogue",
+      "oracle_text": "Flash\nIf an opponent would draw a card except the first one they draw in each of their draw steps, instead that player skips that draw and you draw a card.",
+      "mana_cost": "{2}{U}{B}",
+      "keywords": [
+        "Flash"
+      ],
+      "otags": [
+        "aikido",
+        "card-advantage",
+        "cycle",
+        "cycle-a25-r-two-color",
+        "draw",
+        "draw-engine",
+        "draw-hate",
+        "hate",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw"
+      ],
+      "color_identity": [
+        "B",
+        "U"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Oloro, Ageless Ascetic",
+      "oracle_id": "620ff5f2-7d3f-467f-943d-3b62c2135023",
+      "role": null,
+      "type_line": "Legendary Creature — Giant Soldier",
+      "oracle_text": "At the beginning of your upkeep, you gain 2 life.\nWhenever you gain life, you may pay {1}. If you do, draw a card and each opponent loses 1 life.\nAt the beginning of your upkeep, if Oloro is in the command zone, you gain 2 life.",
+      "mana_cost": "{3}{W}{U}{B}",
+      "keywords": [],
+      "otags": [
+        "alliteration",
+        "card-advantage",
+        "card-names",
+        "cycle",
+        "cycle-c13-face-commander",
+        "draw",
+        "draw-engine",
+        "eminence",
+        "face-commander",
+        "group-slug",
+        "intervening-if-clause",
+        "lifegain",
+        "lifegain-matters",
+        "lifegain-to-damage",
+        "opponent-loses-life",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-pure-draw",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B",
+        "U",
+        "W"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Orcish Bowmasters",
+      "oracle_id": "ea5103f5-27e0-4eb1-902c-7f34652d6bf3",
+      "role": null,
+      "type_line": "Creature — Orc Archer",
+      "oracle_text": "Flash\nWhen this creature enters and whenever an opponent draws a card except the first one they draw in each of their draw steps, this creature deals 1 damage to any target. Then amass Orcs 1.",
+      "mana_cost": "{1}{B}",
+      "keywords": [
+        "Amass",
+        "Flash"
+      ],
+      "otags": [
+        "burn",
+        "burn-any",
+        "burn-battle",
+        "burn-creature",
+        "burn-planeswalker",
+        "burn-player",
+        "draw-hate",
+        "enters-in-company",
+        "gives-pp-counters",
+        "hate",
+        "hatebear",
+        "multiple-bodies",
+        "pinger",
+        "removal",
+        "removal-burn",
+        "removal-creature",
+        "removal-planeswalker",
+        "repeatable-creature-tokens",
+        "repeatable-crime",
+        "repeatable-pp-counters",
+        "repeatable-removal",
+        "repeatable-token-generator",
+        "spot-removal",
+        "triggered-ability",
+        "typal",
+        "typal-army",
+        "typal-creature"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Otawara, Soaring City",
+      "oracle_id": "e9b6a394-691c-425a-9307-76d8edc7375e",
+      "role": null,
+      "type_line": "Legendary Land",
+      "oracle_text": "{T}: Add {U}.\nChannel — {3}{U}, Discard this card: Return target artifact, creature, enchantment, or planeswalker to its owner's hand. This ability costs {1} less to activate for each legendary creature you control.",
+      "mana_cost": "",
+      "keywords": [
+        "Channel"
+      ],
+      "otags": [
+        "activate-from-hand",
+        "activated-ability",
+        "blue-effect",
+        "bounce",
+        "cycle",
+        "cycle-land",
+        "cycle-mono-land",
+        "cycle-neo-legendary-land",
+        "removal",
+        "removal-artifact",
+        "removal-bounce",
+        "removal-creature",
+        "removal-enchantment",
+        "removal-planeswalker",
+        "spot-removal",
+        "synergy-legendary",
+        "utility-land"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Pact of Negation",
+      "oracle_id": "f3e213a4-ba5a-468a-93b3-c0a34e1bd725",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Counter target spell.\nAt the beginning of your next upkeep, pay {3}{U}{U}. If you don't, you lose the game.",
+      "mana_cost": "{0}",
+      "keywords": [],
+      "otags": [
+        "alternate-loss-condition",
+        "blue-effect",
+        "counterspell",
+        "counterspell-free",
+        "counterspell-with-set-mechanic",
+        "cycle",
+        "cycle-fut-pact",
+        "delayed-payment",
+        "delayed-trigger",
+        "drawback",
+        "fun-ruling",
+        "manaless-value",
+        "single-target-instant-sorcery",
+        "staple-with-set-s-mechanic",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Polluted Delta",
+      "oracle_id": "ef86989d-ce80-4e55-aece-7d11710eeffa",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Pay 1 life, Sacrifice this land: Search your library for an Island or Swamp card, put it onto the battlefield, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-fetchland",
+        "cycle-land",
+        "cycle-nonmana-land",
+        "cycle-ons-fetchland",
+        "fetchland",
+        "life-payment",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-island",
+        "tutor-land-swamp",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Prismatic Vista",
+      "oracle_id": "032b8a0d-491a-4a12-ab9f-689010054d5b",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Pay 1 life, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield, then shuffle.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "fetchland",
+        "life-payment",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Reflecting Pool",
+      "oracle_id": "67f43ac6-2a58-4b53-b5d7-0330e2a252e2",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add one mana of any type that a land you control could produce.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "rainbow-land",
+        "virtual-legendary"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Rhystic Study",
+      "oracle_id": "53236dd7-845a-444c-96d5-f41ed7325d8f",
+      "role": null,
+      "type_line": "Enchantment",
+      "oracle_text": "Whenever an opponent casts a spell, you may draw a card unless that player pays {1}.",
+      "mana_cost": "{2}{U}",
+      "keywords": [],
+      "otags": [
+        "card-advantage",
+        "cast-tax",
+        "cast-trigger",
+        "cast-trigger-other",
+        "draw",
+        "draw-engine",
+        "meme",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "rhystic",
+        "tax",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Sanguine Bond",
+      "oracle_id": "73089a39-a2f6-4aa2-a058-e6551475153d",
+      "role": null,
+      "type_line": "Enchantment",
+      "oracle_text": "Whenever you gain life, target opponent loses that much life.",
+      "mana_cost": "{3}{B}{B}",
+      "keywords": [],
+      "otags": [
+        "lifegain-matters",
+        "lifegain-to-damage",
+        "opponent-loses-life",
+        "repeatable-crime",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 5.0
+    },
+    {
+      "name": "Scrubland",
+      "oracle_id": "c8d95ca8-7d12-4072-aeaf-e20f248c7e39",
+      "role": null,
+      "type_line": "Land — Plains Swamp",
+      "oracle_text": "({T}: Add {W} or {B}.)",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "cycle",
+        "cycle-abu-dual-land",
+        "cycle-dual-land",
+        "cycle-land",
+        "dual-land",
+        "nonbasic-basic-land-type",
+        "single-english-word-name"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Sheoldred, the Apocalypse",
+      "oracle_id": "34f34409-326d-4994-a0ea-1a69aa278f03",
+      "role": null,
+      "type_line": "Legendary Creature — Phyrexian Praetor",
+      "oracle_text": "Deathtouch\nWhenever you draw a card, you gain 2 life.\nWhenever an opponent draws a card, they lose 2 life.",
+      "mana_cost": "{2}{B}{B}",
+      "keywords": [
+        "Deathtouch"
+      ],
+      "otags": [
+        "cycle",
+        "cycle-extraplanar-praetor",
+        "draw-hate",
+        "draw-matters",
+        "group-slug",
+        "hate",
+        "inverted-effects",
+        "lifegain",
+        "opponent-loses-life",
+        "repeatable-lifegain",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Teferi's Protection",
+      "oracle_id": "0d4ecdb1-ec90-497f-a7a4-1c68092b8757",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Until your next turn, your life total can't change and you gain protection from everything. All permanents you control phase out. (While they're phased out, they're treated as though they don't exist. They phase in before you untap during your untap step.)\nExile Teferi's Protection.",
+      "mana_cost": "{2}{W}",
+      "keywords": [],
+      "otags": [
+        "card-names",
+        "damage-prevention",
+        "damage-prevention-you",
+        "exile-on-resolution",
+        "exile-self",
+        "fog",
+        "fog-selective",
+        "gives-player-ability",
+        "gives-player-protection",
+        "namesake-spell",
+        "phasing",
+        "protection",
+        "protects-all",
+        "protects-artifact",
+        "protects-creature",
+        "protects-enchantment",
+        "protects-land",
+        "protects-planeswalker"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Teferi, Time Raveler",
+      "oracle_id": "ae7604bb-4818-45a3-960c-cf3d83f15964",
+      "role": null,
+      "type_line": "Legendary Planeswalker — Teferi",
+      "oracle_text": "Each opponent can cast spells only any time they could cast a sorcery.\n+1: Until your next turn, you may cast sorcery spells as though they had flash.\n−3: Return up to one target artifact, creature, or enchantment to its owner's hand. Draw a card.",
+      "mana_cost": "{1}{W}{U}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "blue-effect",
+        "bounce",
+        "card-advantage",
+        "card-names",
+        "cycle",
+        "cycle-war-r-two-color",
+        "draw",
+        "draw-engine",
+        "gives-flash",
+        "hate",
+        "hate-counterspell",
+        "hate-flash",
+        "hate-instant",
+        "hate-off-turn-cast",
+        "passive-ability",
+        "pure-draw",
+        "removal",
+        "removal-artifact",
+        "removal-bounce",
+        "removal-creature",
+        "removal-enchantment",
+        "repeatable-card-advantage",
+        "repeatable-crime",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "repeatable-removal",
+        "spot-removal",
+        "synergy-sorcery"
+      ],
+      "color_identity": [
+        "U",
+        "W"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Timetwister",
+      "oracle_id": "c823e687-6311-4c99-974b-fd77d204141a",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Each player shuffles their hand and graveyard into their library, then draws seven cards. (Then put Timetwister into its owner's graveyard.)",
+      "mana_cost": "{2}{U}",
+      "keywords": [],
+      "otags": [
+        "burst-draw",
+        "card-advantage",
+        "ditch-hand",
+        "draw",
+        "force-draw",
+        "force-shuffle",
+        "power-nine",
+        "recursion",
+        "restock",
+        "restock-all",
+        "symmetrical",
+        "wheel",
+        "wheel-symmetrical",
+        "whirlpool"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Tundra",
+      "oracle_id": "02418479-9455-417f-a6a1-004356faff37",
+      "role": null,
+      "type_line": "Land — Plains Island",
+      "oracle_text": "({T}: Add {W} or {U}.)",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "cycle",
+        "cycle-abu-dual-land",
+        "cycle-dual-land",
+        "cycle-land",
+        "dual-land",
+        "nonbasic-basic-land-type",
+        "single-english-word-name"
+      ],
+      "color_identity": [
+        "U",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Underground Sea",
+      "oracle_id": "4b22be3a-8ce1-47d1-b82e-6c3ccfb0548b",
+      "role": null,
+      "type_line": "Land — Island Swamp",
+      "oracle_text": "({T}: Add {U} or {B}.)",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-abu-dual-land",
+        "cycle-dual-land",
+        "cycle-land",
+        "dual-land",
+        "nonbasic-basic-land-type"
+      ],
+      "color_identity": [
+        "B",
+        "U"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Venser's Journal",
+      "oracle_id": "f7907327-4df3-4bb2-a274-03d9e266af2f",
+      "role": null,
+      "type_line": "Artifact — Book",
+      "oracle_text": "You have no maximum hand size.\nAt the beginning of your upkeep, you gain 1 life for each card in your hand.",
+      "mana_cost": "{5}",
+      "keywords": [],
+      "otags": [
+        "card-names",
+        "hand-size-increase",
+        "hand-size-matters",
+        "lifegain",
+        "namesake-spell",
+        "repeatable-lifegain",
+        "triggered-ability",
+        "type-addition-book",
+        "type-errata",
+        "type-errata-addition"
+      ],
+      "color_identity": [],
+      "cmc": 5.0
+    },
+    {
+      "name": "Vilis, Broker of Blood",
+      "oracle_id": "7c209753-121b-4859-944b-4e33f885e777",
+      "role": null,
+      "type_line": "Legendary Creature — Demon",
+      "oracle_text": "Flying\n{B}, Pay 2 life: Target creature gets -1/-1 until end of turn.\nWhenever you lose life, draw that many cards. (Damage causes loss of life.)",
+      "mana_cost": "{5}{B}{B}{B}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "black-effect",
+        "card-advantage",
+        "card-names",
+        "cycle",
+        "cycle-m20-iconic-legend",
+        "draw",
+        "draw-engine",
+        "evasion",
+        "greed-ability",
+        "life-for-cards",
+        "life-loss-matters",
+        "life-payment",
+        "pure-draw",
+        "removal",
+        "removal-creature",
+        "removal-toughness",
+        "repeatable-card-advantage",
+        "repeatable-crime",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "repeatable-removal",
+        "self-life-loss-matters",
+        "spot-removal",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 8.0
+    },
+    {
+      "name": "Vito, Thorn of the Dusk Rose",
+      "oracle_id": "7336a541-3ae9-4ab2-acb8-f574c0a5b3a9",
+      "role": null,
+      "type_line": "Legendary Creature — Vampire Cleric",
+      "oracle_text": "Whenever you gain life, target opponent loses that much life.\n{3}{B}{B}: Creatures you control gain lifelink until end of turn.",
+      "mana_cost": "{2}{B}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "gains-lifelink",
+        "gives-lifelink",
+        "lifegain",
+        "lifegain-matters",
+        "lifegain-to-damage",
+        "mana-sink",
+        "opponent-loses-life",
+        "repeatable-crime",
+        "repeatable-lifegain",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Watery Grave",
+      "oracle_id": "fc9ec820-4245-4a96-b009-5308a818ca58",
+      "role": null,
+      "type_line": "Land — Island Swamp",
+      "oracle_text": "({T}: Add {U} or {B}.)\nAs this land enters, you may pay 2 life. If you don't, it enters tapped.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-land",
+        "cycle-rav-shockland",
+        "dual-land",
+        "life-payment",
+        "nonbasic-basic-land-type",
+        "shockland"
+      ],
+      "color_identity": [
+        "B",
+        "U"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Windfall",
+      "oracle_id": "08becc07-28bc-4a2f-a6b0-28a2998d2f50",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Each player discards their hand, then draws cards equal to the greatest number of cards a player discarded this way.",
+      "mana_cost": "{2}{U}",
+      "keywords": [],
+      "otags": [
+        "burst-draw",
+        "card-advantage",
+        "card-names",
+        "catch-up",
+        "discard-outlet",
+        "ditch-hand",
+        "draw",
+        "force-draw",
+        "single-english-word-name",
+        "symmetrical",
+        "wheel",
+        "wheel-symmetrical"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Angel's Grace",
+      "oracle_id": "66ca8a60-e028-4a5f-8177-860b888cb9d1",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Split second (As long as this spell is on the stack, players can't cast spells or activate abilities that aren't mana abilities.)\nYou can't lose the game this turn and your opponents can't win the game this turn. Until end of turn, damage that would reduce your life total to less than 1 reduces it to 1 instead.",
+      "mana_cost": "{W}",
+      "keywords": [
+        "Split second"
+      ],
+      "otags": [
+        "cycle",
+        "cycle-tsp-r-split-second",
+        "damage-prevention",
+        "damage-prevention-you",
+        "hate",
+        "hate-counterspell",
+        "platinum-angel-effect",
+        "prevents-win-loss",
+        "pseudo-fog",
+        "worship"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Brainstorm",
+      "oracle_id": "36cd2364-d113-47d1-b2c4-b088d9eb88dd",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Draw three cards, then put two cards from your hand on top of your library in any order.",
+      "mana_cost": "{U}",
+      "keywords": [],
+      "otags": [
+        "blue-effect",
+        "brainstorm",
+        "cantrip",
+        "card-advantage",
+        "card-names",
+        "draw",
+        "library-manipulation",
+        "portmanteau",
+        "pure-draw",
+        "single-english-word-name",
+        "top-deck-manipulation",
+        "tuck-outlet"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Cliffhaven Vampire",
+      "oracle_id": "1915a311-209b-4628-8122-af3055a78fed",
+      "role": null,
+      "type_line": "Creature — Vampire Warrior Ally",
+      "oracle_text": "Flying\nWhenever you gain life, each opponent loses 1 life.",
+      "mana_cost": "{2}{W}{B}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "cycle",
+        "cycle-ogw-draft-signpost",
+        "draft-signpost",
+        "evasion",
+        "group-slug",
+        "lifegain-matters",
+        "lifegain-to-damage",
+        "opponent-loses-life",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Concealed Courtyard",
+      "oracle_id": "2d899466-b1eb-4901-b626-1f2fb09b786d",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you control two or fewer other lands.\n{T}: Add {W} or {B}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "alliteration",
+        "card-names",
+        "conditional-tapland",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-fastland",
+        "cycle-kld-fastland",
+        "cycle-land",
+        "dual-land"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Darkslick Shores",
+      "oracle_id": "a2b48695-f7d7-42ce-a8a0-2a723428542a",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you control two or fewer other lands.\n{T}: Add {U} or {B}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-fastland",
+        "cycle-land",
+        "cycle-som-fastland",
+        "dual-land"
+      ],
+      "color_identity": [
+        "B",
+        "U"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Despark",
+      "oracle_id": "bd16434d-55ea-4c5a-a9ef-752971a4af16",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Exile target permanent with mana value 4 or greater.",
+      "mana_cost": "{W}{B}",
+      "keywords": [],
+      "otags": [
+        "cycle",
+        "cycle-war-u-two-color-spell",
+        "hate",
+        "hate-high-mv",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-exile",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "single-target-instant-sorcery",
+        "spot-removal"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Dovin's Veto",
+      "oracle_id": "1b388371-f9ef-45b4-82a3-ca20a8cd7807",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "This spell can't be countered.\nCounter target noncreature spell.",
+      "mana_cost": "{W}{U}",
+      "keywords": [],
+      "otags": [
+        "blue-effect",
+        "card-names",
+        "counterspell",
+        "counterspell-noncreature",
+        "cycle",
+        "cycle-war-u-two-color-spell",
+        "hate",
+        "hate-counterspell",
+        "namesake-spell",
+        "single-target-instant-sorcery"
+      ],
+      "color_identity": [
+        "U",
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Emergence Zone",
+      "oracle_id": "7536eb66-959d-4dca-9b75-895572ef733c",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{1}, {T}, Sacrifice this land: You may cast spells this turn as though they had flash.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "gives-flash",
+        "sacrifice-self",
+        "utility-land"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Isolated Chapel",
+      "oracle_id": "7e5d9efe-48a9-434b-bb09-056e0e09cc9a",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you control a Plains or a Swamp.\n{T}: Add {W} or {B}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-checkland",
+        "cycle-dual-land",
+        "cycle-isd-checkland",
+        "cycle-land",
+        "dual-land",
+        "synergy-plains",
+        "synergy-swamp"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Mystic Gate",
+      "oracle_id": "e9f5feb2-2c1a-46ce-885a-4f378d7d10af",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{W/U}, {T}: Add {W}{W}, {W}{U}, or {U}{U}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "card-names",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-hybrid-filterland",
+        "cycle-land",
+        "cycle-shm-filterland",
+        "dual-land",
+        "filterland",
+        "mana-filter",
+        "misnomer"
+      ],
+      "color_identity": [
+        "U",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Niv-Mizzet, Ghost Counsel",
+      "oracle_id": "a5350327-e84c-44b6-8359-87882e521048",
+      "role": null,
+      "type_line": "Legendary Creature — Spirit Dragon",
+      "oracle_text": "Flying\nWhenever you gain life, you may pay that much life. If you do, draw that many cards.\n{T}: Each opponent loses 1 life and you gain 1 life.",
+      "mana_cost": "{2}{W}{W}{B}{B}",
+      "keywords": [
+        "Flying"
+      ],
+      "otags": [
+        "activated-ability",
+        "black-effect",
+        "card-advantage",
+        "drain-life",
+        "draw",
+        "draw-engine",
+        "evasion",
+        "group-slug",
+        "inverted-effects",
+        "life-for-cards",
+        "life-payment",
+        "lifegain",
+        "lifegain-matters",
+        "opponent-loses-life",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-pure-draw",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 6.0
+    },
+    {
+      "name": "Orzhov Signet",
+      "oracle_id": "de3dcb5d-775a-479f-99f5-d1883ed9b1b5",
+      "role": null,
+      "type_line": "Artifact",
+      "oracle_text": "{1}, {T}: Add {W}{B}.",
+      "mana_cost": "{2}",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-rav-signet",
+        "mana-filter",
+        "mana-producer",
+        "mana-rock",
+        "ramp",
+        "refund"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Peer into the Abyss",
+      "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Target player draws cards equal to half the number of cards in their library and loses half their life. Round up each time.",
+      "mana_cost": "{4}{B}{B}{B}",
+      "keywords": [],
+      "otags": [
+        "black-effect",
+        "burst-draw",
+        "card-advantage",
+        "division",
+        "draw",
+        "force-draw",
+        "library-size-matters",
+        "life-divider",
+        "life-divider-opponent",
+        "life-divider-you",
+        "life-for-cards",
+        "life-payment",
+        "pure-draw",
+        "single-target-instant-sorcery"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 7.0
+    },
+    {
+      "name": "Psychosis Crawler",
+      "oracle_id": "2876e74f-a242-4995-9702-0b737a1ab67a",
+      "role": null,
+      "type_line": "Artifact Creature — Phyrexian Horror",
+      "oracle_text": "Psychosis Crawler's power and toughness are each equal to the number of cards in your hand.\nWhenever you draw a card, each opponent loses 1 life.",
+      "mana_cost": "{5}",
+      "keywords": [],
+      "otags": [
+        "cda-power",
+        "cda-toughness",
+        "characteristic-defining-ability",
+        "draw-matters",
+        "group-slug",
+        "hand-size-matters",
+        "maro",
+        "opponent-loses-life",
+        "triggered-ability",
+        "type-addition-phyrexian",
+        "type-errata",
+        "type-errata-addition"
+      ],
+      "color_identity": [],
+      "cmc": 5.0
+    },
+    {
+      "name": "Seachrome Coast",
+      "oracle_id": "9e7a240d-dc33-47ac-9f17-77fab4c1c340",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you control two or fewer other lands.\n{T}: Add {W} or {U}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-fastland",
+        "cycle-land",
+        "cycle-som-fastland",
+        "dual-land"
+      ],
+      "color_identity": [
+        "U",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Soul Partition",
+      "oracle_id": "2cfd5c18-47d0-4549-aacc-2428db21df2f",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Exile target nonland permanent. For as long as that card remains exiled, its owner may play it. A spell cast by an opponent this way costs {2} more to cast.",
+      "mana_cost": "{1}{W}",
+      "keywords": [],
+      "otags": [
+        "cost-increaser",
+        "exile-with-tax",
+        "haven",
+        "protection",
+        "protects-nonland",
+        "removal",
+        "removal-artifact",
+        "removal-aura",
+        "removal-battle",
+        "removal-creature",
+        "removal-enchantment",
+        "removal-equipment",
+        "removal-exile",
+        "removal-nonland",
+        "removal-planeswalker",
+        "removal-spacecraft",
+        "removal-vehicle",
+        "single-target-instant-sorcery",
+        "spot-removal"
+      ],
+      "color_identity": [
+        "W"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Sunken Ruins",
+      "oracle_id": "e6415ffb-8b7a-41c3-bedf-0d4112b7b795",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{U/B}, {T}: Add {U}{U}, {U}{B}, or {B}{B}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-hybrid-filterland",
+        "cycle-land",
+        "cycle-shm-filterland",
+        "dual-land",
+        "filterland",
+        "mana-filter"
+      ],
+      "color_identity": [
+        "B",
+        "U"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Grim Tutor",
+      "oracle_id": "e62f8d69-a559-4f13-a5c9-5fb750b4af2c",
+      "role": null,
+      "type_line": "Sorcery",
+      "oracle_text": "Search your library for a card, put that card into your hand, then shuffle. You lose 3 life.",
+      "mana_cost": "{1}{B}{B}",
+      "keywords": [],
+      "otags": [
+        "black-effect",
+        "life-payment",
+        "tutor",
+        "tutor-card",
+        "tutor-to",
+        "tutor-to-hand"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Fabled Passage",
+      "oracle_id": "0c85b8f7-0bd0-4680-9ec5-d4b110460a54",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle. Then if you control four or more lands, untap that land.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "conditional-tapland",
+        "fetchland",
+        "land-count-matters",
+        "lands-matter",
+        "sacrifice-self",
+        "tutor",
+        "tutor-land",
+        "tutor-land-basic",
+        "tutor-land-to-battlefield",
+        "tutor-to",
+        "tutor-to-battlefield"
+      ],
+      "color_identity": [],
+      "cmc": 0.0
+    },
+    {
+      "name": "Drogskol Reaver",
+      "oracle_id": "68175b49-f1e6-4b34-aad9-20d61a43d427",
+      "role": null,
+      "type_line": "Creature — Spirit",
+      "oracle_text": "Flying\nDouble strike (This creature deals both first-strike and regular combat damage.)\nLifelink (Damage dealt by this creature also causes you to gain that much life.)\nWhenever you gain life, draw a card.",
+      "mana_cost": "{5}{W}{U}",
+      "keywords": [
+        "Flying",
+        "Lifelink",
+        "Double strike"
+      ],
+      "otags": [
+        "card-advantage",
+        "curiosity",
+        "curiosity-like",
+        "cycle",
+        "cycle-dka-m-monster",
+        "draw",
+        "draw-engine",
+        "evasion",
+        "lifegain",
+        "lifegain-matters",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-lifegain",
+        "repeatable-pure-draw",
+        "saboteur",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "U",
+        "W"
+      ],
+      "cmc": 7.0
+    },
+    {
+      "name": "Marauding Blight-Priest",
+      "oracle_id": "814b87fe-2a75-4ff2-8637-7e69e3fb285b",
+      "role": null,
+      "type_line": "Creature — Vampire Cleric",
+      "oracle_text": "Whenever you gain life, each opponent loses 1 life.",
+      "mana_cost": "{2}{B}",
+      "keywords": [],
+      "otags": [
+        "group-slug",
+        "lifegain-matters",
+        "lifegain-to-damage",
+        "opponent-loses-life",
+        "triggered-ability"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 3.0
+    },
+    {
+      "name": "Counterspell",
+      "oracle_id": "cc187110-1148-4090-bbb8-e205694a39f5",
+      "role": null,
+      "type_line": "Instant",
+      "oracle_text": "Counter target spell.",
+      "mana_cost": "{U}{U}",
+      "keywords": [],
+      "otags": [
+        "blue-effect",
+        "card-names",
+        "counterspell",
+        "deprecated-card-types",
+        "interrupt",
+        "meme",
+        "single-english-word-name",
+        "single-target-instant-sorcery"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 2.0
+    },
+    {
+      "name": "Fetid Heath",
+      "oracle_id": "42bf259d-4bb9-49c3-b4ec-223dca62f4d6",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "{T}: Add {C}.\n{W/B}, {T}: Add {W}{W}, {W}{B}, or {B}{B}.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "cycle",
+        "cycle-dual-land",
+        "cycle-eve-filterland",
+        "cycle-hybrid-filterland",
+        "cycle-land",
+        "dual-land",
+        "filterland",
+        "mana-filter"
+      ],
+      "color_identity": [
+        "B",
+        "W"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Castle Locthwain",
+      "oracle_id": "be811e70-aaaa-41f3-bf9e-5d3f9f719b49",
+      "role": null,
+      "type_line": "Land",
+      "oracle_text": "This land enters tapped unless you control a Swamp.\n{T}: Add {B}.\n{1}{B}{B}, {T}: Draw a card, then you lose life equal to the number of cards in your hand.",
+      "mana_cost": "",
+      "keywords": [],
+      "otags": [
+        "activated-ability",
+        "black-effect",
+        "card-advantage",
+        "card-names",
+        "conditional-tapland",
+        "cycle",
+        "cycle-eld-castle",
+        "cycle-land",
+        "cycle-mono-land",
+        "draw",
+        "draw-engine",
+        "hand-size-matters",
+        "life-for-cards",
+        "life-payment",
+        "mana-sink",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "synergy-swamp",
+        "utility-land",
+        "virtual-legendary"
+      ],
+      "color_identity": [
+        "B"
+      ],
+      "cmc": 0.0
+    },
+    {
+      "name": "Mystic Remora",
+      "oracle_id": "8a52f3c0-2552-4425-b2e3-5496eb2232a7",
+      "role": null,
+      "type_line": "Enchantment",
+      "oracle_text": "Cumulative upkeep {1} (At the beginning of your upkeep, put an age counter on this permanent, then sacrifice it unless you pay its upkeep cost for each age counter on it.)\nWhenever an opponent casts a noncreature spell, you may draw a card unless that player pays {4}.",
+      "mana_cost": "{U}",
+      "keywords": [
+        "Cumulative upkeep"
+      ],
+      "otags": [
+        "card-advantage",
+        "cast-tax",
+        "cast-trigger",
+        "cast-trigger-other",
+        "draw",
+        "draw-engine",
+        "drawback",
+        "hate",
+        "hate-noncreature",
+        "intervening-if-clause",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "rhystic",
+        "tax",
+        "triggered-ability",
+        "upkeep-cost"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 1.0
+    },
+    {
+      "name": "Teferi's Ageless Insight",
+      "oracle_id": "1c9e1f75-73f0-4846-b53f-458a0984b1bb",
+      "role": null,
+      "type_line": "Legendary Enchantment",
+      "oracle_text": "If you would draw a card except the first one you draw in each of your draw steps, draw two cards instead.",
+      "mana_cost": "{2}{U}{U}",
+      "keywords": [],
+      "otags": [
+        "card-advantage",
+        "card-names",
+        "cycle",
+        "cycle-m21-teferi-vertical",
+        "draw",
+        "draw-engine",
+        "draw-matters",
+        "namesake-spell",
+        "pure-draw",
+        "repeatable-card-advantage",
+        "repeatable-draw",
+        "repeatable-pure-draw",
+        "vertical-cycle"
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "cmc": 4.0
+    },
+    {
+      "name": "Plains",
+      "oracle_id": null,
+      "role": null,
+      "type_line": "Basic Land — Plains",
+      "oracle_text": null,
+      "mana_cost": null,
+      "keywords": [],
+      "otags": [],
+      "color_identity": [],
+      "cmc": null
+    },
+    {
+      "name": "Island",
+      "oracle_id": null,
+      "role": null,
+      "type_line": "Basic Land — Island",
+      "oracle_text": null,
+      "mana_cost": null,
+      "keywords": [],
+      "otags": [],
+      "color_identity": [],
+      "cmc": null
+    },
+    {
+      "name": "Swamp",
+      "oracle_id": null,
+      "role": null,
+      "type_line": "Basic Land — Swamp",
+      "oracle_text": null,
+      "mana_cost": null,
+      "keywords": [],
+      "otags": [],
+      "color_identity": [],
+      "cmc": null
+    }
+  ]
+}
