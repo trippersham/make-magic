@@ -69,26 +69,23 @@ so a stale jar is a red build.
 - **Scope:** the pipeline is *additive* to the collection/deck-building workflow and
   must never degrade the local-first, no-credential default path.
 
-## Cutting a release
+## Flow & cutting a release
 
-The plugin and the bundled `make-magic-pipeline` package share **one lockstep version**.
-Per this project's `0.y.z` convention a **minor** bump (`0.x`) signals *breaking* changes,
-so a non-breaking release is a **patch**.
+make-magic is **trunk-based**: a change (and a release) reaches `main` through a PR on a
+green `ci-ok`, squash-merged by a reviewer — the author never merges. The operative rules
+are in [`AGENTS.md`](AGENTS.md#how-a-change-reaches-main) and the decision and rationale in
+[ADR 0001](docs/adr/0001-trunk-based-flow-and-releases.md); this file does not
+restate them.
 
-### 1. Ship the plugin version
+In brief: a **release** is a `release/x.y.z` PR that bumps the one lockstep version in both
+`plugins/make-magic/.claude-plugin/plugin.json` and
+`plugins/make-magic/pipeline/pyproject.toml` (enforced by `scripts/check_versions.py`),
+clears the `repro` gate, and is reviewer-merged; a maintainer then pushes the `vX.Y.Z` tag
+and `release.yml` cuts the GitHub Release. Version bumps follow the pre-1.0 policy in
+AGENTS.md. (`CHANGELOG.md` is a human-curated log of notable changes; `release.yml`
+separately generates the Release notes from the commits.)
 
-1. **CHANGELOG** — move `CHANGELOG.md`'s `[Unreleased]` items into a new
-   `## [X.Y.Z] — <date>` section ([Keep a Changelog](https://keepachangelog.com/)).
-2. **Bump the version in _both_ files, to the same value:**
-   - `plugins/make-magic/.claude-plugin/plugin.json` → `version`
-   - `plugins/make-magic/pipeline/pyproject.toml` → `project.version`
-
-   (`.claude-plugin/marketplace.json` carries no version — it references the plugin by
-   path.)
-3. **Tag + Release** — tag `vX.Y.Z` and publish a matching GitHub Release (title from the
-   changelog entry).
-
-### 2. Bump a vendored install (only when changing Forge / XMage / the JRE)
+### Bump a vendored install (only when changing Forge / XMage / the JRE)
 
 These are fetched at runtime and pinned by SHA:
 
