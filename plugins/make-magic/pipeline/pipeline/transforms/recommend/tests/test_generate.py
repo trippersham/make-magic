@@ -202,10 +202,12 @@ def test_producer_candidate_carries_correct_sgm_and_after_delta(load_deck) -> No
     assert snap.connectivity_after == anchor.connectivity + 1
 
 
-def test_already_in_deck_card_is_excluded(load_deck) -> None:
+def test_generation_emits_in_deck_card_gating_is_judgments(load_deck) -> None:
+    # Generation is the STRUCTURAL pool: it no longer pre-drops an already-in-deck
+    # card (that let judgment's singleton gate go dead). The in-deck card is emitted
+    # here; judgment is what silently excludes it (see test_judgment).
     deck = load_deck(WORLD_RECLAIMER)
     in_deck_oid = deck['cards'][0]['oracle_id']
-
     cards = [
         {
             'oracle_id': in_deck_oid,  # already a member of the deck
@@ -218,10 +220,12 @@ def test_already_in_deck_card_is_excluded(load_deck) -> None:
         }
     ]
     result = generate_candidates(deck, search_client=make_fixture_search_client(cards))
-    assert _candidate(result, in_deck_oid) is None
+    assert _candidate(result, in_deck_oid) is not None  # emitted — judgment gates it, not generation
 
 
-def test_out_of_identity_card_is_excluded(load_deck) -> None:
+def test_generation_emits_off_color_card_gating_is_judgments(load_deck) -> None:
+    # Likewise generation no longer pre-filters color identity (that lost the `rejected`
+    # transparency). An off-color card is emitted; judgment's color gate rejects it.
     deck = load_deck(WORLD_RECLAIMER)  # B/G/R
     cards = [
         {
@@ -235,26 +239,7 @@ def test_out_of_identity_card_is_excluded(load_deck) -> None:
         }
     ]
     result = generate_candidates(deck, search_client=make_fixture_search_client(cards))
-    assert _candidate(result, 'oid-blue') is None
-
-
-def test_colorless_candidate_is_admitted(load_deck) -> None:
-    # An empty color_identity is a decidable subset of any deck identity, so a
-    # colorless card is kept (distinct from a missing field, which is undecidable).
-    deck = load_deck(WORLD_RECLAIMER)
-    cards = [
-        {
-            'oracle_id': 'oid-artifact',
-            'name': 'Colorless Rock',
-            'otags': ['recursion-land'],  # on the land-producer demand, so it is retrieved
-            'type_line': 'Artifact',
-            'oracle_text': '',
-            'mana_cost': '',
-            'color_identity': [],
-        }
-    ]
-    result = generate_candidates(deck, search_client=make_fixture_search_client(cards))
-    assert _candidate(result, 'oid-artifact') is not None
+    assert _candidate(result, 'oid-blue') is not None  # emitted — judgment's color gate rejects it
 
 
 # --------------------------------------------------------------------------- #

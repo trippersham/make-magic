@@ -51,6 +51,7 @@ inject an ``EnrichFn`` that populates ``legalities.commander`` directly.
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Literal
 
 from pipeline.transforms.recommend.contracts import (
     Candidate,
@@ -213,13 +214,18 @@ def _degraded_verdict(candidate: Candidate) -> Verdict:
 _PENDING_STRENGTH = 'Degraded structural verdict — strength ranking is pending the deck-comparison model.'
 
 
-def _accept(candidate: Candidate, soft_flags: dict[str, str]) -> Candidate:
-    """Attach the degraded survivor rationale, preserving the candidate's anchors."""
+def _accept(candidate: Candidate, soft_flags: dict[str, str], armed_gates: tuple[str, ...]) -> Candidate:
+    """Attach the degraded survivor rationale, preserving the candidate's anchors.
+
+    The prose names only the gates that were ARMED for this run (does-not-want is armed
+    only with terms; budget only with a price source), so it never claims a gate ran
+    that was inert.
+    """
     verdict = _degraded_verdict(candidate)
     refs = ', '.join(sorted({s.target_ref for s in candidate.anchors})) or '—'
     prose = (
-        f'Fills {len(candidate.anchors)} structural anchor(s) ({refs}) and passes all active hard gates '
-        f'(legality, color-identity, singleton, does-not-want, budget). {_PENDING_STRENGTH}'
+        f'Fills {len(candidate.anchors)} structural anchor(s) ({refs}); no active hard gate '
+        f'({", ".join(armed_gates)}) rejected it. {_PENDING_STRENGTH}'
     )
     return candidate.model_copy(
         update={
@@ -249,6 +255,16 @@ def _reject(candidate: Candidate, gate: str, reason: str) -> Candidate:
     )
 
 
+#: One candidate's disposition after the ordered gates.
+#: ``accept`` — a survivor (joins ``candidates`` with a rationale).
+#: ``reject`` — a USEFUL hard block the caller may care about or override (off-color,
+#:   banned, does-not-want, over-budget) → ``rejected`` with the deciding gate.
+#: ``drop`` — SILENTLY excluded, neither a suggestion nor a useful rejection: a card
+#:   already in the deck (the common singleton case). An explicit-multiples card is
+#:   exempt and stays recommendable.
+Outcome = Literal['accept', 'reject', 'drop']
+
+
 def _judge_one(
     candidate: Candidate,
     facts: dict,
@@ -258,20 +274,28 @@ def _judge_one(
     does_not_want: list[str],
     budget: float | None,
     price_lookup: PriceLookup | None,
-) -> tuple[bool, Candidate]:
-    """Apply the hard gates to one candidate; return ``(accepted, judged_candidate)``.
+    armed_gates: tuple[str, ...],
+) -> tuple[Outcome, Candidate]:
+    """Apply the hard gates to one candidate; return ``(outcome, judged_candidate)``.
 
     Gates run color-identity → legality → singleton → does-not-want → budget; the
-    first hard failure decides the rejection (its reason is recorded in
-    ``context_flags``). Soft, non-fatal observations (an unknown legality) accrue as
-    flags on an accepted candidate.
+    first hard failure decides the disposition. An already-in-deck card (not an
+    explicit-multiples one) is SILENTLY dropped — it is not a new suggestion and
+    "already in your deck" is not a useful rejection to surface; the other blocks are
+    recorded in ``rejected``. Soft, non-fatal observations (unknown legality / unknown
+    color identity) accrue as flags on an accepted candidate rather than silently
+    passing.
     """
     oid = candidate.card.oracle_id
     soft_flags: dict[str, str] = {}
 
     ci = facts.get('color_identity')
-    if ci is not None and not (frozenset(ci) <= deck_ci):
-        return False, _reject(
+    if ci is None:
+        # The gate cannot decide without a color identity; allow but FLAG it, never
+        # silently claim the card passed the color-identity gate.
+        soft_flags['color-identity'] = 'unknown — color identity unavailable; allowed pending verification'
+    elif not (frozenset(ci) <= deck_ci):
+        return 'reject', _reject(
             candidate,
             'color-identity',
             f'color identity {sorted(ci)} is not within the deck identity {sorted(deck_ci)}',
@@ -279,23 +303,23 @@ def _judge_one(
 
     legality = _commander_legality(facts)
     if legality is not None and legality != 'legal':
-        return False, _reject(candidate, 'legality', f'not legal in commander (legalities.commander={legality})')
+        return 'reject', _reject(candidate, 'legality', f'not legal in commander (legalities.commander={legality})')
     if legality is None:
         soft_flags['legality'] = 'unknown — commander legality unavailable offline; allowed pending verification'
 
     if oid in deck_oracle_ids and not _is_explicit_multiples(facts):
-        return False, _reject(candidate, 'singleton', 'already in the deck and not an explicit-multiples card')
+        return 'drop', candidate  # already in the deck — silently excluded, not a rejection
 
     hit = _does_not_want_hit(candidate, does_not_want)
     if hit is not None:
-        return False, _reject(candidate, 'does-not-want', f'matches the deck does-not-want term {hit!r}')
+        return 'reject', _reject(candidate, 'does-not-want', f'matches the deck does-not-want term {hit!r}')
 
     if budget is not None and price_lookup is not None:
         price = price_lookup(oid)
         if price is not None and price > budget:
-            return False, _reject(candidate, 'budget', f'price {price} exceeds the per-card budget ceiling {budget}')
+            return 'reject', _reject(candidate, 'budget', f'price {price} exceeds the per-card budget ceiling {budget}')
 
-    return True, _accept(candidate, soft_flags)
+    return 'accept', _accept(candidate, soft_flags, armed_gates)
 
 
 def judge(
@@ -355,6 +379,17 @@ def judge(
             ) from exc
         raise
 
+    # Gates always armed: color-identity, legality, singleton. does-not-want is armed
+    # only with terms; budget only with a price source — so the accept prose names the
+    # gates that actually ran, not inert ones.
+    armed_gates: tuple[str, ...] = (
+        'color-identity',
+        'legality',
+        'singleton',
+        *(('does-not-want',) if dnw else ()),
+        *(('budget',) if (budget is not None and price_lookup is not None) else ()),
+    )
+
     accepted: list[Candidate] = []
     rejected: list[Candidate] = []
     any_ci_known = False
@@ -362,7 +397,7 @@ def judge(
         facts = facts_map.get(candidate.card.oracle_id, {})
         if facts.get('color_identity') is not None:
             any_ci_known = True
-        ok, judged = _judge_one(
+        outcome, judged = _judge_one(
             candidate,
             facts,
             deck_ci=deck_ci,
@@ -370,8 +405,13 @@ def judge(
             does_not_want=dnw,
             budget=budget,
             price_lookup=price_lookup,
+            armed_gates=armed_gates,
         )
-        (accepted if ok else rejected).append(judged)
+        if outcome == 'accept':
+            accepted.append(judged)
+        elif outcome == 'reject':
+            rejected.append(judged)
+        # 'drop' → silently excluded (already in the deck); neither accepted nor rejected.
 
     # The Phase-3 ci-skip caveat is stale once enrichment supplies color identity and
     # the gate is enforced here; drop it so the result does not warn about a check it

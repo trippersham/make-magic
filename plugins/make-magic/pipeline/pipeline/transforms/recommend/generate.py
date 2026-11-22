@@ -202,36 +202,6 @@ def demand_set_query(anchor: Anchor) -> str:
     return ' OR '.join(parts)
 
 
-def _deck_color_identity(deck_cards: list[dict]) -> frozenset[str]:
-    """The deck's legal color identity — its commander(s)', excluding the sideboard.
-
-    Commander's identity rule: the deck's identity IS its commander(s)' color
-    identity, so a candidate is admitted iff its identity is a subset of that. Derive
-    from the ``role == 'commander'`` card(s) when present; a bare card list with no
-    commander role falls back to the union of the maindeck. A sideboard / considering
-    card must never WIDEN the identity — unioning every row (the former behaviour) let
-    an off-color sideboard card admit off-identity candidates. ``[]`` is a decidable
-    colorless identity, not "unknown".
-    """
-    commanders = [c for c in deck_cards if c.get('role') == 'commander']
-    basis = commanders or [c for c in deck_cards if c.get('role') != 'sideboard']
-    return frozenset(x for c in basis for x in (c.get('color_identity') or []))
-
-
-def _within_identity(card: dict, deck_ci: frozenset[str]) -> bool | None:
-    """Whether ``card``'s color identity fits inside ``deck_ci``.
-
-    Returns ``None`` when the card carries no ``color_identity`` field at all — the
-    filter cannot decide, so the caller keeps the card and records that the check
-    was skipped (the default lake client does not project ``color_identity``; a
-    truly colorless card carries ``[]``, which is a decidable subset, not ``None``).
-    """
-    ci = card.get('color_identity')
-    if ci is None:
-        return None
-    return frozenset(ci) <= deck_ci
-
-
 def _matched_subset(card_view: CardView, anchor: Anchor, compiled: dict[str, Predicate]) -> list[str]:
     """The anchor attributes THIS card actually carries (the neutral match fact).
 
@@ -398,12 +368,16 @@ def generate_candidates(
 
     Enumerates the deck's anchors, attaches to the ``complement`` holes (plus
     ``augment`` sides when *include_augment*), retrieves each anchor's demand set
-    through *search_client*, filters to the deck's color identity and out of the
-    deck's existing cards, and emits one :class:`StrategyGraphMembership` per
-    surviving (candidate, anchor) with neutral before/after facts. Cards filling
-    several anchors are deduped into one :class:`Candidate`. No judgment and no
-    scalar score: the result is ordered by the transparent ``degraded_structural``
-    fallback and every ``rationale`` is ``None`` (Phase 4's to fill).
+    through *search_client*, and emits one :class:`StrategyGraphMembership` per
+    (candidate, anchor) that structurally matches, with neutral before/after facts.
+    Cards filling several anchors are deduped into one :class:`Candidate`. This is the
+    STRUCTURAL pool only: the context gates — color identity, legality, singleton,
+    does-not-want, budget — are judgment's (Phase 4a), applied in one ordered pass over
+    this pool, NOT pre-filtered here. Pre-filtering identity / in-deck here is what made
+    judgment's singleton gate dead and lost the ``rejected`` transparency, so it is
+    deliberately left to judgment. No judgment and no scalar score: the result is
+    ordered by the transparent ``degraded_structural`` fallback and every ``rationale``
+    is ``None`` (Phase 4's to fill).
 
     Parameters
     ----------
@@ -425,11 +399,8 @@ def generate_candidates(
         On the default (lake) path when the lake is absent — a loud precondition
         failure pointing at ``collection hydrate-lake`` (never a silent empty pool).
     """
-    deck_cards: list[dict] = deck.get('cards') or []
     deck_id = deck.get('uuid') or deck.get('name') or '<unknown-deck>'
     result_target = target_ref or str(deck_id)
-    deck_ci = _deck_color_identity(deck_cards)
-    deck_oracle_ids = {c['oracle_id'] for c in deck_cards if c.get('oracle_id')}
 
     used_default = search_client is None
     client = search_client or make_lake_search_client()
@@ -456,7 +427,6 @@ def generate_candidates(
 
     builders: dict[str, _CandidateBuilder] = {}
     compiled: dict[str, Predicate] = {}  # sub-query -> predicate, compiled once
-    ci_skipped = 0
 
     for anchor in selected:
         query = demand_set_query(anchor)
@@ -467,13 +437,6 @@ def generate_candidates(
             name = card.get('name')
             if not oracle_id or not name:
                 continue  # cannot form a CardRef without identity
-            if oracle_id in deck_oracle_ids:
-                continue  # already in the deck
-            within = _within_identity(card, deck_ci)
-            if within is False:
-                continue  # out of the deck's color identity
-            if within is None:
-                ci_skipped += 1
 
             view = CardView.from_card(card)
             matched = _matched_subset(view, anchor, compiled)
@@ -503,11 +466,6 @@ def generate_candidates(
     notes = [_DEGRADED_ORDER_NOTE]
     if not selected:
         notes.append('no complement anchors enumerated for this deck; the candidate pool is empty')
-    if ci_skipped:
-        notes.append(
-            f'color-identity filter skipped for {ci_skipped} retrieved card(s) lacking a color_identity '
-            'field (the default lake projection omits it); hydrate richer fields to enforce the filter'
-        )
 
     ordering: Ordering = 'degraded_structural'
     return RecommendationResult(

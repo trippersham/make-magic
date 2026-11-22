@@ -289,11 +289,14 @@ class RecommendationResult(BaseModel):
     caveats (e.g. the degraded-order disclaimer, a lake-precondition note).
 
     ``rejected`` is the transparency channel for the judgment layer: a candidate a
-    hard gate removed (illegal/banned, out of color identity, a does-not-want match,
-    over budget, a singleton violation) is recorded here with a ``pass``-verdict
-    :class:`Rationale` whose ``context_flags`` names the deciding gate — so a caller
-    can see *why* a structurally-fitting card was not proposed, rather than it
-    silently vanishing. It is empty until the judgment layer runs.
+    hard gate removed for a reason the caller may care about or override — illegal /
+    banned, out of color identity, a does-not-want match, over budget — is recorded
+    here with a ``pass``-verdict :class:`Rationale` whose ``context_flags`` names the
+    deciding gate, so a caller sees *why* a structurally-fitting card was not proposed.
+    A card ALREADY IN THE DECK is NOT listed here: it is silently excluded (it is
+    neither a new suggestion nor a useful rejection), except an explicit-multiples card
+    (any number of copies allowed), which stays recommendable. It is empty until the
+    judgment layer runs.
     """
 
     model_config = ConfigDict(extra='forbid')

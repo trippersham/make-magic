@@ -16,8 +16,9 @@ whole-deck recommendation to one anchor of interest (a Strategy, an Engine/event
 ref, or a CardAttribute). That is expressed as a *filter over the enumerated
 anchors* on the generated pool, never as a second query or a per-strategy branch:
 an anchor is in scope when its stable ``target_ref`` is the requested target, or
-when the target is one of the attributes that anchor matched. Scoping before
-judgment keeps the gated-out set (:attr:`RecommendationResult.rejected`) scoped too.
+when the target is one of the attributes that anchor matched. Scoping runs AFTER
+judgment (so a gate never misses an anchor the scope would hide) and narrows both
+the accepted candidates and the gated-out :attr:`RecommendationResult.rejected` set.
 
 Seams stay injectable
 ----------------------
@@ -71,22 +72,35 @@ def _anchor_in_scope(anchor: StrategyGraphMembership, target: str) -> bool:
     return anchor.target_ref == target or target in anchor.fact_snapshot.matched_attributes
 
 
-def _scope_to_target(result: RecommendationResult, target: str) -> RecommendationResult:
-    """Narrow a generated pool to the anchors matching ``target``.
-
-    Filters each candidate's anchor edges to those in scope and drops a candidate
-    left with none — so a ``target`` call yields fewer / narrower anchors (and fewer
-    candidates) than the bare-deck call, scoped to the requested instance. Order is
-    preserved (the degraded-structural order is not recomputed). A caveat records
-    the applied scope.
-    """
+def _scope_candidates(candidates: list[Candidate], target: str) -> list[Candidate]:
+    """Keep only the anchors in scope, dropping a candidate left with none."""
     scoped: list[Candidate] = []
-    for candidate in result.candidates:
+    for candidate in candidates:
         kept = [a for a in candidate.anchors if _anchor_in_scope(a, target)]
         if kept:
             scoped.append(candidate.model_copy(update={'anchors': kept}))
+    return scoped
+
+
+def _scope_to_target(result: RecommendationResult, target: str) -> RecommendationResult:
+    """Narrow a JUDGED result to the anchors matching ``target`` — display scope only.
+
+    Applied AFTER judgment (not before): judgment must see each candidate's FULL
+    anchors so its gates — especially does-not-want, which reads the anchor identities
+    a card would fill — decide on the whole card. Scoping before judgment let a
+    ``target`` call hide the very anchor a does-not-want term matched, so a card the
+    deck excludes was wrongly accepted. Here it only narrows what is shown: both the
+    accepted ``candidates`` and the ``rejected`` set are scoped to the requested
+    instance, order preserved. A caveat records the applied scope.
+    """
     notes = [*result.notes, f'scoped to target {target!r}: only anchors at this instance are kept']
-    return result.model_copy(update={'candidates': scoped, 'notes': notes})
+    return result.model_copy(
+        update={
+            'candidates': _scope_candidates(result.candidates, target),
+            'rejected': _scope_candidates(result.rejected, target),
+            'notes': notes,
+        }
+    )
 
 
 def recommend(
@@ -108,12 +122,13 @@ def recommend(
 ) -> RecommendationResult:
     """Recommend cards for a deck: compose Phase 3 generation into Phase 4a judgment.
 
-    Generates the structurally-fitting candidate pool from the deck's anchors,
-    optionally narrows it to ``target``, then judges it (enrichment + hard gates +
-    a degraded rationale). The returned :class:`RecommendationResult` carries the
-    accepted ``candidates`` (each with its anchors + a transparent ``rationale``)
-    and the hard-gated ``rejected`` set (each naming the deciding gate) — the one
-    contract the app, skills, agent callers, and the CLI verb consume.
+    Generates the structurally-fitting candidate pool from the deck's anchors, judges
+    it (enrichment + one ordered hard-gate pass + a degraded rationale), then — when a
+    ``target`` is given — narrows the judged result to that instance. The returned
+    :class:`RecommendationResult` carries the accepted ``candidates`` (each with its
+    anchors + a transparent ``rationale``) and the hard-gated ``rejected`` set (each
+    naming the deciding gate; an already-in-deck card is silently excluded, not
+    rejected) — the one contract the app, skills, agent callers, and the CLI consume.
 
     Parameters
     ----------
@@ -154,9 +169,10 @@ def recommend(
         cfg=cfg,
         saturation=saturation,
     )
-    if target is not None:
-        pool = _scope_to_target(pool, target)
 
+    # Judge the FULL pool first (every candidate's whole anchor set), THEN scope the
+    # display — so `target` narrows what is shown without hiding an anchor a gate
+    # (does-not-want) needed to see.
     judged = judge(
         pool,
         deck,
@@ -165,6 +181,8 @@ def recommend(
         budget=budget,
         price_lookup=price_lookup,
     )
+    if target is not None:
+        judged = _scope_to_target(judged, target)
 
     if budget is not None and price_lookup is None:
         judged = judged.model_copy(update={'notes': [*judged.notes, _BUDGET_INERT_NOTE.format(budget=budget)]})

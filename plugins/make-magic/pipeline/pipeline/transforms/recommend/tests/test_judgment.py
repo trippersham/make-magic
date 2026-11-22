@@ -252,7 +252,10 @@ def test_does_not_want_term_filters_matching_candidate(load_deck) -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_singleton_rejects_in_deck_nonmultiples_card(load_deck) -> None:
+def test_singleton_silently_excludes_in_deck_nonmultiples_card(load_deck) -> None:
+    # An already-in-deck card (not explicit-multiples) is SILENTLY excluded: not
+    # accepted, and NOT in `rejected` either — "already in your deck" is not a useful
+    # rejection to surface (#119, product decision).
     deck = _deck_bgr(load_deck)
     in_deck_oid = deck['cards'][0]['oracle_id']
     result = _result([_candidate(in_deck_oid, 'Already In Deck')])
@@ -260,8 +263,8 @@ def test_singleton_rejects_in_deck_nonmultiples_card(load_deck) -> None:
 
     judged = judge(result, deck, enrich=enrich)
 
-    assert _by_id(judged, in_deck_oid) is None
-    assert 'singleton' in _flags(_rejected_by_id(judged, in_deck_oid))
+    assert _by_id(judged, in_deck_oid) is None  # not proposed
+    assert _rejected_by_id(judged, in_deck_oid) is None  # and not surfaced as a rejection
 
 
 def test_singleton_allows_explicit_multiples_card(load_deck) -> None:
@@ -288,6 +291,31 @@ def test_singleton_allows_explicit_multiples_card(load_deck) -> None:
         for c in judged.rejected
         if c.card.oracle_id == in_deck_oid
     )
+
+
+def test_explicit_multiples_in_deck_is_accepted() -> None:
+    # The whole point of the exemption: an any-number-of-copies card already in the deck
+    # stays recommendable (accepted), not silently excluded like a plain singleton (#119).
+    deck = {
+        'format': 'Commander',
+        'cards': [
+            {'oracle_id': 'cmd', 'name': 'Mono-U Cmdr', 'role': 'commander', 'color_identity': ['U']},
+            {'oracle_id': 'apostle', 'name': 'Shadowborn Apostle', 'role': 'library', 'color_identity': ['U']},
+        ],
+    }
+    result = _result([_candidate('apostle', 'Shadowborn Apostle')])
+    enrich = _enricher(
+        {
+            'apostle': {
+                'color_identity': ['U'],
+                'legalities': {'commander': 'legal'},
+                'oracle_text': 'A deck can have any number of cards named Shadowborn Apostle.',
+            }
+        }
+    )
+    judged = judge(result, deck, enrich=enrich)
+    assert _by_id(judged, 'apostle') is not None  # accepted despite already being in the deck
+    assert _rejected_by_id(judged, 'apostle') is None
 
 
 # --------------------------------------------------------------------------- #

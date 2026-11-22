@@ -172,6 +172,29 @@ def test_does_not_want_rejects_through_recommend(load_deck) -> None:
     assert 'does-not-want' in (rejected.rationale.context_flags if rejected.rationale else {})
 
 
+def test_target_scope_does_not_bypass_does_not_want(load_deck) -> None:
+    # The `recursion-land` card fills BOTH the recursion-land attribute anchor AND the
+    # land-event producer anchor. does_not_want=['recursion-land'] matches via the
+    # former. Scoping to a DIFFERENT anchor (land-enters-battlefield) must NOT let the
+    # card through: judgment sees the FULL anchor set (so does-not-want still fires),
+    # and the scope only narrows the display afterwards (#119 M5). Before the fix,
+    # scoping ran first and hid the recursion-land anchor, wrongly accepting the card.
+    deck = load_deck(WORLD_RECLAIMER)
+    cards = [_card('oid-multi', 'Multi Anchor', ['recursion-land'], ['B'])]
+    enrich = _enricher({'oid-multi': {'color_identity': ['B'], 'legalities': {'commander': 'legal'}}})
+    result = recommend(
+        deck,
+        target='land-enters-battlefield',
+        search_client=make_fixture_search_client(cards),
+        enrich=enrich,
+        does_not_want=['recursion-land'],
+    )
+    assert _accepted_id(result, 'oid-multi') is None  # NOT accepted despite the target scope
+    rejected = _rejected_id(result, 'oid-multi')
+    assert rejected is not None  # still rejected for does-not-want, scoped into the rejected view
+    assert 'does-not-want' in (rejected.rationale.context_flags if rejected.rationale else {})
+
+
 def test_membership_tags_pass_through(load_deck) -> None:
     deck = load_deck(WORLD_RECLAIMER)
     cards = [_card('oid-ok', 'Fixture Recursion', ['recursion-land'], ['B'])]
@@ -255,9 +278,10 @@ def test_real_lake_land_producer_anchor_carries_join_facts(load_deck) -> None:
     # Phase-6 behavioral criterion: against the real lake, the payoff-rich /
     # producer-thin landfall deck surfaces at least one candidate anchored at the
     # `land-enters-battlefield` PRODUCER side, and every such anchor's neutral
-    # fact_snapshot records the join — a non-empty directed path and a one-card
-    # support bump (support_after == support_before + 1), the invariant for a card
-    # joining the thin side (generate._fact_snapshot).
+    # fact_snapshot records a valid join — a non-empty directed path and the real C1
+    # marginal: support rises by AT MOST one (exactly one for a non-land, zero for a
+    # land, which is excluded from the side's support), connectivity by at most one
+    # (one for a both-sides relay). Never the old flat `+1` that over-counted lands.
     result = recommend(load_deck(WORLD_RECLAIMER))
     producer_anchors = [
         anchor
@@ -269,4 +293,5 @@ def test_real_lake_land_producer_anchor_carries_join_facts(load_deck) -> None:
     for anchor in producer_anchors:
         snap = anchor.fact_snapshot
         assert snap.path, 'producer anchor must carry a non-empty directed path'
-        assert snap.support_after == snap.support_before + 1
+        assert snap.support_before <= snap.support_after <= snap.support_before + 1
+        assert snap.connectivity_before <= snap.connectivity_after <= snap.connectivity_before + 1
