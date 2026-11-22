@@ -79,13 +79,32 @@ def strength_cache_path(data_dir: str | os.PathLike[str] | None = None) -> Path:
 # --------------------------------------------------------------------------- #
 
 
+def _coerce_rank(value: object) -> int | None:
+    """Coerce an ``edhrec_rank`` to a valid rank or ``None`` (UNKNOWN, never weak).
+
+    ``edhrec_rank`` is 1-based and the contract constrains it with ``gt=0``; a cached or
+    fetched ``<= 0`` (or non-int) rank would raise a ``ValidationError`` and abort the WHOLE
+    pool's :func:`strength` instead of degrading that one card. Coerce anything invalid to
+    ``None`` — rank-blind, UNKNOWN downstream, not a crash and not a fabricated rank.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    return value if value > 0 else None
+
+
 def load_cache(path: str | os.PathLike[str]) -> dict[str, StrengthData]:
-    """Read ``{oracle_id: StrengthData}`` from a cache file; missing file ⇒ empty."""
+    """Read ``{oracle_id: StrengthData}`` from a cache file; missing file ⇒ empty.
+
+    A cached ``edhrec_rank <= 0`` (or non-int) is coerced to ``None`` (UNKNOWN) rather than
+    letting the ``gt=0`` contract abort every candidate when the record is later scored.
+    """
     p = Path(path)
     if not p.exists():
         return {}
     raw = json.loads(p.read_text())
-    return {oid: StrengthData(**rec) for oid, rec in raw.items()}
+    return {
+        oid: StrengthData(**{**rec, 'edhrec_rank': _coerce_rank(rec.get('edhrec_rank'))}) for oid, rec in raw.items()
+    }
 
 
 def save_cache(data: dict[str, StrengthData], path: str | os.PathLike[str]) -> None:
@@ -119,7 +138,7 @@ def _parse_card(card: dict) -> tuple[str, StrengthData] | None:
     except (TypeError, ValueError):
         usd = None
     return str(oid), StrengthData(
-        edhrec_rank=card.get('edhrec_rank'),
+        edhrec_rank=_coerce_rank(card.get('edhrec_rank')),
         game_changer=bool(card.get('game_changer', False)),
         usd=usd,
     )

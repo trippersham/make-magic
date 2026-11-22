@@ -146,6 +146,39 @@ def test_cache_path_honors_data_dir_env(tmp_path: Path, monkeypatch: pytest.Monk
     assert p.name.endswith('.json')
 
 
+def test_cached_nonpositive_rank_degrades_to_unknown(tmp_path: Path) -> None:
+    """m2: a cached edhrec_rank <= 0 (or non-int) coerces to None (UNKNOWN), not a crash.
+
+    contracts.StrengthAgnostic constrains edhrec_rank with gt=0, so an un-coerced 0 in
+    the cache would raise ValidationError and abort the WHOLE pool's strength(). The
+    loader must degrade that one card to UNKNOWN and keep the rest.
+    """
+    path = tmp_path / 'strength' / 'scryfall_strength.json'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                REMORA: {'edhrec_rank': 103, 'game_changer': False, 'usd': 1.2},
+                RHYSTIC: {'edhrec_rank': 0, 'game_changer': True, 'usd': 24.5},  # bogus rank 0
+                GHOST: {'edhrec_rank': -5, 'game_changer': False, 'usd': None},  # bogus negative rank
+            }
+        )
+    )
+    cache = sf.load_cache(path)
+    assert set(cache) == {REMORA, RHYSTIC, GHOST}
+    assert cache[REMORA].edhrec_rank == 103  # valid rank preserved
+    assert cache[RHYSTIC].edhrec_rank is None  # 0 -> UNKNOWN
+    assert cache[RHYSTIC].game_changer is True  # other fields untouched
+    assert cache[GHOST].edhrec_rank is None  # negative -> UNKNOWN
+
+
+def test_parse_card_coerces_nonpositive_rank() -> None:
+    """m2: the Scryfall parser also coerces a <= 0 rank to None (UNKNOWN)."""
+    parsed = sf._parse_card({'oracle_id': RHYSTIC, 'edhrec_rank': 0, 'game_changer': True})
+    assert parsed is not None
+    assert parsed[1].edhrec_rank is None
+
+
 @pytest.mark.live
 def test_live_scryfall_oracle_id_join() -> None:
     """Hits real Scryfall (deselected by default). Proves the oracle_id join is real."""
