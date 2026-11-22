@@ -39,6 +39,7 @@ This file is the one always-on contract. Read it first. Everything the repo map 
 | `app/` | the deck-diff viewer, an Astro app |
 | `website/` | the marketing site, an Astro app |
 | `.claude-plugin/marketplace.json` | the marketplace manifest |
+| `docs/adr/` | repo and process decision records: the git flow and release model |
 
 ## Commands
 
@@ -58,7 +59,7 @@ Run the `uv run` commands from `plugins/make-magic/pipeline`.
 
 ## How a change reaches main
 
-Work is trunk-based off `main`. The skill at `.claude/skills/mm-change/SKILL.md` holds the full procedure. In short:
+Work is trunk-based off `main`: `main` is the single integration point, every change lands there through its own PR, and features come together on `main` — there is no `develop`, staging, or release-accumulation branch. To validate a set of features *together before* they reach `main`, use a feature flag or a `gh stack`, never a standing branch. The decision and rationale are recorded in [ADR 0001](docs/adr/0001-trunk-based-flow-and-releases.md); the skill at `.claude/skills/mm-change/SKILL.md` holds the full procedure. In short:
 
 - branch `<type>/<slug>` off `main`. the type is one of feat, fix, chore, docs, ci, test, refactor, release. never push to `main`, because the branch and PR are the only path in.
 - write Conventional Commits. the PR title becomes the squash subject on `main`.
@@ -69,7 +70,7 @@ Work is trunk-based off `main`. The skill at `.claude/skills/mm-change/SKILL.md`
 
 ### Releases
 
-A release is a version-bump PR, not a special ceremony. On a `release/<x.y.z>` branch, bump both version files to the same version (`scripts/check_versions.py` enforces the lockstep), fill the template, and let it clear `ci-ok` like any PR — on a `release/*` PR the `repro` reproducibility gate runs and must pass. A reviewer squash-merges; then a human pushes the `v<x.y.z>` tag (tags are not ruleset-protected, so the tag push is a deliberate human-only act), which fires `.github/workflows/release.yml` to verify the lockstep against the tag and cut the GitHub Release. The version bump follows the pre-1.0 policy: `fix`/`chore`/`ci`/`docs` → patch, `feat` → minor, and a breaking change → minor (major is reserved for `1.0.0`).
+A release is a version-bump PR, not a special ceremony. On a `release/<x.y.z>` branch, bump both version files to the same version (`scripts/check_versions.py` enforces the lockstep), fill the template, and let it clear `ci-ok` like any PR — on a `release/*` PR the `repro` reproducibility gate runs and must pass. A reviewer squash-merges; then a human pushes the `v<x.y.z>` tag (tags are not ruleset-protected, so the tag push is a deliberate human-only act), which fires `.github/workflows/release.yml` to verify the lockstep against the tag and cut the GitHub Release. The release PR ships everything merged to `main` since the previous `v<x.y.z>` tag — its `repro` gate and the full suite run against that assembled `main`, and the generated changelog covers exactly those commits. The version bump follows the pre-1.0 policy: `fix`/`chore`/`ci`/`docs` → patch, `feat` → minor, and a breaking change → minor (major is reserved for `1.0.0`).
 
 ## Safety
 
@@ -79,7 +80,7 @@ A release is a version-bump PR, not a special ceremony. On a `release/<x.y.z>` b
 
 ## Agent context
 
-- rules in `.claude/rules/` load when you touch a matching file: `.claude/rules/pipeline.md` for `plugins/make-magic/**`, and `.claude/rules/changes.md` for `.github/**`.
+- rules in `.claude/rules/` load when you touch a matching file: `.claude/rules/pipeline.md` for `plugins/make-magic/**`, `.claude/rules/changes.md` for `.github/**`, and the `adr-*.md` rules when you touch a file a recorded decision governs (the release machinery and the flow docs load the trunk-flow rule).
 - the skill at `.claude/skills/mm-change/SKILL.md` holds the change procedure. constraints belong in the rules, not the skill.
 - after any edit under `.claude/` or to this file, run `scripts/check` and fix every finding.
 
