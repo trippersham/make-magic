@@ -220,3 +220,81 @@ class StrengthRecord(BaseModel):
         """
         self.rank_known = self.strength_agnostic.edhrec_rank is not None
         return self
+
+
+# --------------------------------------------------------------------------- #
+# Marginal engine participation — the prospective-add delta (entry point 2).
+# --------------------------------------------------------------------------- #
+
+
+class MarginalParticipation(BaseModel):
+    """The engine-participation delta of adding ONE prospective card to a deck.
+
+    Returned by :func:`pipeline.transforms.comparison.strength.marginal_participation`.
+    The card-recommendation sibling owns the *structural* before-state
+    (``support`` / ``connectivity`` counts over its generated candidate's facts);
+    THIS record is the *engine-participation after-state* we own — computed by
+    injecting the candidate's attrs/edge through the landed ``combo_event_edges``
+    injection seam (``strategy_graph.elect_engine_units``) and re-electing, never
+    by a duplicated graph walk (design §6 / co-development-plan request 2).
+
+    The booleans are **structural facts about the re-election**, not weights: each
+    answers one yes/no question about what the candidate does to the deck's engine
+    surface. The two deltas are signed (an add can only raise support/connectivity
+    here, so they are ``>= 0``, but the field is signed to stay honest if a future
+    caller diffs in the other direction).
+    """
+
+    model_config = ConfigDict(extra='forbid')
+
+    anchor_event: str | None = Field(
+        default=None,
+        description=(
+            'Event/role (from the shared catalog) the delta was scoped to, or None for a whole-deck '
+            'reading — echoes the request so the caller can key the result.'
+        ),
+    )
+    delta_support: float = Field(
+        default=0.0,
+        description=(
+            "Change in the anchored role's engine MASS (Σ attr_weight over the elected unit's "
+            'producers|consumers) from adding the candidate. >= 0 for an add; how much more the '
+            'deck now pours into this role.'
+        ),
+    )
+    delta_connectivity: float = Field(
+        default=0.0,
+        description=(
+            'Change in engine CONNECTIVITY — the count of bounded forward chains (feeder->fed engine '
+            'links) in the re-elected graph. A candidate that wires two engines together raises this.'
+        ),
+    )
+    closes_loop: bool = Field(
+        default=False,
+        description=(
+            'True iff adding the candidate NEWLY closes the commander-anchored value loop '
+            '(commander_loop.closes flips False->True), or newly lands the role event on a true SCC cycle. '
+            'The highest-value structural signal: the card completes an engine the deck could not close.'
+        ),
+    )
+    adds_payoff_axis: bool = Field(
+        default=False,
+        description=(
+            'True iff the candidate introduces a payoff archetype to the elected engine set that was '
+            'absent before — it opens a new axis the deck did not previously pay off.'
+        ),
+    )
+    becomes_relay: bool = Field(
+        default=False,
+        description=(
+            "True iff the candidate's attribute becomes a relay hub (produces an event it also "
+            'consumes) in the re-elected graph — it turns into deck machinery, not a leaf.'
+        ),
+    )
+    commander_coupled: bool = Field(
+        default=False,
+        description=(
+            'True iff the candidate shares an attribute with the command zone — it plugs directly into '
+            'what recurs every turn, the strongest deck-relative anchor.'
+        ),
+    )
