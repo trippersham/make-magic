@@ -549,9 +549,11 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   * #1 store-hijack (report path only): the A-emission keyed gate liveness on
 #     ``set(attr_weight)``, which the engine_report path salts with store (haiku) slugs;
 #     a same-named, wrong-role slug could revive a catalog gate and mint a phantom
-#     recursive engine. Liveness now tests the GENUINE native carrier set
-#     (``gate_carriers``, frozen before store injection). Default ``resolve()``/corpus
-#     path is store-free, so this moves NOTHING in the corpus (regression-tested).
+#     recursive engine. Liveness tests a ROLE-MATCHED live set (``gate_carriers`` — native
+#     carriers frozen before store injection, plus correct-role matched store gates; the
+#     2026-11-22 #114-review role-matched correction replaced the original native-only form).
+#     Default ``resolve()``/corpus path is store-free, so this moves NOTHING in the corpus
+#     (regression-tested).
 #   * #2 hub naming: the pure-event-cycle hub is now the loop's RETURN-PATH gate (a relay
 #     whose source event is inside the event's SCC), not the globally-heaviest live gate.
 #     The 3 corpus movers carry no out-of-SCC feeder gate (no Queza-style draw→drain/gain

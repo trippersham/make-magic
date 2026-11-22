@@ -67,6 +67,29 @@ from pipeline.transforms.strategy.machine_vocab import ProvisionalAttributeStore
 from pipeline.transforms.strategy.strategy_graph import elect_engine_units
 
 
+def catalog_relay_directions(events: dict[str, dict]) -> dict[str, set[tuple[str, str]]]:
+    """Map each catalog relay gate to the ``(from_event, owning_event)`` directions it carries.
+
+    A :class:`.derive_card_events.RelayEntry` ``(from_event, gate)`` on
+    ``events[owning].produced_by`` is the gated event→event edge ``from_event → owning``.
+    A gate CardAttribute's declared role ``(trigger_event, produced_event)`` AGREES with
+    that relay iff it equals ``(from_event, owning)``.
+
+    This is the single source of the role-matched-liveness predicate (ADR 0017 /
+    ADR 0026): a store (haiku) entry whose name collides with a catalog gate is a LIVE
+    carrier of that relay only when its role is one of these directions. The report's
+    ``gate_carriers`` (:func:`.engine_report.identify_engines`) and the catalog-relay
+    injection in :func:`build_relay_augmented_event_edges` both read it, so the two
+    paths cannot disagree on which store slug makes a gate live.
+    """
+    dirs: dict[str, set[tuple[str, str]]] = defaultdict(set)
+    for owning, spec in events.items():
+        for ref in spec.get('produced_by', ()):
+            if isinstance(ref, RelayEntry):
+                dirs[ref.gate].add((ref.from_event, owning))
+    return dict(dirs)
+
+
 def _get_role_with_store(
     attr_name: str,
     store: ProvisionalAttributeStore | None,
@@ -115,6 +138,7 @@ def build_relay_augmented_event_edges(
     *,
     store: ProvisionalAttributeStore | None = None,
     matched_store_attrs: frozenset[str] | None = None,
+    gate_carriers: frozenset[str] | None = None,
 ) -> list[tuple[str, str, str]]:
     """Build event-edges with relay-node injection from within-card edge attrs.
 
@@ -140,6 +164,14 @@ def build_relay_augmented_event_edges(
         The store entries whose query matched a card in this deck; a store role is
         injected only for a matched entry (see :func:`_get_role_with_store`). ``None``
         keeps the ungated waterfall.
+    gate_carriers
+        The role-matched LIVE gate set a catalog relay is injected against — the native
+        carriers plus the matched store slugs whose role agrees with the relay direction
+        (computed once by :func:`.engine_report.identify_engines`, shared with the SCC
+        walk's ``gate_present``). A catalog relay's gate-attr leg is injected only when the
+        gate is an active node AND a live carrier, so a same-named wrong-role store slug
+        that was admitted into *nodes* cannot supply a phantom return leg. ``None`` (the
+        structural callers) falls back to bare node presence (``gate in nodes``).
 
     Returns
     -------
@@ -171,12 +203,20 @@ def build_relay_augmented_event_edges(
     # the owning event. This is the within-card edge that was the curated ``edge_roles``
     # sidecar before Phase 2; it is now authored in the catalog, so the relay-augmented
     # engine_report reads it here (keeping the named cycle + relay hubs) while the catalog
-    # also feeds the one SCC walk's event→event relay edges directly. A relay is injected
-    # when its gate attr is an active node.
+    # also feeds the one SCC walk's event→event relay edges directly. The gate-attr leg is
+    # injected when its gate is an active node AND (when ``gate_carriers`` is supplied) a
+    # ROLE-MATCHED live carrier: ``identify_engines`` admits a store (haiku) slug into
+    # ``nodes`` by name+query match, so a same-named slug carrying the WRONG role would, on
+    # bare ``gate in nodes``, supply a phantom return leg (the Queza ``gain-to-draw`` hijack).
+    # Gating on ``gate_carriers`` (native carriers plus role-matched matched-store gates) keeps
+    # that slug from reviving the relay. ``None`` (structural callers) falls back to presence.
     for evname, ev in events.items():
         for ref in ev.get('produced_by', ()):
-            if isinstance(ref, RelayEntry) and ref.gate in nodes:
-                _inject(ref.gate, ref.from_event, evname)
+            if not isinstance(ref, RelayEntry) or ref.gate not in nodes:
+                continue
+            if gate_carriers is not None and ref.gate not in gate_carriers:
+                continue
+            _inject(ref.gate, ref.from_event, evname)
 
     # (2) Provisional store / curated edge roles from attrs present in nodes.
     # Sorted iteration for determinism (the injection order does not affect the
@@ -264,12 +304,17 @@ def elect_engine_units_with_relay(
         the named cycle of a same-slug native node. ``None`` (the default) keeps the
         ungated waterfall for structural callers that do not evaluate store queries.
     gate_carriers
-        The GENUINE native carrier set a catalog relay gate's liveness is tested
-        against — the present attrs BEFORE any store injection (computed by
-        :func:`.engine_report.identify_engines`). Passing it keeps a same-named,
-        wrong-role store slug (which ``identify_engines`` adds to ``attr_weight``) from
-        reviving a catalog gate and minting a phantom recursive engine. ``None`` (the
-        default) lets ``elect_engine_units`` fall back to ``set(attr_weight)``.
+        The ROLE-MATCHED live carrier set a catalog relay gate's liveness is tested
+        against: the genuine native carriers (present attrs frozen BEFORE any store
+        injection) PLUS the matched store slugs whose declared role agrees with the
+        catalog relay direction (both computed by :func:`.engine_report.identify_engines`
+        via :func:`catalog_relay_directions`). A correct-role matched store slug is a live
+        carrier; a same-named wrong-role or zero-match slug — which ``identify_engines``
+        also adds to ``attr_weight`` by query match — is not, so it cannot revive a catalog
+        gate and mint a phantom recursive engine. It is threaded into both the SCC walk's
+        ``gate_present`` and :func:`build_relay_augmented_event_edges`'s relay injection, so
+        the two liveness tests agree. ``None`` (the default) lets ``elect_engine_units``
+        fall back to ``set(attr_weight)``.
 
     Returns
     -------
@@ -277,7 +322,7 @@ def elect_engine_units_with_relay(
         The engine-isolation dict, same shape as ``elect_engine_units`` output.
     """
     augmented_edges = build_relay_augmented_event_edges(
-        nodes, events, store=store, matched_store_attrs=matched_store_attrs
+        nodes, events, store=store, matched_store_attrs=matched_store_attrs, gate_carriers=gate_carriers
     )
     return elect_engine_units(
         nodes,

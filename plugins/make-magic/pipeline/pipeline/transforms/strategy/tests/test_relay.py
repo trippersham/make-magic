@@ -947,7 +947,9 @@ class TestStoreSlugDoesNotHijackCatalogGate:
     let a store entry named ``gain-to-drain`` (query ``otag:life-loss-matters``, which
     matches Exquisite Blood, role ``life-loss-drain -> lifegain``) close the catalog
     ``gain-to-drain`` return leg even though NO card natively carries that gate — a
-    phantom recursive engine. Liveness is now tested against the native carrier set.
+    phantom recursive engine. Liveness is tested against the role-matched live carrier set
+    (native carriers plus correct-role matched store gates), and this reversed-role entry
+    is neither, so it fails liveness.
     """
 
     @staticmethod
@@ -1109,3 +1111,177 @@ class TestRelayLoopFormationModeNeverBipartite:
         assert ranked['lifegain']['formation_mode'] == 'recursive-relay-loop'
         # life-loss-drain is likewise the relay-loop mode (not terminal-producer).
         assert ranked['life-loss-drain']['formation_mode'] == 'recursive-relay-loop'
+
+
+# ---------------------------------------------------------------------------
+# PR #114 review (Astra + Fable) on #1: role-matched store-carrier liveness.
+# A store entry makes a catalog relay gate LIVE iff it matched >= 1 card AND its
+# declared role matches the catalog relay direction ``(from_event, owning_event)``.
+# The wrong-role / zero-match slug stays dead (hijack); the correct-role matched
+# slug is a live carrier again (the native-only freeze had dropped it).
+# ---------------------------------------------------------------------------
+
+
+def _recursive_events(report) -> set[str]:
+    return {e['event'] for e in report.raw_isolation['engines'] if e['kind'] == 'recursive-engine'}
+
+
+class TestWrongRoleStoreSlugDoesNotHijackCatalogRelay:
+    """#1 (relay-injection path) — a same-named, wrong-role store slug that is
+    ADMITTED into ``nodes`` (a commander carrier) must not revive its catalog relay
+    through ``build_relay_augmented_event_edges``. With Queza + 99 basics and a haiku
+    ``gain-to-draw`` entry (query ``otag:draw-matters`` → matches the commander, role
+    ``draw-a-card → lifegain``), the catalog ``gain-to-draw`` gate's direction is
+    ``(lifegain, draw-a-card)`` — the entry's role is reversed, so it fails liveness
+    and supplies no phantom return leg. The report must equal the empty-store control.
+    """
+
+    @staticmethod
+    def _queza() -> dict:
+        return {
+            'name': 'Queza, Augur of Agonies',
+            'role': 'commander',
+            'oracle_id': 'queza',
+            'type_line': 'Legendary Creature — Vampire Wizard',
+            'oracle_text': 'Whenever you draw a card, target opponent loses 1 life and you gain 1 life.',
+            'otags': ['draw-matters', 'opponent-loses-life', 'lifegain'],
+        }
+
+    @staticmethod
+    def _wrong_role_store() -> ProvisionalAttributeStore:
+        # Role is reversed vs the catalog ``gain-to-draw`` relay (lifegain → draw-a-card):
+        # this entry declares draw-a-card → lifegain, so it must never make the gate live.
+        return ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='gain-to-draw',
+                    query='otag:draw-matters',
+                    trigger_event='draw-a-card',
+                    produced_event='lifegain',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
+        )
+
+    def test_wrong_role_commander_carrier_mints_no_phantom_engine(self) -> None:
+        from pipeline.transforms.strategy.engine_report import identify_engines
+
+        deck = _lifetrade_deck(self._queza(), [])
+        empty = identify_engines(deck, store=empty_store(), combos=[])
+        hijack = identify_engines(deck, store=self._wrong_role_store(), combos=[])
+
+        # Queza alone has no return leg (nothing re-produces draw-a-card) — zero.
+        assert _recursive_events(empty) == set(), f'control should be empty; got {_recursive_events(empty)}'
+        # The wrong-role store slug, even admitted into nodes, must not revive the gate.
+        assert _recursive_events(hijack) == set(), (
+            f'a wrong-role store slug minted a phantom recursive engine: {_recursive_events(hijack)}'
+        )
+
+
+class TestCorrectRoleStoreSlugRestoresLifetradeLoop:
+    """#1 (restored capability) — a CORRECT-role store entry that matches real cards
+    is a live gate carrier again. The native-only freeze over-corrected and dropped it.
+
+    Repro (Astra's): Cromat + two Niv-Mizzets + Irencrag Pyromancer that deal damage on
+    draw (so they EVADE the native ``draw-to-drain`` synth regex ``oracle:/draw[^.]*los/``
+    — there is no "lose life" text), patched by a haiku ``draw-to-drain`` entry whose role
+    ``draw-a-card → life-loss-drain`` MATCHES the catalog relay direction. Native Exquisite
+    Blood (``drain-to-gain``) + Drogskol Reaver (``gain-to-draw``) close the loop:
+    draw → drain → gain → draw. The report reports all three events recursive (parent
+    ``c59d74e`` behavior), not zero.
+    """
+
+    @staticmethod
+    def _cromat() -> dict:
+        return {
+            'name': 'Cromat',
+            'role': 'commander',
+            'oracle_id': 'cromat',
+            'type_line': 'Legendary Creature — Illusion',
+            'oracle_text': '',
+            'otags': [],
+        }
+
+    @staticmethod
+    def _niv_firemind() -> dict:
+        # Damage-on-draw: deals damage (NOT "loses life"), so the native draw-to-drain
+        # synth regex (needs "los") misses it — the haiku store entry patches the gap.
+        return {
+            'name': 'Niv-Mizzet, the Firemind',
+            'oracle_id': 'niv-firemind',
+            'type_line': 'Legendary Creature — Dragon Wizard',
+            'oracle_text': 'Whenever you draw a card, Niv-Mizzet, the Firemind deals 1 damage to any target.',
+            'otags': ['draw-matters'],
+        }
+
+    @staticmethod
+    def _niv_parun() -> dict:
+        return {
+            'name': 'Niv-Mizzet, Parun',
+            'oracle_id': 'niv-parun',
+            'type_line': 'Legendary Creature — Dragon Wizard',
+            'oracle_text': 'Whenever you draw a card, Niv-Mizzet, Parun deals 1 damage to any target.',
+            'otags': ['draw-matters'],
+        }
+
+    @staticmethod
+    def _irencrag_pyromancer() -> dict:
+        return {
+            'name': 'Irencrag Pyromancer',
+            'oracle_id': 'irencrag-pyromancer',
+            'type_line': 'Creature — Human Wizard',
+            'oracle_text': 'Whenever you draw your second card each turn, Irencrag Pyromancer deals 3 damage to any target.',  # noqa: E501
+            'otags': ['draw-matters'],
+        }
+
+    @staticmethod
+    def _drogskol_reaver() -> dict:
+        # gain-to-draw carrier: "whenever you gain life, draw a card".
+        return {
+            'name': 'Drogskol Reaver',
+            'oracle_id': 'drogskol-reaver',
+            'type_line': 'Creature — Spirit',
+            'oracle_text': 'Whenever you gain life, draw a card.',
+            'otags': ['lifegain-matters'],
+        }
+
+    @staticmethod
+    def _correct_role_store() -> ProvisionalAttributeStore:
+        # Role MATCHES the catalog draw-to-drain relay direction (draw-a-card → life-loss-drain).
+        return ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='draw-to-drain',
+                    query='oracle:/whenever.you.draw[^.]*deals.[13].damage.to.any.target/',
+                    trigger_event='draw-a-card',
+                    produced_event='life-loss-drain',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
+        )
+
+    def _deck(self) -> dict:
+        enablers = [
+            self._niv_firemind(),
+            self._niv_parun(),
+            self._irencrag_pyromancer(),
+            _exquisite_card(),
+            self._drogskol_reaver(),
+        ]
+        return _lifetrade_deck(self._cromat(), enablers)
+
+    def test_correct_role_store_slug_closes_the_lifetrade_loop(self) -> None:
+        from pipeline.transforms.strategy.engine_report import identify_engines
+
+        deck = self._deck()
+        empty = identify_engines(deck, store=empty_store(), combos=[])
+        legit = identify_engines(deck, store=self._correct_role_store(), combos=[])
+
+        # Control: without the store entry the draw→drain leg is a synth-regex miss,
+        # so the loop never closes — zero recursive engines.
+        assert _recursive_events(empty) == set(), f'control should be empty; got {_recursive_events(empty)}'
+        # The correct-role matched store entry restores the loop (c59d74e behavior).
+        recursive = _recursive_events(legit)
+        assert {'draw-a-card', 'life-loss-drain', 'lifegain'} <= recursive, (
+            f'the correct-role store slug did not restore the lifetrade loop: {recursive}'
+        )

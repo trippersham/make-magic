@@ -195,7 +195,8 @@ per-deck runtime.
   drain engine and reconcile engine⟷combo (both need both cards). Implemented as the optional
   `relay_gate_carriers` argument to `unified_event_graph_edges`/`recursive_event_set`, threaded from
   `elect_engine_units`'s `gate_carriers` (default `set(attr_weight)`; the `engine_report` path passes
-  the native carrier set — see the 2026-11-22 #114-review-A note below); it falls back to `nodes` for
+  the role-matched live set — native carriers plus correct-role matched store gates, see the
+  2026-11-22 #114-review note below); it falls back to `nodes` for
   callers where present == admitted (e.g. `loop_aware_nodes`, which already passes all present attrs). A gate does NOT become
   an identity node merely by enabling a relay (loop-aware admission unchanged — a pure lifetrade
   event-cycle carries no attr anchor, so no identity drift). Measured OFF/ON on the 187 corpus:
@@ -293,12 +294,10 @@ per-deck runtime.
   unit's REPORTED metadata (the unit set, mass, kind, and the mass election are unchanged).**
   (1) **Store-hijack (report path):** the A-emission keyed gate liveness on `set(attr_weight)`,
   which `engine_report` salts with store (haiku) slugs by name+query match — a same-named,
-  wrong-role slug could revive a catalog gate and mint a phantom recursive engine. Liveness now
-  tests the GENUINE native carrier set, threaded as `elect_engine_units`'s `gate_carriers`
-  argument (`identify_engines` freezes `frozenset(ctx.attr_weight)` BEFORE the store-injection
-  loop); `None` falls back to `set(attr_weight)` for the store-free `compute_facts` path. A
-  genuine store edge still closes its loop through the relay-augmented `event_edges`, not this
-  gate test. (2) **Hub** = the loop's RETURN-PATH gate (a relay whose `from_event` is inside the
+  wrong-role slug could revive a catalog gate and mint a phantom recursive engine. Liveness tests
+  a ROLE-MATCHED live set (see the 2026-11-22 #114-review role-matched correction below), threaded
+  as `elect_engine_units`'s `gate_carriers` argument; `None` falls back to `set(attr_weight)` for
+  the store-free `compute_facts` path. (2) **Hub** = the loop's RETURN-PATH gate (a relay whose `from_event` is inside the
   event's own SCC), not the heaviest live gate. (3) **commander_coupled** counts the commander's
   synthesized relay-gate attrs (`SYNTH_ALWAYS`, dropped by the raw-otag rebuild). (4)
   **formation_mode** gives the producer-only loop its own `recursive-relay-loop` mode (ADR 0014)
@@ -306,6 +305,24 @@ per-deck runtime.
   ONLY `formation_mode` + the raw `relay_loop` marker; ENGINE/RESOLVE byte-identical, FULL_CORPUS
   `f3efdb0d…→c85e4ae5…`, Class A/B unchanged at 34/42. See the ADR 0003 2026-11-22 (#114 review A)
   entry + ADR 0014's `recursive-relay-loop` amendment.
+- **Role-matched store-carrier liveness (2026-11-22, #114 review — Astra + Fable): the store-hijack
+  fix (metadata-fix (1) above) is corrected from NATIVE-ONLY to ROLE-MATCHED.** Freezing gate
+  liveness to the native carrier set killed the Queza/Yargle hijacks but ALSO dropped a *legitimate*
+  store-backed relay: a correct-role matched haiku gate (e.g. a `draw-to-drain` entry whose role
+  `draw-a-card → life-loss-drain` patches a synth-regex miss on damage-on-draw cards) was excluded,
+  so its pure-event-cycle loop no longer closed. The predicate is now: **a store entry makes a catalog
+  relay gate live iff it matched ≥1 card AND its declared role `(trigger_event, produced_event)` equals
+  the catalog relay direction `(from_event, owning_event)`** for a gate of that name (the single
+  predicate `relay.catalog_relay_directions`). `identify_engines` threads `native_gate_carriers |
+  role_matched_store_gates` as `gate_carriers`, used by BOTH the SCC walk's `gate_present` AND
+  `build_relay_augmented_event_edges`'s catalog-relay injection (which previously tested bare
+  `ref.gate in nodes`, so a wrong-role store slug ADMITTED into `nodes` as a commander carrier still
+  supplied the Queza phantom return leg there). A correct-role matched store edge now closes its loop
+  through these role-matched relay edges; a wrong-role or zero-match slug stays dead. Report-path ONLY
+  (`resolve()` has no store), so ENGINE/RESOLVE/FULL_CORPUS are byte-identical (`c85e4ae5…` held).
+  Regression tests: `test_relay.py::TestWrongRoleStoreSlugDoesNotHijackCatalogRelay` (hijack → 0) +
+  `::TestCorrectRoleStoreSlugRestoresLifetradeLoop` (correct role → loop closes), both alongside the
+  retained `TestStoreSlugDoesNotHijackCatalogGate`.
 - Substantiveness (ADR 0002/0004/0020) and centrality (ADR 0014) stay in their ADR-0021
   layers; this change is entirely in substantiveness.
 

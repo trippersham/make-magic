@@ -873,9 +873,10 @@ re-baseline makes every *intended* change legible as such.
   and the mass election are all unchanged. (1) **Store-hijack (report path only):** the A-emission
   keyed catalog relay-gate liveness on `set(attr_weight)`, which the `engine_report` path salts with
   store (haiku) slugs by name+query match — a same-named, wrong-role slug could revive a catalog gate
-  and mint a phantom recursive engine. Liveness now tests the GENUINE native carrier set
-  (`gate_carriers`, frozen in `identify_engines` before store injection); a genuine store edge still
-  closes its loop through the relay-augmented `event_edges`, not this gate test. (2) **Hub naming:**
+  and mint a phantom recursive engine. Liveness tests a ROLE-MATCHED live set (`gate_carriers` —
+  native carriers frozen in `identify_engines` before store injection, UNIONED with the correct-role
+  matched store gates; see the 2026-11-22 role-matched-liveness entry below, which replaces this fix's
+  original native-only form). (2) **Hub naming:**
   the hub is now the loop's RETURN-PATH gate — a relay whose source event is inside the event's own
   SCC — not the globally-heaviest live gate (which can merely FEED the loop, e.g. `draw-a-card →
   life-loss-drain`). (3) **commander_coupled** now counts the commander's SYNTHESIZED relay-gate attrs
@@ -898,6 +899,25 @@ re-baseline makes every *intended* change legible as such.
   the pinned `manifest.json` `pinned_composites`; the two per-deck baseline JSONs are byte-unchanged).
   NOT a version bump (version held at 0.8.1 under `[Unreleased]`). `uv run --extra dev pytest -q` green
   + network-free; ruff + format + pyright clean. Proof: `subagents/fix-a-metadata/outbox.md`.
+- **2026-11-22 — role-matched store-carrier liveness replaces the native-only freeze (#114 review —
+  Astra + Fable).** The store-hijack fix above froze gate liveness to the native carrier set, which
+  killed the hijacks but ALSO dropped a *legitimate* store-backed relay: a correct-role matched haiku
+  gate (role matching the catalog relay direction) was excluded, so its pure-event-cycle loop no longer
+  closed. The predicate is now: **a store entry makes a catalog relay gate live iff it matched ≥1 card
+  AND its role `(trigger_event, produced_event)` equals the catalog relay direction `(from_event,
+  owning_event)`** (single predicate `relay.catalog_relay_directions`). `identify_engines` threads
+  `native_gate_carriers | role_matched_store_gates` as `gate_carriers`, consumed by BOTH the SCC walk's
+  `gate_present` AND `build_relay_augmented_event_edges`'s catalog-relay injection (previously bare
+  `ref.gate in nodes`, which let a wrong-role store slug admitted into `nodes` still supply the Queza
+  phantom there). **Behavioral-equivalence proof:** report-path ONLY — `resolve()`/`compute_facts` carry
+  no store, so `gate_carriers=None` on that path and all three composites are byte-IDENTICAL (ENGINE
+  `80d0116a…`, RESOLVE `3ebb33fd…`, FULL_CORPUS `c85e4ae5…` held; reproduced twice via
+  `engine_parity_oracle`). Two new `test_relay.py` regressions — wrong-role (Queza commander carrier) →
+  0 engines, correct-role (damage-on-draw store `draw-to-drain`) → loop closes `{draw-a-card,
+  life-loss-drain, lifegain}` — both FAIL on the native-only parent and pass here; the existing
+  `TestStoreSlugDoesNotHijackCatalogGate` + lifetrade/#115 tests stay green. NOT a version bump (held at
+  0.8.1 under `[Unreleased]`). ruff + format + pyright clean. Proof:
+  `subagents/fix-a1-roleprovenance/outbox.md`.
 
 ## Related records
 - 0001 — the knowledge-placement doctrine these files exemplify.

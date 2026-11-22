@@ -373,11 +373,13 @@ def elect_engine_units(
     tested against for liveness (PRESENCE, ADR 0026 §1). It defaults to
     ``set(attr_weight)``, which is correct for the store-free ``compute_facts`` path
     where every weight is a native card attribute. The ``engine_report`` path instead
-    injects store (haiku) slugs into ``attr_weight`` by name+query match, so it passes
-    the GENUINE native carrier set (frozen before any store injection): a same-named,
-    wrong-role store slug must not make a catalog gate falsely live and mint a phantom
-    recursive engine. A genuine store edge still closes its loop through the
-    relay-augmented ``event_edges`` (:mod:`.relay`), not through this gate test.
+    injects store (haiku) slugs into ``attr_weight`` by name+query match, so it passes a
+    ROLE-MATCHED live set: the genuine native carriers (frozen before any store injection)
+    PLUS the matched store slugs whose declared role agrees with the gate's catalog relay
+    direction. A correct-role matched store slug makes its gate live — that is how a
+    legitimate store-backed lifetrade loop closes through the catalog relay edges here —
+    while a same-named, wrong-role or zero-match slug is excluded, so it cannot make a
+    catalog gate falsely live and mint a phantom recursive engine.
 
     Purely additive to the label: reported under ``facts['engines']`` and never
     consulted by the naming layer (the label is unchanged; STRUCTURE-ONLY).
@@ -407,14 +409,16 @@ def elect_engine_units(
     # ``combo_event_edges`` is the optional injection seam for the 7 combo-certified
     # families (ADR 0026 §4), DEFERRED to #90: the shipped engine passes ``None``, so this
     # walk closes loops only from framework cycles and lifetrade relays.
-    # Catalog relay-gate liveness is tested against GENUINE in-deck carriers of the
+    # Catalog relay-gate liveness is tested against ROLE-MATCHED live carriers of the
     # gate CardAttribute (``gate_present``), NOT the raw ``attr_weight`` keys: the
     # engine_report path injects store (haiku) slugs into ``attr_weight`` by
     # name+query match, so ``set(attr_weight)`` would admit a same-named, wrong-role
-    # store slug as a live catalog gate. ``gate_carriers`` is the native carrier set
-    # the caller froze before any store injection; ``None`` falls back to
-    # ``set(attr_weight)`` (correct for the store-free ``compute_facts`` path, where
-    # every weight is native, keeping that path byte-identical).
+    # store slug as a live catalog gate. ``gate_carriers`` is the native carriers the
+    # caller froze before any store injection, UNIONED with the matched store slugs
+    # whose role agrees with the gate's catalog relay direction — a correct-role store
+    # gate is live, a wrong-role one is not. ``None`` falls back to ``set(attr_weight)``
+    # (correct for the store-free ``compute_facts`` path, where every weight is native,
+    # keeping that path byte-identical).
     gate_present = gate_carriers if gate_carriers is not None else frozenset(attr_weight)
     # ONE sorted-Tarjan SCC pass over the unified CardAttribute | Event graph. It names
     # both the recursive event set (events on a real directed cycle) AND, per event,

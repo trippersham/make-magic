@@ -41,7 +41,7 @@ from pipeline.transforms.strategy.machine_vocab import (
     load_store,
 )
 from pipeline.transforms.strategy.query import CardView, compile_query
-from pipeline.transforms.strategy.relay import elect_engine_units_with_relay
+from pipeline.transforms.strategy.relay import catalog_relay_directions, elect_engine_units_with_relay
 from pipeline.transforms.strategy.strategy_graph import compute_facts, determine_node_admitted
 
 # ---------------------------------------------------------------------------
@@ -470,13 +470,17 @@ def identify_engines(
     # combo being PRESENT (``_assemble_present_combo_edges``), so it counts as matched.
     #
     # Freeze the GENUINE native carrier set BEFORE the store loop mutates
-    # ``ctx.attr_weight``. A catalog relay gate is "live" only via a real in-deck
-    # carrier of that gate CardAttribute; a store slug sharing a gate's name (added
-    # to ``attr_weight`` by its own query match, possibly with the WRONG role) must
-    # not revive the gate and mint a phantom recursive engine. This native set is
-    # threaded to ``elect_engine_units`` as ``gate_carriers`` (a genuine store edge
-    # still closes its loop through the relay-augmented ``event_edges``, not this test).
+    # ``ctx.attr_weight``. A catalog relay gate's liveness is ROLE-MATCHED (ADR 0026 §1):
+    # it is live via a real in-deck carrier of that gate CardAttribute, OR via a matched
+    # store (haiku) slug whose declared role agrees with the gate's catalog relay direction
+    # ``(from_event, owning_event)``. A store slug sharing a gate's name — added to
+    # ``attr_weight`` by its own query match, possibly with the WRONG role — must NOT revive
+    # the gate on name alone and mint a phantom recursive engine; only a correct-role matched
+    # slug is admitted. ``native_gate_carriers`` holds the carriers present before the loop;
+    # ``role_matched_store_gates`` (built after the loop, below) adds the correct-role matched
+    # store gates, and the union is threaded to ``elect_engine_units`` as ``gate_carriers``.
     native_gate_carriers = frozenset(ctx.attr_weight)
+    relay_directions = catalog_relay_directions(ctx.assets.events)
     matched_store_attrs: set[str] = set()
     if not store.is_empty:
         for ma in store.attributes:
@@ -527,6 +531,18 @@ def identify_engines(
             if is_cmd_attr:
                 ctx.cmd_attrs.add(ma.name)
 
+    # A matched store slug makes its same-named catalog relay gate live only when its
+    # declared role ``(trigger_event, produced_event)`` is one of that gate's catalog relay
+    # directions ``(from_event, owning_event)`` — the role-matched-liveness predicate (ADR
+    # 0026 §1 / ADR 0017). Union with the frozen native carriers; threaded as ``gate_carriers``.
+    role_matched_store_gates = {
+        name
+        for name in matched_store_attrs
+        if (ma := store.get(name)) is not None
+        and (ma.trigger_event, ma.produced_event) in relay_directions.get(name, ())
+    }
+    gate_carriers = native_gate_carriers | role_matched_store_gates
+
     # 3. Run relay-augmented engine isolation.
     #
     # Superset-of-resolve (#83 MAJOR-4): the report must report at least what
@@ -551,7 +567,7 @@ def identify_engines(
         earned_archetypes=earned_archetypes,
         combo_event_edges=None,
         matched_store_attrs=frozenset(matched_store_attrs),
-        gate_carriers=native_gate_carriers,
+        gate_carriers=frozenset(gate_carriers),
     )
 
     # 4. Name / characterize each engine.
