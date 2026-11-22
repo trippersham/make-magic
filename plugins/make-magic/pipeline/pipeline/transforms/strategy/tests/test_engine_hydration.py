@@ -117,12 +117,14 @@ class TestCuratedEdgeQueries:
         queries = curated_edge_queries()
         assert len(queries) == 6
 
-    def test_all_names_match_edge_roles(self) -> None:
-        from pipeline.transforms.strategy.edge_roles import CURATED_EDGE_ROLES
+    def test_all_names_match_relay_gates(self) -> None:
+        # ADR 0026 Phase 2: the authored within-card edge attrs are the SEED_MAP
+        # relay gates (the lifetrade family), not the dead edge_roles sidecar.
+        from pipeline.transforms.strategy.derive_card_events import relay_gate_attrs
 
         queries = curated_edge_queries()
         names = {n for n, _ in queries}
-        assert names == set(CURATED_EDGE_ROLES.keys())
+        assert names == set(relay_gate_attrs())
 
     def test_all_queries_compile(self) -> None:
         """Every curated edge query must compile without error."""

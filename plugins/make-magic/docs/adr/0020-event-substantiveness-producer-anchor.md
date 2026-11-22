@@ -178,6 +178,16 @@ axis. The two axes are separate (`headline_strategy` returns the combo label whe
   `03a5880c…`→`5c75bb44…`. Proof:
   `~/.claude/plans/trippersham/magic-tools/2026-11-17-concept-anchored-self-healing/subagents/batch-b-concepts/outbox.md`.
 
+- **2026-11-19 — [0026] framework: event-substantiveness gains the structural loop signal.** The
+  unified event graph ([0026], issue #83) adds a **structural disjunct** to admission: an event's
+  node is substantive when prevalent/commander-anchored (this record's gate, UNCHANGED) **OR** when
+  it participates in a closed cycle (binary SCC-membership, among otherwise-substantive nodes). The
+  `produced_by_commander` gate and its measure are **untouched** — the cycle signal is an additional
+  admission disjunct computed by a provisional in-stage cycle pass ([0026] §3), not a new Requirement
+  kind and not a change to this gate. Event-substantiveness stays **distinct from centrality**
+  ([0014]). **Phase 0 is schema-only (relay plumbing); the loop signal lands in [0026] Phase 1 under a
+  proof-carrying re-baseline ([0003]).**
+
 ## Related records
 - 0002 — the generic substantiveness framework; `produced_by_commander` is its first level-3 kind.
 - 0003 — the byte-parity re-baseline this change carries (old→new SHAs + the proof).

@@ -1,41 +1,31 @@
-"""Sidecar role registry for curated within-card EventEffect attributes (P1).
+"""EventEffect type + the (now store-only) within-card edge-role registry.
 
-The 6 curated edge attrs registered in :data:`.distill_strategies.SYNTH_ALWAYS_ATTRIBUTES`
-(``draw-to-drain``, ``draw-to-gain``, ``gain-to-drain``, ``drain-to-gain``,
-``gain-to-draw``, ``drain-to-draw``) are bare ``(name, query)`` tuples with no
-metadata slot for event roles. This module is the **sidecar** that attaches
-``trigger_event`` / ``produced_event`` roles and ``source='curated'`` provenance
-WITHOUT disturbing the held tuples in ``distill_strategies.py``.
+The 6 curated lifetrade couplings that once lived here (the directed draw/gain/
+drain pairs — ``draw-to-drain``, ``draw-to-gain``, ``gain-to-drain``,
+``drain-to-gain``, ``gain-to-draw``, ``drain-to-draw``) were **relocated into
+``derive_card_events.SEED_MAP`` as catalog** :class:`~pipeline.transforms.strategy.derive_card_events.RelayEntry`
+**edges** (ADR 0026 Phase 2): a relay on the produced event's ``produced_by`` side
+names the source event (``from_event``) and the gate CardAttribute whose carriers
+enable the edge. The one unified SCC walk reads those relays natively, so the
+former sidecar role for lifetrade is **gone** — :data:`CURATED_EDGE_ROLES` no
+longer carries them (ADR 0011 superseded for the curated within-card edge).
 
-Why a sidecar (not editing the tuples)
---------------------------------------
-The curated base must stay byte-identical across P0-P2 (the parity oracle gate).
-The held ``SYNTH_ALWAYS_ATTRIBUTES`` are ``list[tuple[str, str]]`` — plain
-``(name, query)`` pairs that the synth evaluator compiles as-is. Rather than
-change that data shape (which would ripple into ``compile_synth``, ``strategy_graph.py``,
-and the parity fixture), this module **maps attribute names to their roles** in a
-separate registry, read only by the P2 relay-node derivation that injects
-within-card edges into the event graph.
-
-Event alignment
----------------
-Each trigger/produced role is an event slug from ``data/event_catalog.json``.
-The 6 curated edges use exactly 3 events:
-
-    ``draw-a-card``     — CR 120: drawing cards
-    ``lifegain``        — CR 119.3: gaining life
-    ``life-loss-drain`` — CR 119.3: opponent losing life / drain
-
-All 3 exist in the catalog. No new events are needed.
+What remains here
+-----------------
+This module stays the home of the :class:`EventEffect` TYPE and the curated-role
+lookup, which the **provisional-edge channel** still uses: :mod:`.relay`'s
+``_get_role_with_store`` checks :func:`get_role` (curated) first, then the runtime
+:class:`~pipeline.transforms.strategy.machine_vocab.ProvisionalAttributeStore`
+(ADR-0017 haiku / spellbook combo edges), constructing an :class:`EventEffect` on
+the fly from a machine attribute's ``trigger_event``/``produced_event``. With
+:data:`CURATED_EDGE_ROLES` empty the curated tier is a clean miss and the store
+tier carries every within-card edge that is not a catalog relay — the two-tier
+waterfall (ADR 0017) is intact for any future curated family.
 
 Types reused
 ------------
 - :class:`.machine_vocab.Provenance` — shared provenance dataclass.
 - :class:`EventEffect` — a frozen dataclass defined here that composes the above.
-  (Renamed from ``EdgeRole`` in Phase 2A — the design-3 ontology name.)
-
-P2 reads this registry via :func:`get_role` to decide which event a card
-consumes (trigger) and produces (produced_event) for the relay-node injection.
 """
 
 from __future__ import annotations
@@ -47,9 +37,8 @@ from pipeline.transforms.strategy.machine_vocab import Provenance
 # ---------------------------------------------------------------------------
 # EventEffect: the guarded directed edge (trigger_event → produced_event)
 #
-# Renamed from EdgeRole in Phase 2A (design-3 §3.2).
-# Guard scaffolding fields are ADDITIVE and DEFAULTED — no evaluation logic
-# here (that lands in Phase 2B).
+# Still constructed by the provisional-edge channel (relay.py) from a machine
+# store attribute. Guard scaffolding fields are ADDITIVE and DEFAULTED.
 # ---------------------------------------------------------------------------
 
 
@@ -58,7 +47,10 @@ class EventEffect:
     """A guarded directed edge in the event multigraph (design-3 §3.2).
 
     ``trigger_event → produced_event`` with provenance and guard scaffolding.
-    Renamed from ``EdgeRole`` in Phase 2A; ``effect_event`` → ``produced_event``.
+    Constructed by :mod:`.relay` from a :class:`~pipeline.transforms.strategy.machine_vocab.ProvisionalAttributeStore`
+    attribute (haiku / spellbook); the curated lifetrade family that once
+    populated :data:`CURATED_EDGE_ROLES` now lives as catalog relays in
+    ``derive_card_events.SEED_MAP`` (ADR 0026).
 
     Parameters
     ----------
@@ -68,9 +60,8 @@ class EventEffect:
     produced_event
         The event this edge produces (e.g. ``'life-loss-drain'``).
         Must be a slug in ``data/event_catalog.json``.
-        Renamed from ``effect_event`` in Phase 2A.
     provenance
-        Origin metadata. For curated attrs: ``source='curated'``.
+        Origin metadata (store-authored: ``source='haiku'``/``'spellbook'``).
 
     Guard scaffolding (Phase 2A — INERT defaults, evaluation in 2B)
     ---------------------------------------------------------------
@@ -109,53 +100,18 @@ class EventEffect:
 
 
 # ---------------------------------------------------------------------------
-# The singleton curated provenance (shared by all 6 entries)
-# ---------------------------------------------------------------------------
-
-_CURATED_PROVENANCE = Provenance(source='curated')
-
-
-# ---------------------------------------------------------------------------
 # The registry: attribute name -> EventEffect
+#
+# EMPTY as of ADR 0026 Phase 2: the 6 lifetrade couplings were relocated to
+# ``derive_card_events.SEED_MAP`` as catalog RelayEntry edges. No curated
+# within-card edge role remains; the provisional store (haiku/spellbook) carries
+# every within-card edge that is not a catalog relay.
 # ---------------------------------------------------------------------------
 
-#: Curated edge-role registry. Keys are the 6 edge-category attribute names
-#: from ``SYNTH_ALWAYS_ATTRIBUTES``; values carry the event-catalog-aligned
-#: trigger/produced roles and curated provenance. P2's relay-node derivation
-#: reads this to inject cards as consumer(trigger) + producer(produced_event)
-#: into the event graph.
-CURATED_EDGE_ROLES: dict[str, EventEffect] = {
-    'draw-to-drain': EventEffect(
-        trigger_event='draw-a-card',
-        produced_event='life-loss-drain',
-        provenance=_CURATED_PROVENANCE,
-    ),
-    'draw-to-gain': EventEffect(
-        trigger_event='draw-a-card',
-        produced_event='lifegain',
-        provenance=_CURATED_PROVENANCE,
-    ),
-    'gain-to-drain': EventEffect(
-        trigger_event='lifegain',
-        produced_event='life-loss-drain',
-        provenance=_CURATED_PROVENANCE,
-    ),
-    'drain-to-gain': EventEffect(
-        trigger_event='life-loss-drain',
-        produced_event='lifegain',
-        provenance=_CURATED_PROVENANCE,
-    ),
-    'gain-to-draw': EventEffect(
-        trigger_event='lifegain',
-        produced_event='draw-a-card',
-        provenance=_CURATED_PROVENANCE,
-    ),
-    'drain-to-draw': EventEffect(
-        trigger_event='life-loss-drain',
-        produced_event='draw-a-card',
-        provenance=_CURATED_PROVENANCE,
-    ),
-}
+#: Curated edge-role registry (EMPTY — see module docstring). Retained as the
+#: curated tier of the ADR-0017 two-tier waterfall; :func:`get_role` is a clean
+#: miss until a future curated family is registered here.
+CURATED_EDGE_ROLES: dict[str, EventEffect] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -164,19 +120,19 @@ CURATED_EDGE_ROLES: dict[str, EventEffect] = {
 
 
 def get_role(attr_name: str) -> EventEffect | None:
-    """Look up the edge role for an attribute name.
+    """Look up the curated edge role for an attribute name.
 
-    Returns ``None`` for non-edge attrs (``morph``, ``rad-counter``, any
-    identity/archetype attribute).  P2 calls this on every synth attr to decide
-    whether to inject a relay node.
+    Returns ``None`` for every attr now that :data:`CURATED_EDGE_ROLES` is empty
+    (the lifetrade family moved to catalog relays — ADR 0026). :mod:`.relay` calls
+    this as the curated tier before falling through to the provisional store.
     """
     return CURATED_EDGE_ROLES.get(attr_name)
 
 
 def all_edge_attr_names() -> frozenset[str]:
-    """The frozenset of all curated edge-category attribute names.
+    """The frozenset of all curated edge-category attribute names (now empty).
 
-    Useful for the incompleteness detector (P3) and any assertion that wants
-    to confirm the registry is in sync with ``SYNTH_ALWAYS_ATTRIBUTES``.
+    The authoritative list of within-card edge-gating attrs is
+    :func:`.derive_card_events.relay_gate_attrs` (the SEED_MAP relays).
     """
     return frozenset(CURATED_EDGE_ROLES.keys())

@@ -47,6 +47,18 @@ nodes and changing engine output.
   "a new layer re-types a facts-layer predicate" pattern that produced the combo-litmus
   drift, caught before it fossilized.
 
+## Amendment — 2026-11-19 ([0026] framework: graph admission gains a structural loop signal)
+
+The unified event graph ([0026], issue #83) widens graph admission: a node is admitted when it
+is prevalent/commander-carried (the predicates this record governs, UNCHANGED) **OR** when it is
+on a closed cycle (binary SCC-membership ≥ 2, among otherwise-substantive nodes) — a loop-closing
+relay node earns admission into the one walked graph even below the prevalence bar. The two named
+predicates `determine_node_eligible` (presence gate) and `determine_node_admitted` (graph
+admission) keep their current definitions and stay **distinct** (do not merge); the structural
+signal is an ADDITIONAL disjunct in the admission stage, computed by a provisional cycle pass
+([0026] §3 / [0002] amendment), not a change to either predicate's formula. **Phase 0 is
+schema-only; this lands in [0026] Phase 1 under a proof-carrying re-baseline ([0003]).**
+
 ## Related records
 - 0001 — clause 4 (one named implementation).
 - 0002 — substantiveness; `requires_met` (the presence gate) feeds `st['requires_met']`.

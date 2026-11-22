@@ -16,7 +16,6 @@ from pathlib import Path
 import pytest
 
 from pipeline.transforms.strategy.assets import load_assets
-from pipeline.transforms.strategy.edge_roles import get_role
 from pipeline.transforms.strategy.machine_vocab import (
     CardAttribute,
     Provenance,
@@ -42,8 +41,8 @@ FIX = Path(__file__).resolve().parent / 'fixtures'
 RELAY_DECKS = FIX / 'relay_decks'
 
 # The two parity-oracle SHAs that MUST NOT shift.
-EXPECTED_ENGINE_SHA = '4d3f5e6d9d8ed142f50e241940de58c5b92aad5b30629b9b81d2d5a73c3131e3'
-EXPECTED_RESOLVE_SHA = '940c38811193b6f4ca9ab2b2b20e2df63e70bc1f4ba8911f7486c0a1a11c8814'
+EXPECTED_ENGINE_SHA = '80d0116a653ffb31692fefb8d6a43b2099440febc3901b361fb9fa034e2bed0f'
+EXPECTED_RESOLVE_SHA = '3ebb33fd9b469926fd06d2c63605dfe9bad462563760dae47eca9c4cb93c8c76'
 
 
 # ---------------------------------------------------------------------------
@@ -99,12 +98,16 @@ class TestDefaultPathParity:
 # ---------------------------------------------------------------------------
 
 
-class TestDefaultPathNoRelayEngines:
-    """On the relay fixture deck, the DEFAULT path sees no relay-based engines.
+class TestDefaultPathClosesLifetradeViaCatalogRelays:
+    """On the relay fixture deck, the DEFAULT path NOW closes the lifetrade loop.
 
-    The edge-category attrs (draw-to-drain, draw-to-gain, gain-to-draw) are in
-    ``nodes`` but are invisible to the event graph because they appear in no
-    catalog event's ``produced_by`` / ``triggers`` lists.
+    ADR 0026 Phase 2 relocated the 6 lifetrade couplings into ``SEED_MAP`` as
+    catalog ``RelayEntry`` edges, so the ONE unified SCC walk the default
+    ``compute_facts`` path runs sees them natively — the loop no longer needs the
+    relay-augmented engine_report path. The gate attrs are tested for PRESENCE
+    (a carrier in the deck), not identity admission, so the Queza draw↔gain +
+    Sanguine Bond↔Exquisite Blood couplings close even though each is a small
+    sub-threshold attr.
     """
 
     def test_edge_attrs_in_nodes(self, relay_ctx) -> None:
@@ -112,22 +115,14 @@ class TestDefaultPathNoRelayEngines:
         expected = {'draw-to-drain', 'draw-to-gain', 'gain-to-draw'}
         assert expected <= relay_ctx.nodes
 
-    def test_no_relay_hubs(self, relay_ctx) -> None:
-        """The default engine isolation has zero relay hubs."""
-        iso = relay_ctx.facts['engines']['engine_units']
-        assert iso['relay_hubs'] == []
-
-    def test_no_recursive_engines(self, relay_ctx) -> None:
-        """No recursive-engine on the default path (only static-payoff)."""
+    def test_recursive_lifetrade_engine_present(self, relay_ctx) -> None:
+        """The default path reports a recursive-engine (lifetrade loop closed)."""
         iso = relay_ctx.facts['engines']['engine_units']
         kinds = {e['kind'] for e in iso['engines']}
-        assert 'recursive-engine' not in kinds
-
-    def test_commander_loop_does_not_close(self, relay_ctx) -> None:
-        """The commander loop probe does not close without relay injection."""
-        iso = relay_ctx.facts['engines']['engine_units']
-        assert iso['commander_loop'] is not None
-        assert iso['commander_loop']['closes'] is False
+        assert 'recursive-engine' in kinds
+        recursive_events = {e['event'] for e in iso['engines'] if e['kind'] == 'recursive-engine'}
+        # The draw↔gain loop closes on the default path (catalog relays).
+        assert {'lifegain', 'draw-a-card'} <= recursive_events
 
 
 # ---------------------------------------------------------------------------
@@ -136,55 +131,29 @@ class TestDefaultPathNoRelayEngines:
 
 
 class TestBuildRelayAugmentedEventEdges:
-    """The relay derivation injects edge attrs as consumer+producer nodes."""
+    """The relay-augmented channel (:mod:`.relay`) injects CATALOG relays + STORE edges.
 
-    def test_augmented_edges_contain_relay_nodes(self, relay_ctx, assets) -> None:
-        """Edge attrs appear as producer or consumer in augmented event edges."""
-        augmented = build_relay_augmented_event_edges(relay_ctx.nodes, assets.events)
-        relay_attrs = {'draw-to-drain', 'draw-to-gain', 'gain-to-draw'}
-        # Collect all attrs that appear in augmented edges
-        in_edges = {a for p, c, _ in augmented for a in (p, c)}
-        assert relay_attrs & in_edges == relay_attrs, (
-            f'Expected all relay attrs in edges; missing: {relay_attrs - in_edges}'
-        )
+    Lifetrade is now read from the CATALOG relays (ADR 0026 Phase 2), not the dead
+    ``edge_roles`` sidecar: a RelayEntry on ``<owning>.produced_by`` injects its gate
+    attr as consumer of ``from_event`` + producer of the owning event, exactly as the
+    sidecar did — so the relay-augmented engine_report keeps its named cycle + hubs.
+    Section F covers the provisional (haiku/spellbook) store-injection path.
+    """
 
-    def test_gain_to_draw_produces_draw_a_card(self, relay_ctx, assets) -> None:
-        """gain-to-draw is injected as a producer of draw-a-card."""
-        augmented = build_relay_augmented_event_edges(relay_ctx.nodes, assets.events)
-        draw_event_producers = {p for p, c, ev in augmented if ev == 'draw-a-card'}
-        assert 'gain-to-draw' in draw_event_producers
+    def test_lifetrade_injected_via_catalog_relays(self, relay_ctx, assets) -> None:
+        """The lifetrade gate attrs are injected from the catalog relays.
 
-    def test_gain_to_draw_consumes_lifegain(self, relay_ctx, assets) -> None:
-        """gain-to-draw is injected as a consumer of lifegain."""
-        augmented = build_relay_augmented_event_edges(relay_ctx.nodes, assets.events)
-        lifegain_consumers = {c for p, c, ev in augmented if ev == 'lifegain'}
-        assert 'gain-to-draw' in lifegain_consumers
-
-    def test_draw_to_gain_produces_lifegain(self, relay_ctx, assets) -> None:
-        """draw-to-gain is injected as a producer of lifegain."""
-        augmented = build_relay_augmented_event_edges(relay_ctx.nodes, assets.events)
-        lifegain_producers = {p for p, c, ev in augmented if ev == 'lifegain'}
-        assert 'draw-to-gain' in lifegain_producers
-
-    def test_draw_to_drain_produces_life_loss_drain(self, relay_ctx, assets) -> None:
-        """draw-to-drain is injected as a producer of life-loss-drain.
-
-        NOTE: In the relay fixture, no consumers of ``life-loss-drain`` are in
-        ``nodes`` (only 1 card has ``life-loss-matters``, below the 3-card
-        threshold), so no event EDGES are generated for that event.  We verify
-        the injection at the augmented-list level instead.
+        For the Queza fixture, ``draw-to-gain`` and ``gain-to-draw`` are in nodes, so
+        the catalog relays on ``lifegain``/``draw-a-card`` inject them as producer+
+        consumer (the draw↔gain cycle).
         """
-        # Verify injection happened by checking the raw augmented producers
-        # (the intermediate state, before the cross-product filters by nodes).
-        role = get_role('draw-to-drain')
-        assert role is not None
-        assert role.produced_event == 'life-loss-drain'
-        # In a nodes set with a life-loss-drain consumer, edges would appear.
-        # Prove it with a synthetic nodes set:
-        synthetic_nodes = relay_ctx.nodes | {'life-loss-matters'}
-        synthetic_edges = build_relay_augmented_event_edges(synthetic_nodes, assets.events)
-        drain_producers = {p for p, c, ev in synthetic_edges if ev == 'life-loss-drain'}
-        assert 'draw-to-drain' in drain_producers
+        augmented = build_relay_augmented_event_edges(relay_ctx.nodes, assets.events)
+        # draw-to-gain: consumer of draw-a-card, producer of lifegain.
+        assert 'draw-to-gain' in {c for p, c, ev in augmented if ev == 'draw-a-card'}
+        assert 'draw-to-gain' in {p for p, c, ev in augmented if ev == 'lifegain'}
+        # gain-to-draw: consumer of lifegain, producer of draw-a-card.
+        assert 'gain-to-draw' in {c for p, c, ev in augmented if ev == 'lifegain'}
+        assert 'gain-to-draw' in {p for p, c, ev in augmented if ev == 'draw-a-card'}
 
     def test_default_edges_lack_relay_nodes(self, relay_ctx, assets) -> None:
         """The DEFAULT event-edge construction has no edge attrs."""
@@ -243,20 +212,6 @@ class TestAugmentedPathClosesLoop:
     cross-card loops that the default path cannot see.
     """
 
-    def test_relay_hubs_present(self, relay_ctx, assets) -> None:
-        """The augmented engine isolation has relay hubs."""
-        iso = elect_engine_units_with_relay(
-            relay_ctx.nodes,
-            assets.events,
-            relay_ctx.attr_weight,
-            assets,
-            relay_ctx.cards,
-        )
-        assert len(iso['relay_hubs']) > 0
-        # Specifically, draw-to-gain and gain-to-draw are relay hubs
-        assert 'draw-to-gain' in iso['relay_hubs']
-        assert 'gain-to-draw' in iso['relay_hubs']
-
     def test_recursive_engines_found(self, relay_ctx, assets) -> None:
         """The augmented path finds recursive-engine(s) (not just static-payoff)."""
         iso = elect_engine_units_with_relay(
@@ -269,12 +224,12 @@ class TestAugmentedPathClosesLoop:
         kinds = {e['kind'] for e in iso['engines']}
         assert 'recursive-engine' in kinds
 
-    def test_draw_lifegain_cycle_closes(self, relay_ctx, assets) -> None:
-        """The draw-a-card <-> lifegain cycle closes via forward chains.
+    def test_draw_lifegain_cycle_is_recursive(self, relay_ctx, assets) -> None:
+        """The draw-a-card <-> lifegain cycle closes (both events recursive).
 
-        The Queza engine: gain-to-draw produces draw-a-card, draw-to-gain
-        consumes draw-a-card and produces lifegain, gain-to-draw consumes
-        lifegain — a closed loop.
+        The Queza engine closes through the catalog lifetrade relays (gain-to-draw
+        produces draw-a-card from lifegain; draw-to-gain produces lifegain from
+        draw-a-card), so both events sit in one SCC.
         """
         iso = elect_engine_units_with_relay(
             relay_ctx.nodes,
@@ -283,16 +238,8 @@ class TestAugmentedPathClosesLoop:
             assets,
             relay_ctx.cards,
         )
-        chains = iso['forward_chains']
-        chain_set = {tuple(c) for c in chains}
-        # The bidirectional chain: draw-a-card feeds lifegain AND lifegain feeds draw-a-card
-        assert ('draw-a-card', 'lifegain') in chain_set or ('lifegain', 'draw-a-card') in chain_set, (
-            f'Expected draw-a-card <-> lifegain chain; got {chains}'
-        )
-        # Both directions present = closed loop
-        assert ('draw-a-card', 'lifegain') in chain_set and ('lifegain', 'draw-a-card') in chain_set, (
-            f'Expected bidirectional chain (closed loop); got {chains}'
-        )
+        recursive_events = {e['event'] for e in iso['engines'] if e['kind'] == 'recursive-engine'}
+        assert {'draw-a-card', 'lifegain'} <= recursive_events, f'expected draw↔gain recursive; got {recursive_events}'
 
     def test_determinism_mass_elected(self, relay_ctx, assets) -> None:
         """The augmented path mass-elects candidates (ADR 0014: 'mass-elected').
@@ -336,36 +283,67 @@ class TestRelayEdgeCases:
         # prevents self-loops, and no other node is available)
         assert edges == []
 
-    def test_two_complementary_edge_attrs(self, assets) -> None:
-        """Two complementary edge attrs (gain-to-draw + draw-to-gain) produce edges."""
-        nodes = {'gain-to-draw', 'draw-to-gain'}
-        edges = build_relay_augmented_event_edges(nodes, assets.events)
-        # gain-to-draw produces draw-a-card, draw-to-gain consumes draw-a-card
-        # -> edge (gain-to-draw, draw-to-gain, 'draw-a-card')
-        # draw-to-gain produces lifegain, gain-to-draw consumes lifegain
-        # -> edge (draw-to-gain, gain-to-draw, 'lifegain')
-        assert len(edges) >= 2
-        edge_set = {(p, c, ev) for p, c, ev in edges}
-        assert ('gain-to-draw', 'draw-to-gain', 'draw-a-card') in edge_set
-        assert ('draw-to-gain', 'gain-to-draw', 'lifegain') in edge_set
+    def test_two_complementary_store_edge_attrs(self, assets) -> None:
+        """Two complementary STORE edge attrs produce injected edges.
 
-    def testelect_engine_units_on_minimal_loop(self, assets) -> None:
-        """elect_engine_units detects a loop from just two complementary relay attrs."""
-        nodes = {'gain-to-draw', 'draw-to-gain'}
-        attr_weight: defaultdict[str, float] = defaultdict(
-            float,
-            {
-                'gain-to-draw': 3.0,
-                'draw-to-gain': 5.0,
-            },
+        Lifetrade is now a catalog relay (not sidecar-injected), so the injection
+        mechanism is exercised here with provisional (haiku) store attrs. A pair
+        that consumes/produces lifegain<->draw-a-card forms the two edges.
+        """
+        store = ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='store-gain-to-draw',
+                    query="oracle:'test'",
+                    trigger_event='lifegain',
+                    produced_event='draw-a-card',
+                    provenance=Provenance(source='haiku'),
+                ),
+                CardAttribute(
+                    name='store-draw-to-gain',
+                    query="oracle:'test'",
+                    trigger_event='draw-a-card',
+                    produced_event='lifegain',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
         )
-        cards: list[dict] = []  # no cards needed for this unit test
-        edges = build_relay_augmented_event_edges(nodes, assets.events)
+        nodes = {'store-gain-to-draw', 'store-draw-to-gain'}
+        edges = build_relay_augmented_event_edges(nodes, assets.events, store=store)
+        edge_set = {(p, c, ev) for p, c, ev in edges}
+        assert ('store-gain-to-draw', 'store-draw-to-gain', 'draw-a-card') in edge_set
+        assert ('store-draw-to-gain', 'store-gain-to-draw', 'lifegain') in edge_set
+
+    def test_elect_engine_units_on_minimal_store_loop(self, assets) -> None:
+        """elect_engine_units detects a loop from two complementary store attrs."""
+        store = ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='store-gain-to-draw',
+                    query="oracle:'test'",
+                    trigger_event='lifegain',
+                    produced_event='draw-a-card',
+                    provenance=Provenance(source='haiku'),
+                ),
+                CardAttribute(
+                    name='store-draw-to-gain',
+                    query="oracle:'test'",
+                    trigger_event='draw-a-card',
+                    produced_event='lifegain',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
+        )
+        nodes = {'store-gain-to-draw', 'store-draw-to-gain'}
+        attr_weight: defaultdict[str, float] = defaultdict(
+            float, {'store-gain-to-draw': 3.0, 'store-draw-to-gain': 5.0}
+        )
+        cards: list[dict] = []
+        edges = build_relay_augmented_event_edges(nodes, assets.events, store=store)
         iso = elect_engine_units(nodes, edges, attr_weight, assets, cards)
         assert len(iso['relay_hubs']) == 2
-        assert 'gain-to-draw' in iso['relay_hubs']
-        assert 'draw-to-gain' in iso['relay_hubs']
-        # Both engines should be recursive
+        assert 'store-gain-to-draw' in iso['relay_hubs']
+        assert 'store-draw-to-gain' in iso['relay_hubs']
         for e in iso['engines']:
             assert e['kind'] == 'recursive-engine'
 
@@ -508,29 +486,32 @@ class TestProvisionalAttributeStoreAugmentedEdges:
         all_attrs = {a for p, c, _ in edges for a in (p, c)}
         assert 'test-counter-to-mana' not in all_attrs
 
-    def test_curated_takes_precedence_over_machine(self, relay_ctx, assets) -> None:
-        """If a machine attr has the same name as a curated edge, curated wins."""
+    def test_store_attr_used_when_no_curated_role(self, relay_ctx, assets) -> None:
+        """Lifetrade is no longer curated, so a same-named STORE attr is used.
+
+        ADR 0026 Phase 2 emptied ``CURATED_EDGE_ROLES`` (lifetrade moved to catalog
+        relays), so the curated tier is a clean miss and the store attr's own
+        trigger/produced events drive the injection.
+        """
         store = ProvisionalAttributeStore(
             attributes=[
                 CardAttribute(
                     name='draw-to-gain',
-                    query="oracle:'wrong'",
-                    trigger_event='lifegain',  # wrong events
-                    produced_event='counter-placed',
+                    query="oracle:'test'",
+                    trigger_event='lifegain',
+                    produced_event='counter-placed',  # store's own events
                     provenance=_test_provenance(),
                 ),
             ]
         )
-        # The curated draw-to-gain has trigger=draw-a-card, effect=lifegain.
-        # The machine one has different events. Curated should win.
-        edges = build_relay_augmented_event_edges(
-            relay_ctx.nodes,
-            assets.events,
-            store=store,
-        )
-        # draw-to-gain should still appear as a lifegain PRODUCER (curated effect)
-        lifegain_producers = {p for p, c, ev in edges if ev == 'lifegain'}
-        assert 'draw-to-gain' in lifegain_producers
+        # A counter-placed CONSUMER ('counters-matter') must be in nodes for the
+        # cross-product to emit the producer edge.
+        nodes = {'draw-to-gain', 'counters-matter'}
+        edges = build_relay_augmented_event_edges(nodes, assets.events, store=store)
+        # With no curated role, the STORE events win: draw-to-gain produces
+        # counter-placed (not the former curated lifegain).
+        counter_producers = {p for p, c, ev in edges if ev == 'counter-placed'}
+        assert 'draw-to-gain' in counter_producers
 
     def test_machine_attr_with_novel_event_skipped(self, assets) -> None:
         """Machine attr whose effect event is not in the catalog is skipped."""
@@ -556,6 +537,65 @@ class TestProvisionalAttributeStoreAugmentedEdges:
 # ---------------------------------------------------------------------------
 
 
+class TestZeroMatchStoreEntryDoesNotAlterCycle:
+    """A store entry whose query matches zero cards must not change the engine.
+
+    A store (haiku) entry can share a slug with a NATIVE CardAttribute: the native
+    attr puts the slug in ``nodes``, and without an in-deck match gate the store
+    entry's unrelated role would hijack that native node and rewrite the named cycle.
+    ``identify_engines`` only injects a store role when the entry's query actually
+    matched a card (``matched_store_attrs``), so a zero-match entry is inert.
+    """
+
+    @staticmethod
+    def _zero_match_store() -> ProvisionalAttributeStore:
+        # A store entry that SHARES the native ``draw-to-gain`` slug but carries a
+        # DIFFERENT role (``life-loss-drain → draw-a-card``) and a query that matches
+        # nothing in the Queza fixture (no proliferate cards).
+        return ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='draw-to-gain',
+                    query='otag:proliferate',
+                    trigger_event='life-loss-drain',
+                    produced_event='draw-a-card',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
+        )
+
+    def test_zero_match_store_query_leaves_report_unchanged(self, relay_deck, relay_ctx) -> None:
+        from pipeline.transforms.strategy.engine_report import identify_engines
+
+        # ``draw-to-gain`` is a native node on the Queza fixture (draw↔gain cycle).
+        assert 'draw-to-gain' in relay_ctx.nodes
+
+        report_empty = identify_engines(relay_deck, store=ProvisionalAttributeStore(), combos=[])
+        report_store = identify_engines(relay_deck, store=self._zero_match_store(), combos=[])
+
+        def _sig(r):
+            return (
+                [(e.name, e.kind, tuple(e.events), tuple(e.loop_members), tuple(e.hub_attrs)) for e in r.engines],
+                r.commander_loop,
+            )
+
+        # The zero-match store entry is inert: the full engine report is unchanged.
+        assert _sig(report_store) == _sig(report_empty), 'a zero-match store entry changed the report'
+
+    def test_match_gate_suppresses_unmatched_store_role(self) -> None:
+        """The in-deck match gate is load-bearing and correct in all three states:
+        an unmatched entry is suppressed, a matched entry (or the ungated ``None``
+        default) injects. This is exactly what keeps a zero-match entry from hijacking
+        a same-slug native node's cycle."""
+        store = self._zero_match_store()
+        # ungated default (no match map) — curated miss falls through to the store.
+        assert _get_role_with_store('draw-to-gain', store, None) is not None
+        # matched set EXCLUDES the entry -> suppressed (the zero-match case).
+        assert _get_role_with_store('draw-to-gain', store, frozenset()) is None
+        # matched set INCLUDES the entry -> injected (a real in-deck match).
+        assert _get_role_with_store('draw-to-gain', store, frozenset({'draw-to-gain'})) is not None
+
+
 class TestProvisionalAttributeStoreRelayPath:
     """Machine-authored attributes flow through the relay via the store.
 
@@ -571,24 +611,28 @@ class TestProvisionalAttributeStoreRelayPath:
         )
         assert edges_no_store == edges_empty_store
 
-    def test_get_role_with_store_curated_first(self) -> None:
-        """Curated role takes precedence over a same-named machine attr."""
+    def test_get_role_with_store_falls_through_to_store(self) -> None:
+        """With no curated role (lifetrade relocated), the store attr is returned.
+
+        ADR 0026 Phase 2: ``CURATED_EDGE_ROLES`` is empty, so the curated tier is a
+        clean miss and ``_get_role_with_store`` returns the store attr's role.
+        """
         store = ProvisionalAttributeStore(
             attributes=[
                 CardAttribute(
                     name='draw-to-drain',
                     query="oracle:'test'",
-                    trigger_event='lifegain',  # different from curated
+                    trigger_event='lifegain',
                     produced_event='lifegain',
                     provenance=Provenance(source='haiku'),
                 ),
             ]
         )
         role = _get_role_with_store('draw-to-drain', store)
-        # Should return the CURATED role, not the machine one.
+        # No curated role remains -> the store attr wins.
         assert role is not None
-        assert role.trigger_event == 'draw-a-card'
-        assert role.produced_event == 'life-loss-drain'
+        assert role.trigger_event == 'lifegain'
+        assert role.produced_event == 'lifegain'
 
     def test_get_role_with_store_machine_attr(self) -> None:
         """Machine attr is returned when no curated role exists."""
@@ -666,3 +710,578 @@ class TestProvisionalAttributeStoreRelayPath:
         # counter-to-mana should NOT appear in any edge
         machine_in_edges = {a for p, c, _ in edges for a in (p, c) if a == 'counter-to-mana'}
         assert not machine_in_edges
+
+
+# ---------------------------------------------------------------------------
+# F: Superset-of-resolve inputs (#83 MAJOR-4) — combo edges + archetype gate
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def urza_ctx():
+    """FactsContext for the hermetic Urza fixture (otags baked in; no lake)."""
+    deck = json.loads((FIX / 'decks' / 'gauntlet__urza-lord-high-artificer.json').read_text())
+    combos = [dict(c) for c in json.loads((FIX / 'combos.json').read_text())]
+    return compute_facts(deck, combos)
+
+
+class TestSupersetInputsForwarded:
+    """``elect_engine_units_with_relay`` threads ``combo_event_edges`` and
+    ``earned_archetypes`` through to the inner ``elect_engine_units``, exactly as
+    ``resolve()`` passes them. Defaults are backward-compatible (no combo edges,
+    archetype grain disabled), so existing callers are unaffected.
+    """
+
+    def test_backward_compatible_default_adds_no_recursion(self, urza_ctx, assets) -> None:
+        """With the defaults (no combo edges), mana-produced is NOT recursive —
+        the pre-fix behavior, proving the new params are inert when omitted."""
+        iso = elect_engine_units_with_relay(urza_ctx.nodes, assets.events, urza_ctx.attr_weight, assets, urza_ctx.cards)
+        recursive = {e['event'] for e in iso['engines'] if e['kind'] == 'recursive-engine'}
+        assert 'mana-produced' not in recursive
+
+    def test_combo_event_edges_forwarded_flip_kind(self, urza_ctx, assets) -> None:
+        """Threading the combo-certified mana↔spell-cast family edges flips those
+        events' units to recursive-engine (forwarded to recursive_event_set)."""
+        combo_edges = [
+            ('mana-produced', 'spell-cast'),
+            ('spell-cast', 'mana-produced'),
+        ]
+        iso = elect_engine_units_with_relay(
+            urza_ctx.nodes,
+            assets.events,
+            urza_ctx.attr_weight,
+            assets,
+            urza_ctx.cards,
+            combo_event_edges=combo_edges,
+        )
+        recursive = {e['event'] for e in iso['engines'] if e['kind'] == 'recursive-engine'}
+        assert {'mana-produced', 'spell-cast'} <= recursive
+
+    def test_earned_archetypes_gate_bites_in_election(self, assets) -> None:
+        """``earned_archetypes`` reaches the inner archetype-substantiveness gate and
+        the gate BITES — proving the argument is consumed, not dropped.
+
+        The dropped-arg bug makes the gated and ungated calls agree (the gate never
+        runs), and an ``iso_gated <= iso_open`` assertion is satisfied by that equality
+        — so it passes in the broken world too. This needs a unit the gate actually
+        removes: a bipartite catalog unit (``crucible-of-worlds`` → ``land-enters-
+        battlefield`` → ``land-count-matters``) whose SOLE basis is the unearned
+        ``lands-matter`` archetype claim, with no commander coupling (``cards=[]``).
+        Under the ``None`` default the grain is disabled and the unit is elected; with
+        an empty earned set every claim is unearned, so the unit is excluded. Strict
+        inequality is the proof the gate bit.
+        """
+        nodes = {'crucible-of-worlds', 'land-count-matters'}
+        attr_weight: defaultdict[str, float] = defaultdict(
+            float, {'crucible-of-worlds': 3.0, 'land-count-matters': 3.0}
+        )
+        cards: list[dict] = []
+        iso_open = elect_engine_units_with_relay(nodes, assets.events, attr_weight, assets, cards)
+        iso_gated = elect_engine_units_with_relay(
+            nodes, assets.events, attr_weight, assets, cards, earned_archetypes=set()
+        )
+        open_events = {u['event'] for u in iso_open['ranked_units']}
+        gated_events = {u['event'] for u in iso_gated['ranked_units']}
+        # Present under the grain-disabled default, elected on its (unearned) claim.
+        assert 'land-enters-battlefield' in open_events
+        assert iso_open['ranked_units'][0]['payoff_archetypes'] == ['lands-matter']
+        # Excluded when the earned set is empty — the gate removed it.
+        assert 'land-enters-battlefield' not in gated_events
+        # Strictly fewer units: the gate BIT, it did not no-op (the dropped-arg world
+        # would make these equal).
+        assert len(iso_gated['ranked_units']) < len(iso_open['ranked_units'])
+
+
+# ---------------------------------------------------------------------------
+# #115: a pure-event-cycle lifetrade loop must not be dropped by the election
+# ---------------------------------------------------------------------------
+
+
+class TestPureEventCycleLifetradeLoop:
+    """A lifetrade loop whose ONLY enablers are sub-threshold gate carriers is
+    recursive in the SCC but has no admitted attr producer-consumer pair, so the
+    per-event election skipped it and the public ``resolve()`` returned
+    ``engines=[]`` (#115). The walk now emits a ``recursive-engine`` unit for such an
+    event using its live gate carriers as evidence; removing either enabler opens the
+    loop.
+
+    The enabler pair is the real-Magic combo: Sanguine Bond (``gain-to-drain``: "you
+    gain life → opponent loses that much") + Exquisite Blood (``drain-to-gain``:
+    "opponent loses life → you gain that much"). Each is a 1-card sub-threshold attr
+    that never earns an identity node, so neither ``lifegain`` nor ``life-loss-drain``
+    gets an in-node attr producer here — the pure-event-cycle shape.
+    """
+
+    @staticmethod
+    def _sanguine() -> dict:
+        return {
+            'name': 'Sanguine Bond',
+            'oracle_id': 'sanguine-bond',
+            'type_line': 'Enchantment',
+            'oracle_text': 'Whenever you gain life, target opponent loses that much life.',
+            'otags': ['lifegain-matters', 'opponent-loses-life', 'life-total-matters-self'],
+        }
+
+    @staticmethod
+    def _exquisite() -> dict:
+        return {
+            'name': 'Exquisite Blood',
+            'oracle_id': 'exquisite-blood',
+            'type_line': 'Enchantment',
+            'oracle_text': 'Whenever an opponent loses life, you gain that much life.',
+            'otags': ['life-loss-matters', 'lifegain'],
+        }
+
+    def _yargle_deck(self, *, include: tuple[str, ...] = ('sanguine', 'exquisite')) -> dict:
+        yargle = {
+            'name': 'Yargle, Glutton of Urborg',
+            'role': 'commander',
+            'oracle_id': 'yargle',
+            'type_line': 'Legendary Creature — Frog Spirit',
+            'oracle_text': '',
+            'otags': [],
+        }
+        enablers: list[dict] = []
+        if 'sanguine' in include:
+            enablers.append(self._sanguine())
+        if 'exquisite' in include:
+            enablers.append(self._exquisite())
+        # Pad to a full 99 with basic Swamps so the deck resolves normally.
+        swamps = [
+            {
+                'name': f'Swamp #{i}',
+                'oracle_id': f'swamp-{i}',
+                'type_line': 'Basic Land — Swamp',
+                'oracle_text': '({T}: Add {B}.)',
+                'otags': [],
+            }
+            for i in range(99 - len(enablers))
+        ]
+        return {'name': 'yargle-lifetrade', 'cards': [yargle, *enablers, *swamps]}
+
+    def test_public_resolve_reports_recursive_lifetrade_engine(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        units = resolve(self._yargle_deck(), [])['facts']['engines']['engine_units']
+        recursive = {e['event'] for e in units['engines'] if e['kind'] == 'recursive-engine'}
+        # Both halves of the lifedrain loop are now reported recursive...
+        assert {'lifegain', 'life-loss-drain'} <= recursive, f'missing pure-event-cycle units: {recursive}'
+        # ...and elected (not just enumerated) — the deck no longer reports engines=[].
+        ranked = {u['event'] for u in units['ranked_units']}
+        assert {'lifegain', 'life-loss-drain'} <= ranked
+
+    def test_pure_event_cycle_unit_uses_live_gate_carrier_as_evidence(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        units = resolve(self._yargle_deck(), [])['facts']['engines']['engine_units']
+        by_event = {e['event']: e for e in units['engines']}
+        # life-loss-drain is produced by Sanguine Bond's gain-to-drain gate...
+        assert by_event['life-loss-drain']['producers'] == ['gain-to-drain']
+        assert by_event['life-loss-drain']['consumers'] == []
+        # ...lifegain by Exquisite Blood's drain-to-gain gate — the live carriers.
+        assert by_event['lifegain']['producers'] == ['drain-to-gain']
+        assert by_event['lifegain']['consumers'] == []
+
+    def test_loop_opens_when_either_enchantment_removed(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        for keep in (('sanguine',), ('exquisite',)):
+            units = resolve(self._yargle_deck(include=keep), [])['facts']['engines']['engine_units']
+            recursive = {e['event'] for e in units['engines'] if e['kind'] == 'recursive-engine'}
+            assert not ({'lifegain', 'life-loss-drain'} & recursive), (
+                f'the lifetrade loop should open with only {keep[0]}; got recursive={recursive}'
+            )
+
+
+# ---------------------------------------------------------------------------
+# PR #114 review A: 4 metadata/robustness defects in the #115 pure-event-cycle
+# emission (store-hijack, hub naming, commander_coupled, formation_mode).
+# ---------------------------------------------------------------------------
+
+
+def _sanguine_card() -> dict:
+    # gain-to-drain carrier: "you gain life -> opponent loses that much".
+    return {
+        'name': 'Sanguine Bond',
+        'oracle_id': 'sanguine-bond',
+        'type_line': 'Enchantment',
+        'oracle_text': 'Whenever you gain life, target opponent loses that much life.',
+        'otags': ['lifegain-matters', 'opponent-loses-life', 'life-total-matters-self'],
+    }
+
+
+def _exquisite_card() -> dict:
+    # drain-to-gain carrier: "opponent loses life -> you gain that much".
+    return {
+        'name': 'Exquisite Blood',
+        'oracle_id': 'exquisite-blood',
+        'type_line': 'Enchantment',
+        'oracle_text': 'Whenever an opponent loses life, you gain that much life.',
+        'otags': ['life-loss-matters', 'lifegain'],
+    }
+
+
+def _swamps(n: int) -> list[dict]:
+    return [
+        {
+            'name': f'Swamp #{i}',
+            'oracle_id': f'swamp-{i}',
+            'type_line': 'Basic Land — Swamp',
+            'oracle_text': '({T}: Add {B}.)',
+            'otags': [],
+        }
+        for i in range(n)
+    ]
+
+
+def _lifetrade_deck(commander: dict, enablers: list[dict]) -> dict:
+    cards = [commander, *enablers]
+    cards += _swamps(99 - len(enablers))
+    return {'name': 'lifetrade-metadata', 'cards': cards}
+
+
+class TestStoreSlugDoesNotHijackCatalogGate:
+    """#1 — a same-named, wrong-role store slug must not make a catalog relay gate
+    live. ``identify_engines`` injects store (haiku) slugs into ``attr_weight`` by
+    name+query match, so keying the A-emission's gate liveness on ``set(attr_weight)``
+    let a store entry named ``gain-to-drain`` (query ``otag:life-loss-matters``, which
+    matches Exquisite Blood, role ``life-loss-drain -> lifegain``) close the catalog
+    ``gain-to-drain`` return leg even though NO card natively carries that gate — a
+    phantom recursive engine. Liveness is tested against the role-matched live carrier set
+    (native carriers plus correct-role matched store gates), and this reversed-role entry
+    is neither, so it fails liveness.
+    """
+
+    @staticmethod
+    def _hijack_store() -> ProvisionalAttributeStore:
+        return ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='gain-to-drain',
+                    query='otag:life-loss-matters',  # matches Exquisite Blood, NOT the gate's role
+                    trigger_event='life-loss-drain',
+                    produced_event='lifegain',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
+        )
+
+    def _yargle_half_loop_deck(self) -> dict:
+        # Yargle (no gate) + Exquisite Blood (drain-to-gain ONLY) — a one-sided
+        # loop: the return leg (gain-to-drain) has NO native carrier, so the deck
+        # must report ZERO recursive engines.
+        yargle = {
+            'name': 'Yargle, Glutton of Urborg',
+            'role': 'commander',
+            'oracle_id': 'yargle',
+            'type_line': 'Legendary Creature — Frog Spirit',
+            'oracle_text': '',
+            'otags': [],
+        }
+        return _lifetrade_deck(yargle, [_exquisite_card()])
+
+    def test_wrong_role_store_slug_mints_no_phantom_engine(self) -> None:
+        from pipeline.transforms.strategy.engine_report import identify_engines
+
+        deck = self._yargle_half_loop_deck()
+        empty = identify_engines(deck, store=ProvisionalAttributeStore(), combos=[])
+        hijack = identify_engines(deck, store=self._hijack_store(), combos=[])
+
+        def _recursive(report) -> set[str]:
+            return {e['event'] for e in report.raw_isolation['engines'] if e['kind'] == 'recursive-engine'}
+
+        # The empty-store control reports zero recursive engines (one-sided loop).
+        assert _recursive(empty) == set(), f'control should be empty; got {_recursive(empty)}'
+        # The wrong-role store slug must NOT revive the catalog gate -> still zero.
+        assert _recursive(hijack) == set(), (
+            f'a wrong-role store slug minted a phantom recursive engine: {_recursive(hijack)}'
+        )
+
+
+class TestRecursiveHubIsReturnPathGate:
+    """#2 — the pure-event-cycle hub must be the loop's RETURN-PATH gate (a relay
+    whose source event is inside the event's SCC), not the globally-heaviest live
+    gate. With Queza (commander, heavy draw-to-drain/draw-to-gain gates that only
+    FEED the loop from ``draw-a-card``, which is outside the SCC) + Sanguine Bond +
+    Exquisite Blood, the heaviest-incoming rule named ``draw-to-drain`` / ``draw-to-
+    gain``; the loop actually returns through ``gain-to-drain`` / ``drain-to-gain``.
+    """
+
+    @staticmethod
+    def _queza() -> dict:
+        # draw-to-drain + draw-to-gain carrier (one sentence so the regexes match):
+        # "draw...opponent loses...you gain" — otags draw-matters + opponent-loses-life + lifegain.
+        return {
+            'name': 'Queza, Augur of Agonies',
+            'role': 'commander',
+            'oracle_id': 'queza',
+            'type_line': 'Legendary Creature — Vampire Wizard',
+            'oracle_text': 'Whenever you draw a card, target opponent loses 1 life and you gain 1 life.',
+            'otags': ['draw-matters', 'opponent-loses-life', 'lifegain'],
+        }
+
+    def test_hubs_are_the_scc_return_gates_not_the_feeder_gates(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        deck = _lifetrade_deck(self._queza(), [_sanguine_card(), _exquisite_card()])
+        units = resolve(deck, [])['facts']['engines']['engine_units']
+        by_event = {e['event']: e for e in units['engines']}
+        # Both lifetrade events are recursive (the loop closes through the enablers).
+        assert by_event['life-loss-drain']['kind'] == 'recursive-engine'
+        assert by_event['lifegain']['kind'] == 'recursive-engine'
+        # The hubs are the return-path gates inside the SCC, NOT the draw-* feeders.
+        assert by_event['life-loss-drain']['interior_node'] == 'gain-to-drain', (
+            f'hub fed the loop from outside the SCC: {by_event["life-loss-drain"]["interior_node"]}'
+        )
+        assert by_event['lifegain']['interior_node'] == 'drain-to-gain', (
+            f'hub fed the loop from outside the SCC: {by_event["lifegain"]["interior_node"]}'
+        )
+        # The feeder gate is NOT named the interior hub.
+        assert by_event['life-loss-drain']['interior_node'] != 'draw-to-drain'
+        assert by_event['lifegain']['interior_node'] != 'draw-to-gain'
+
+
+class TestCommanderCoupledSeesSyntheticGate:
+    """#3 — ``commander_coupled`` must count the commander's SYNTHESIZED relay-gate
+    attributes (gain-to-drain etc., SYNTH_ALWAYS, never a raw Scryfall otag). With
+    Vito (sole gain-to-drain carrier) + Exquisite Blood, the ``life-loss-drain`` unit
+    is driven by Vito's gate, yet the raw-otag commander rebuild dropped the synth
+    gate and reported ``commander_coupled=False``.
+    """
+
+    @staticmethod
+    def _vito() -> dict:
+        # gain-to-drain carrier: "you gain life -> each opponent loses 1 life".
+        return {
+            'name': 'Vito, Thorn of the Dusk Rose',
+            'role': 'commander',
+            'oracle_id': 'vito',
+            'type_line': 'Legendary Creature — Vampire Cleric',
+            'oracle_text': 'Whenever you gain life, each opponent loses that much life.',
+            'otags': ['lifegain-matters', 'opponent-loses-life'],
+        }
+
+    def test_life_loss_drain_unit_is_commander_coupled(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        deck = _lifetrade_deck(self._vito(), [_exquisite_card()])
+        units = resolve(deck, [])['facts']['engines']['engine_units']
+        ranked = {u['event']: u for u in units['ranked_units']}
+        assert 'life-loss-drain' in ranked, f'life-loss-drain not elected; got {sorted(ranked)}'
+        unit = ranked['life-loss-drain']
+        assert unit['interior_node'] == 'gain-to-drain'
+        assert unit['commander_coupled'] is True, (
+            'the commander is the sole gain-to-drain carrier (a synth gate) — unit must be commander_coupled'
+        )
+
+
+class TestRelayLoopFormationModeNeverBipartite:
+    """#4 — a producer-only pure-event-cycle unit (gate producers, ``consumers=[]``)
+    must carry its own ``formation_mode``, never ``bipartite`` (ADR 0014 reserves
+    bipartite for a unit with BOTH in-deck sides). Assert the raw shape AND the ranked
+    formation mode together.
+    """
+
+    @staticmethod
+    def _yargle() -> dict:
+        return {
+            'name': 'Yargle, Glutton of Urborg',
+            'role': 'commander',
+            'oracle_id': 'yargle',
+            'type_line': 'Legendary Creature — Frog Spirit',
+            'oracle_text': '',
+            'otags': [],
+        }
+
+    def test_raw_producer_only_and_ranked_not_bipartite(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        deck = _lifetrade_deck(self._yargle(), [_sanguine_card(), _exquisite_card()])
+        units = resolve(deck, [])['facts']['engines']['engine_units']
+        # RAW: the lifegain unit has one gate producer and no consumer (the
+        # pure-event-cycle shape).
+        raw = {e['event']: e for e in units['engines']}
+        assert raw['lifegain']['producers'] == ['drain-to-gain']
+        assert raw['lifegain']['consumers'] == []
+        # RANKED: its formation_mode is the relay-loop mode, never bipartite.
+        ranked = {u['event']: u for u in units['ranked_units']}
+        assert ranked['lifegain']['formation_mode'] != 'bipartite', (
+            f'producer-only relay loop mislabeled: {ranked["lifegain"]["formation_mode"]}'
+        )
+        assert ranked['lifegain']['formation_mode'] == 'recursive-relay-loop'
+        # life-loss-drain is likewise the relay-loop mode (not terminal-producer).
+        assert ranked['life-loss-drain']['formation_mode'] == 'recursive-relay-loop'
+
+
+# ---------------------------------------------------------------------------
+# PR #114 review (Astra + Fable) on #1: role-matched store-carrier liveness.
+# A store entry makes a catalog relay gate LIVE iff it matched >= 1 card AND its
+# declared role matches the catalog relay direction ``(from_event, owning_event)``.
+# The wrong-role / zero-match slug stays dead (hijack); the correct-role matched
+# slug is a live carrier again (the native-only freeze had dropped it).
+# ---------------------------------------------------------------------------
+
+
+def _recursive_events(report) -> set[str]:
+    return {e['event'] for e in report.raw_isolation['engines'] if e['kind'] == 'recursive-engine'}
+
+
+class TestWrongRoleStoreSlugDoesNotHijackCatalogRelay:
+    """#1 (relay-injection path) — a same-named, wrong-role store slug that is
+    ADMITTED into ``nodes`` (a commander carrier) must not revive its catalog relay
+    through ``build_relay_augmented_event_edges``. With Queza + 99 basics and a haiku
+    ``gain-to-draw`` entry (query ``otag:draw-matters`` → matches the commander, role
+    ``draw-a-card → lifegain``), the catalog ``gain-to-draw`` gate's direction is
+    ``(lifegain, draw-a-card)`` — the entry's role is reversed, so it fails liveness
+    and supplies no phantom return leg. The report must equal the empty-store control.
+    """
+
+    @staticmethod
+    def _queza() -> dict:
+        return {
+            'name': 'Queza, Augur of Agonies',
+            'role': 'commander',
+            'oracle_id': 'queza',
+            'type_line': 'Legendary Creature — Vampire Wizard',
+            'oracle_text': 'Whenever you draw a card, target opponent loses 1 life and you gain 1 life.',
+            'otags': ['draw-matters', 'opponent-loses-life', 'lifegain'],
+        }
+
+    @staticmethod
+    def _wrong_role_store() -> ProvisionalAttributeStore:
+        # Role is reversed vs the catalog ``gain-to-draw`` relay (lifegain → draw-a-card):
+        # this entry declares draw-a-card → lifegain, so it must never make the gate live.
+        return ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='gain-to-draw',
+                    query='otag:draw-matters',
+                    trigger_event='draw-a-card',
+                    produced_event='lifegain',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
+        )
+
+    def test_wrong_role_commander_carrier_mints_no_phantom_engine(self) -> None:
+        from pipeline.transforms.strategy.engine_report import identify_engines
+
+        deck = _lifetrade_deck(self._queza(), [])
+        empty = identify_engines(deck, store=empty_store(), combos=[])
+        hijack = identify_engines(deck, store=self._wrong_role_store(), combos=[])
+
+        # Queza alone has no return leg (nothing re-produces draw-a-card) — zero.
+        assert _recursive_events(empty) == set(), f'control should be empty; got {_recursive_events(empty)}'
+        # The wrong-role store slug, even admitted into nodes, must not revive the gate.
+        assert _recursive_events(hijack) == set(), (
+            f'a wrong-role store slug minted a phantom recursive engine: {_recursive_events(hijack)}'
+        )
+
+
+class TestCorrectRoleStoreSlugRestoresLifetradeLoop:
+    """#1 (restored capability) — a CORRECT-role store entry that matches real cards
+    is a live gate carrier again. The native-only freeze over-corrected and dropped it.
+
+    Repro (Astra's): Cromat + two Niv-Mizzets + Irencrag Pyromancer that deal damage on
+    draw (so they EVADE the native ``draw-to-drain`` synth regex ``oracle:/draw[^.]*los/``
+    — there is no "lose life" text), patched by a haiku ``draw-to-drain`` entry whose role
+    ``draw-a-card → life-loss-drain`` MATCHES the catalog relay direction. Native Exquisite
+    Blood (``drain-to-gain``) + Drogskol Reaver (``gain-to-draw``) close the loop:
+    draw → drain → gain → draw. The report reports all three events recursive (parent
+    ``c59d74e`` behavior), not zero.
+    """
+
+    @staticmethod
+    def _cromat() -> dict:
+        return {
+            'name': 'Cromat',
+            'role': 'commander',
+            'oracle_id': 'cromat',
+            'type_line': 'Legendary Creature — Illusion',
+            'oracle_text': '',
+            'otags': [],
+        }
+
+    @staticmethod
+    def _niv_firemind() -> dict:
+        # Damage-on-draw: deals damage (NOT "loses life"), so the native draw-to-drain
+        # synth regex (needs "los") misses it — the haiku store entry patches the gap.
+        return {
+            'name': 'Niv-Mizzet, the Firemind',
+            'oracle_id': 'niv-firemind',
+            'type_line': 'Legendary Creature — Dragon Wizard',
+            'oracle_text': 'Whenever you draw a card, Niv-Mizzet, the Firemind deals 1 damage to any target.',
+            'otags': ['draw-matters'],
+        }
+
+    @staticmethod
+    def _niv_parun() -> dict:
+        return {
+            'name': 'Niv-Mizzet, Parun',
+            'oracle_id': 'niv-parun',
+            'type_line': 'Legendary Creature — Dragon Wizard',
+            'oracle_text': 'Whenever you draw a card, Niv-Mizzet, Parun deals 1 damage to any target.',
+            'otags': ['draw-matters'],
+        }
+
+    @staticmethod
+    def _irencrag_pyromancer() -> dict:
+        return {
+            'name': 'Irencrag Pyromancer',
+            'oracle_id': 'irencrag-pyromancer',
+            'type_line': 'Creature — Human Wizard',
+            'oracle_text': 'Whenever you draw your second card each turn, Irencrag Pyromancer deals 3 damage to any target.',  # noqa: E501
+            'otags': ['draw-matters'],
+        }
+
+    @staticmethod
+    def _drogskol_reaver() -> dict:
+        # gain-to-draw carrier: "whenever you gain life, draw a card".
+        return {
+            'name': 'Drogskol Reaver',
+            'oracle_id': 'drogskol-reaver',
+            'type_line': 'Creature — Spirit',
+            'oracle_text': 'Whenever you gain life, draw a card.',
+            'otags': ['lifegain-matters'],
+        }
+
+    @staticmethod
+    def _correct_role_store() -> ProvisionalAttributeStore:
+        # Role MATCHES the catalog draw-to-drain relay direction (draw-a-card → life-loss-drain).
+        return ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='draw-to-drain',
+                    query='oracle:/whenever.you.draw[^.]*deals.[13].damage.to.any.target/',
+                    trigger_event='draw-a-card',
+                    produced_event='life-loss-drain',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
+        )
+
+    def _deck(self) -> dict:
+        enablers = [
+            self._niv_firemind(),
+            self._niv_parun(),
+            self._irencrag_pyromancer(),
+            _exquisite_card(),
+            self._drogskol_reaver(),
+        ]
+        return _lifetrade_deck(self._cromat(), enablers)
+
+    def test_correct_role_store_slug_closes_the_lifetrade_loop(self) -> None:
+        from pipeline.transforms.strategy.engine_report import identify_engines
+
+        deck = self._deck()
+        empty = identify_engines(deck, store=empty_store(), combos=[])
+        legit = identify_engines(deck, store=self._correct_role_store(), combos=[])
+
+        # Control: without the store entry the draw→drain leg is a synth-regex miss,
+        # so the loop never closes — zero recursive engines.
+        assert _recursive_events(empty) == set(), f'control should be empty; got {_recursive_events(empty)}'
+        # The correct-role matched store entry restores the loop (c59d74e behavior).
+        recursive = _recursive_events(legit)
+        assert {'draw-a-card', 'life-loss-drain', 'lifegain'} <= recursive, (
+            f'the correct-role store slug did not restore the lifetrade loop: {recursive}'
+        )

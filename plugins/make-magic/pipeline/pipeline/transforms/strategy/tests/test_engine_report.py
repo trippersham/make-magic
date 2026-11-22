@@ -49,8 +49,8 @@ FIX = Path(__file__).resolve().parent / 'fixtures'
 RELAY_DECKS = FIX / 'relay_decks'
 
 # The two parity-oracle SHAs that MUST NOT shift.
-EXPECTED_ENGINE_SHA = '4d3f5e6d9d8ed142f50e241940de58c5b92aad5b30629b9b81d2d5a73c3131e3'
-EXPECTED_RESOLVE_SHA = '940c38811193b6f4ca9ab2b2b20e2df63e70bc1f4ba8911f7486c0a1a11c8814'
+EXPECTED_ENGINE_SHA = '80d0116a653ffb31692fefb8d6a43b2099440febc3901b361fb9fa034e2bed0f'
+EXPECTED_RESOLVE_SHA = '3ebb33fd9b469926fd06d2c63605dfe9bad462563760dae47eca9c4cb93c8c76'
 
 # Event catalog (with co-located abbrevs) for _characterize_engines unit calls.
 CATALOG_EVENTS = json.loads(EVENTS_FILE.read_text())['events']
@@ -621,3 +621,93 @@ class TestDefaultPathParity:
         baselines = compute_resolve_baselines()
         sha = composite_sha(baselines)
         assert sha == EXPECTED_RESOLVE_SHA, f'resolve SHA shifted: {sha} != {EXPECTED_RESOLVE_SHA}'
+
+
+# =====================================================================
+# TestReportSupersetsResolve — the #83 MAJOR-4 contract
+# =====================================================================
+
+
+def _fixture_deck(slug: str) -> dict:
+    return json.loads((FIX / 'decks' / f'{slug}.json').read_text())
+
+
+def _fixture_combos() -> list[dict]:
+    return [dict(c) for c in json.loads((FIX / 'combos.json').read_text())]
+
+
+def _report_recursive_events(report: EngineReport) -> set[str]:
+    """The set of events the report marks ``recursive-engine`` (or in a cycle)."""
+    out: set[str] = set()
+    for e in report.engines:
+        if e.kind in ('recursive-engine', 'cycle'):
+            out.update(e.events)
+    return out
+
+
+def _resolve_recursive_events(deck: dict, combos: list[dict]) -> set[str]:
+    """The set of events ``resolve()`` marks recursive (from ``ranked_units``)."""
+    from pipeline.transforms.strategy import resolve
+
+    rec = resolve(deck, combos)
+    units = rec.get('facts', {}).get('engines', {}).get('engine_units') or {}
+    return {u['event'] for u in units.get('ranked_units', []) if u.get('recursive')}
+
+
+class TestReportSupersetsResolve:
+    """``identify_engines()`` must report a SUPERSET of ``resolve()``'s recursion.
+
+    The two public views must never disagree on a certified loop (#83 MAJOR-4):
+    ``resolve()`` and the on-demand report share the SAME earned-archetype gate and
+    both pass ``combo_event_edges=None`` (the 7 combo-certified families are deferred
+    to #90), while the report additionally injects store/relay edges. So the report's
+    recursive set must never be LESS than ``resolve()``'s — it is exactly a superset.
+    """
+
+    @pytest.mark.parametrize('slug', ['gauntlet__urza-lord-high-artificer', 'owned__ozai'])
+    def test_report_recursion_supersets_resolve(self, slug: str) -> None:
+        """Every event ``resolve()`` marks recursive is also recursive in the report."""
+        combos = _fixture_combos()
+        deck = _fixture_deck(slug)
+        report_rec = _report_recursive_events(identify_engines(deck, store=empty_store(), combos=combos))
+        resolve_rec = _resolve_recursive_events(deck, combos)
+        assert resolve_rec <= report_rec, f'{slug}: resolve recursion {resolve_rec} not a subset of report {report_rec}'
+
+
+class TestComboRecursiveWithoutHub:
+    """Hub-naming gap (#83 MAJOR-4): a raw event→event edge injected through the
+    ``combo_event_edges`` seam carries NO gate CardAttribute, so a recursive engine
+    can have ``interior_node`` None. The shipped engine passes ``None`` through that
+    seam (the combo-certified families are deferred to #90), but the naming layer must
+    stay defensive for the re-add — emit a sensible, non-blank name, never a blank or
+    an exception.
+    """
+
+    def test_hubless_recursive_engine_named_gracefully(self) -> None:
+        iso = {
+            'engines': [
+                {
+                    'event': 'mana-produced',
+                    'interior_node': None,  # seam edge: no gate card as hub
+                    'enabler': None,
+                    'kind': 'recursive-engine',
+                    'producers': ['mana-producer'],
+                    'consumers': ['big-mana-sink'],
+                    'payoff_archetypes': [],
+                    'mass': 9.0,
+                },
+            ],
+            'forward_chains': [],
+            'relay_hubs': [],
+            'commander_loop': None,
+            'determinism': 'loop-or-flat-no-forward-hub',
+        }
+        named = _characterize_engines(iso, CATALOG_EVENTS)
+        assert len(named) == 1
+        eng = named[0]
+        assert eng.kind == 'recursive-engine'
+        assert eng.name  # non-blank
+        assert 'engine' in eng.name
+        assert eng.hub_attrs == []  # no gate hub
+        assert 'hub: none' in eng.description
+        assert eng.events == ['mana-produced']

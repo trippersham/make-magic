@@ -54,6 +54,103 @@ def weakly_connected_components[T: Hashable](
     return comps
 
 
+def strongly_connected_components[T: Hashable](
+    nodes: Iterable[T],
+    edges: Iterable[tuple[T, T]],
+) -> list[list[T]]:
+    """Tarjan strongly-connected components of a directed graph (deterministic).
+
+    The unified event-graph (ADR 0026) models CardAttribute | Event nodes; a
+    *loop/engine* is a directed cycle, which is exactly a strongly-connected
+    component of size >= 2 (or a 1-node SCC with a self-edge). This is the single
+    SCC pass that replaces the ``producers & consumers`` recursive-engine
+    heuristic: an event is ``recursive-engine`` iff its node lands in a
+    nontrivial SCC.
+
+    Determinism is load-bearing (ADR 0003 byte-parity). Tarjan's output order
+    depends on DFS start order and neighbour iteration order, so both are
+    **sorted** (by ``str(node)``): nodes are visited in sorted order and each
+    node's successors are pushed in reverse-sorted order (so they pop in sorted
+    order). Within one SCC the member list is returned sorted; the list of SCCs
+    is returned sorted by each SCC's sorted member tuple. The implementation is
+    **iterative** (explicit stack) so a deep corpus graph cannot blow the
+    recursion limit.
+
+    Parameters
+    ----------
+    nodes
+        Every node to consider (isolated nodes included — each forms its own
+        singleton SCC, matching the convention that a node with no cycle is
+        trivially its own component).
+    edges
+        Directed ``(u, v)`` pairs. An edge whose endpoint is absent from *nodes*
+        is ignored (the node set is authoritative).
+
+    Returns
+    -------
+    list[list[T]]
+        The SCCs, each a sorted node list; the outer list sorted by member tuple.
+    """
+    node_set: set[T] = set(nodes)
+    adj: dict[T, list[T]] = {n: [] for n in node_set}
+    for u, v in edges:
+        if u in node_set and v in node_set:
+            adj[u].append(v)
+    # Neighbours sorted; pushing in reverse means successors are explored in
+    # ascending order — a stable, hash-seed-independent traversal.
+    succ: dict[T, list[T]] = {n: sorted(set(adj[n]), key=_keyfn, reverse=True) for n in node_set}
+
+    index_of: dict[T, int] = {}
+    lowlink: dict[T, int] = {}
+    on_stack: set[T] = set()
+    scc_stack: list[T] = []
+    counter = 0
+    sccs: list[list[T]] = []
+
+    for root in sorted(node_set, key=_keyfn):
+        if root in index_of:
+            continue
+        # work stack holds (node, neighbour-cursor) frames.
+        work: list[list] = [[root, 0]]
+        index_of[root] = lowlink[root] = counter
+        counter += 1
+        on_stack.add(root)
+        scc_stack.append(root)
+        while work:
+            frame = work[-1]
+            u, i = frame[0], frame[1]
+            neighbours = succ[u]
+            if i < len(neighbours):
+                frame[1] += 1
+                w = neighbours[i]
+                if w not in index_of:
+                    index_of[w] = lowlink[w] = counter
+                    counter += 1
+                    on_stack.add(w)
+                    scc_stack.append(w)
+                    work.append([w, 0])
+                elif w in on_stack:
+                    lowlink[u] = min(lowlink[u], index_of[w])
+            else:
+                # u is fully explored; if it is an SCC root, pop its component.
+                if lowlink[u] == index_of[u]:
+                    comp: list[T] = []
+                    while True:
+                        w = scc_stack.pop()
+                        on_stack.discard(w)
+                        comp.append(w)
+                        if w == u:
+                            break
+                    sccs.append(sorted(comp, key=_keyfn))
+                work.pop()
+                if work:
+                    parent = work[-1][0]
+                    lowlink[parent] = min(lowlink[parent], lowlink[u])
+
+    sccs.sort(key=lambda comp: [_keyfn(x) for x in comp])
+    return sccs
+
+
 def greedy_modularity_communities[T: Hashable](
     nodes: Iterable[T],
     weighted_edges: Iterable[tuple[T, T, float]],

@@ -91,6 +91,50 @@ from pathlib import Path
 from typing import Any, NamedTuple
 
 # ---------------------------------------------------------------------------
+# Relay entry — a gated event→event edge on a produced_by/triggers side.
+#
+# The unified event graph (ADR 0026, issue #83) models ONE concept — the Event —
+# whose ``produced_by``/``triggers`` entries are uniformly CardAttribute refs
+# (slug strings) OR a *relay* that additionally names a SOURCE event.  A relay on
+# ``<owning-event>.produced_by`` reads: "this event is produced by a card that
+# consumes ``from_event`` and whose relay is live wherever ``gate`` has carriers"
+# — the ``EventEffect`` sidecar (``edge_roles.py``) dissolved into the one graph.
+#
+# The field mapping from the former ``EventEffect`` (ADR 0011) is:
+#   ``trigger_event``  → ``from_event``  (the source event the relay fires on)
+#   ``produced_event`` → the OWNING event (the side this entry sits on)
+#   gate query / provenance → ``gate`` (the CardAttribute ref that gates the edge)
+#
+# A ``RelayEntry`` is an immutable, hashable NamedTuple so it is safe in the
+# consumer path (``r in nodes`` is a clean membership miss, never a TypeError)
+# and sorts deterministically by ``(from_event, gate)``.
+#
+# PHASE 0 (this change) lays the SCHEMA only: the real SEED_MAP authors ZERO
+# relays, so ``derive_card_events`` emits the same all-string lists it always has
+# and the engine output is byte-identical.  Relay families are authored in later
+# phases (lifetrade as gate-query edges; the 7 resource-dependent families via
+# combo-certified promotion, NOT naive gates — see ADR 0026).
+# ---------------------------------------------------------------------------
+
+
+class RelayEntry(NamedTuple):
+    """A gated event→event relay on a ``produced_by``/``triggers`` side (ADR 0026).
+
+    Parameters
+    ----------
+    from_event
+        The SOURCE Event slug the relay fires on (former ``EventEffect.trigger_event``).
+    gate
+        The CardAttribute ref whose carriers make the relay edge live (the former
+        ``EventEffect`` guard/provenance, collapsed to one gate ref per ADR 0009's
+        closed query vocabulary).
+    """
+
+    from_event: str
+    gate: str
+
+
+# ---------------------------------------------------------------------------
 # 28-event seed map — owner-approved DATA from the validated build-design.
 #
 # For each event, each side (``triggers`` / ``produced_by``) carries:
@@ -101,6 +145,9 @@ from typing import Any, NamedTuple
 #   - ``grade``: "S" (clean structural, one exclusive taxonomy seed),
 #     "M" (semantic, union of flat concepts), or "empty" (no otag seed —
 #     text-synth / terminal / inert).
+#   - ``relays`` (OPTIONAL): list[RelayEntry] — gated event→event edges carried
+#     onto this side ALONGSIDE the derived string entries (ADR 0026).  Absent on
+#     every real event in Phase 0; the derivation appends them un-clobbered.
 #
 # The union of build-design seeds + enumerated slugs ensures
 # derived ⊇ enumerated while the higher seeds unlock descendant coverage
@@ -607,6 +654,18 @@ SEED_MAP: dict[str, dict[str, Any]] = {
                 'repeatable-lifegain',
             ],
             'grade': 'S',
+            # Lifetrade relays (ADR 0026 Phase 2 — relocated from the dissolved
+            # ``edge_roles.py`` EventEffect sidecar, gate queries byte-for-byte).
+            # ``lifegain`` is PRODUCED by a card that consumes draw-a-card
+            # (draw-to-gain, e.g. Queza) or life-loss-drain (drain-to-gain, e.g.
+            # Exquisite Blood: "whenever an opponent loses life, you gain that
+            # much life"). The gate is the curated within-card CardAttribute slug
+            # whose carriers make the edge live; the relay closes the
+            # lifegain↔life-loss-drain loop (hub Exquisite Blood / Sanguine Bond).
+            'relays': [
+                RelayEntry(from_event='draw-a-card', gate='draw-to-gain'),
+                RelayEntry(from_event='life-loss-drain', gate='drain-to-gain'),
+            ],
         },
     },
     # ── 11. life-loss-drain ─────────────────────────────────────────────
@@ -638,6 +697,18 @@ SEED_MAP: dict[str, dict[str, Any]] = {
                 'opponent-loses-life',
             ],
             'grade': 'M',
+            # Lifetrade relays (ADR 0026 Phase 2 — relocated from the dissolved
+            # ``edge_roles.py`` EventEffect sidecar, gate queries byte-for-byte).
+            # ``life-loss-drain`` is PRODUCED by a card that consumes draw-a-card
+            # (draw-to-drain, e.g. Queza: "whenever you draw a card, target
+            # opponent loses 1 life") or lifegain (gain-to-drain, e.g. Sanguine
+            # Bond: "whenever you gain life, target opponent loses that much
+            # life"). Paired with lifegain.produced_by's drain-to-gain relay, this
+            # closes the lifegain↔life-loss-drain loop.
+            'relays': [
+                RelayEntry(from_event='draw-a-card', gate='draw-to-drain'),
+                RelayEntry(from_event='lifegain', gate='gain-to-drain'),
+            ],
         },
     },
     # ── 12. counter-placed ──────────────────────────────────────────────
@@ -846,6 +917,18 @@ SEED_MAP: dict[str, dict[str, Any]] = {
                 'repeatable-draw',
             ],
             'grade': 'S',
+            # Lifetrade relays (ADR 0026 Phase 2 — relocated from the dissolved
+            # ``edge_roles.py`` EventEffect sidecar, gate queries byte-for-byte).
+            # ``draw-a-card`` is PRODUCED by a card that consumes lifegain
+            # (gain-to-draw, e.g. Lich's Mastery / Drogskol Reaver: "whenever you
+            # gain life, draw a card") or life-loss-drain (drain-to-draw, e.g.
+            # Vilis: "whenever you lose life, draw that many cards"). These let a
+            # draw payoff re-enter the lifetrade loop (Queza draws → drains/gains →
+            # Lich's Mastery draws again).
+            'relays': [
+                RelayEntry(from_event='life-loss-drain', gate='drain-to-draw'),
+                RelayEntry(from_event='lifegain', gate='gain-to-draw'),
+            ],
         },
     },
     # ── 18. discard ─────────────────────────────────────────────────────
@@ -1225,39 +1308,24 @@ def _taxonomy_path() -> Path:
     return root / 'raw' / 'oracle_tags.parquet'
 
 
-@lru_cache(maxsize=1)
-def load_taxonomy() -> dict[str, dict[str, Any]]:
-    """Load the otag taxonomy and build ``slug -> {children: [slug, ...], ...}``.
+# A tag row in the canonical ``(id, slug, description, parent_ids, child_ids)``
+# shape, with every id a tag UUID string. The hydrated parquet read and the
+# bundled-snapshot read both normalize into this tuple so the DAG they build is
+# structurally identical.
+_TagRow = tuple[str, str, str, list[str], list[str]]
 
-    Returns a dict keyed by slug.  Each value has:
-    - ``children``: list[str] — child slugs
-    - ``parents``: list[str] — parent slugs
-    - ``description``: str — tag description (for audit)
 
-    Uses DuckDB to read the parquet in-process.  Cached.
+def _build_taxonomy(rows: list[_TagRow]) -> dict[str, dict[str, Any]]:
+    """Build ``slug -> {children, parents, description}`` from canonical tag rows.
+
+    This is the one taxonomy-dict construction, shared by the hydrated-parquet
+    path and the offline-snapshot fail-open: both resolve each tag's
+    ``parent_ids``/``child_ids`` (tag UUIDs) back to slugs against the same
+    ``id -> slug`` map, so the closure structure is identical on either source.
+    Only the DAG edges and description are used downstream (not per-card
+    taggings), so the trimmed snapshot yields the same closure as the full lake.
     """
-    import duckdb
-
-    path = _taxonomy_path()
-    if not path.exists():
-        raise FileNotFoundError(f'oracle_tags.parquet not found at {path}; hydrate with `collection hydrate-lake`')
-
-    con = duckdb.connect(':memory:')
-    try:
-        rows = con.execute(
-            f'SELECT CAST(id AS VARCHAR) AS id, slug, '
-            f"COALESCE(description, '') AS description, "
-            f'parent_ids, child_ids '
-            f"FROM read_parquet('{path}')"
-        ).fetchall()
-    finally:
-        con.close()
-
-    # Build id→slug for cross-referencing UUIDs in parent_ids/child_ids.
-    id_to_slug: dict[str, str] = {}
-    for uid, slug, _desc, _pids, _cids in rows:
-        id_to_slug[uid] = slug
-
+    id_to_slug: dict[str, str] = {uid: slug for uid, slug, _desc, _pids, _cids in rows}
     taxonomy: dict[str, dict[str, Any]] = {}
     for _uid, slug, desc, parent_ids, child_ids in rows:
         parents = [id_to_slug[str(p)] for p in (parent_ids or []) if str(p) in id_to_slug]
@@ -1267,8 +1335,66 @@ def load_taxonomy() -> dict[str, dict[str, Any]]:
             'parents': parents,
             'description': desc,
         }
-
     return taxonomy
+
+
+def _parquet_rows(path: Path) -> list[_TagRow]:
+    """Read the hydrated ``oracle_tags.parquet`` DAG columns via DuckDB, in-process."""
+    import duckdb
+
+    con = duckdb.connect(':memory:')
+    try:
+        return con.execute(
+            f'SELECT CAST(id AS VARCHAR) AS id, slug, '
+            f"COALESCE(description, '') AS description, "
+            f'parent_ids, child_ids '
+            f"FROM read_parquet('{path}')"
+        ).fetchall()
+    finally:
+        con.close()
+
+
+def _snapshot_rows() -> list[_TagRow]:
+    """Read the committed offline tag snapshot into canonical tag rows.
+
+    Reuses the oracle-tags puller's ``_load_snapshot`` (the single source of truth
+    for the bundled ``data/snapshots/oracle_tags.json.gz`` path), so there is one
+    offline baseline. Purely local — no network, no live fetch. The snapshot keeps
+    the FULL tag DAG (all parent/child edges), so the derived closure matches the
+    hydrated lake exactly.
+    """
+    from pipeline.sources.oracle_tags import _load_snapshot
+
+    return [
+        (
+            str(tag['id']),
+            tag['slug'],
+            tag.get('description') or '',
+            tag.get('parent_ids') or [],
+            tag.get('child_ids') or [],
+        )
+        for tag in _load_snapshot()
+    ]
+
+
+@lru_cache(maxsize=1)
+def load_taxonomy() -> dict[str, dict[str, Any]]:
+    """Load the otag taxonomy and build ``slug -> {children: [slug, ...], ...}``.
+
+    Returns a dict keyed by slug.  Each value has:
+    - ``children``: list[str] — child slugs
+    - ``parents``: list[str] — parent slugs
+    - ``description``: str — tag description (for audit)
+
+    Reads the hydrated ``oracle_tags.parquet`` via DuckDB when present. When it is
+    absent (a fresh/unhydrated install), FAIL-OPEN to the committed offline
+    snapshot that ``sources/oracle_tags`` already ships, so the derived view —
+    the otag closure and the SEED_MAP relays — is available with no lake and no
+    account, preserving the local-first default. Cached.
+    """
+    path = _taxonomy_path()
+    rows = _parquet_rows(path) if path.exists() else _snapshot_rows()
+    return _build_taxonomy(rows)
 
 
 # ---------------------------------------------------------------------------
@@ -1535,9 +1661,37 @@ def validate_seed_map(
         for s in ('produced_by', 'triggers'):
             seed_sets[(ev, s)] = set(entry[s]['seeds'])
 
+    # Known events = the authoring universe; a relay's ``from_event`` must name one.
+    known_events = set(seed_map)
+
     for event_name, entry in seed_map.items():
         for side in ('produced_by', 'triggers'):
             seeds = entry[side]['seeds']
+
+            # (0) Relay-shape + placement invariant (ADR 0026, owner-approved
+            # 2026-11-19): each relay names a known source event and a non-empty
+            # gate CardAttribute ref, AND a relay is authored ONLY on an event's
+            # ``produced_by`` side.  A relay on ``triggers`` is rejected: the owning
+            # event is the PRODUCED end of the gated event→event edge
+            # (``from_event`` → owning-event), so the entry sits where the event is
+            # produced.  This accepts the relay shape alongside the string seeds
+            # WITHOUT weakening the mechanic-exclusivity checks below (relays live
+            # in their own key and the seed iteration is untouched).
+            relays = entry[side].get('relays', [])
+            if relays and side != 'produced_by':
+                violations.append(
+                    f'{event_name}.{side}: relays may be authored only on the '
+                    f"'produced_by' side (ADR 0026 produced_by-only placement); "
+                    f'found {len(relays)} relay(s) on {side!r}'
+                )
+            for relay in relays:
+                if relay.from_event not in known_events:
+                    violations.append(
+                        f'{event_name}.{side}: relay from_event {relay.from_event!r} is not a known event'
+                    )
+                if not isinstance(relay.gate, str) or not relay.gate:
+                    violations.append(f'{event_name}.{side}: relay gate {relay.gate!r} must be a non-empty string')
+
             if not seeds:
                 continue
 
@@ -1610,25 +1764,42 @@ def validate_seed_map(
 
 def derive_card_events(
     events: dict[str, dict],
+    *,
+    seed_map: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, dict]:
     """Compute derived ``produced_by``/``triggers`` from seeds + taxonomy closure.
 
     For each event side, the derived list = sorted union of descendant-closures
-    of all seeds for that side.  The committed enumerated lists are a subset
-    of the derived lists (no loss) because the seed map includes both the
-    build-design structural seeds AND the existing enumerated slugs.
+    of all seeds for that side, followed by any authored :class:`RelayEntry`
+    relays (sorted, carried un-clobbered — ADR 0026).  The committed enumerated
+    lists are a subset of the derived string lists (no loss) because the seed map
+    includes both the build-design structural seeds AND the existing enumerated
+    slugs.
 
     The returned dict has the same shape as *events* — every event key is
     present with the same ``rule``/``abbrev``/``polarity``/``scope`` fields.
     Only ``produced_by`` and ``triggers`` lists are replaced.
 
-    Events not in :data:`SEED_MAP` are passed through unchanged.
+    A side carries relays by listing them under an optional ``relays`` key
+    (:class:`RelayEntry` values).  They are **not** closure-derived — they survive
+    the overwrite by being appended after the sorted string closure.  In Phase 0
+    no real event authors relays, so every derived list stays all-strings and the
+    engine output is byte-identical.
+
+    Events not in the seed map are passed through unchanged.
+
+    Parameters
+    ----------
+    seed_map
+        Override for testing; defaults to the module-level :data:`SEED_MAP`.
     """
+    if seed_map is None:
+        seed_map = SEED_MAP
     taxonomy = load_taxonomy()
 
     derived: dict[str, dict] = {}
     for event_name, ev in events.items():
-        entry = SEED_MAP.get(event_name)
+        entry = seed_map.get(event_name)
         if entry is None:
             # Not in seed map — pass through unchanged.
             derived[event_name] = dict(ev)
@@ -1639,8 +1810,9 @@ def derive_card_events(
 
         for side in ('produced_by', 'triggers'):
             seeds = entry[side]['seeds']
-            if not seeds:
-                # Empty seed set — keep the original list (terminal/inert events).
+            relays: list[RelayEntry] = entry[side].get('relays', [])
+            if not seeds and not relays:
+                # No seeds and no relays — keep the original list (terminal/inert).
                 continue
 
             # Expand each seed via descendant-closure and union.
@@ -1648,11 +1820,35 @@ def derive_card_events(
             for seed in seeds:
                 expanded |= descendant_closure(seed, taxonomy)
 
-            new_ev[side] = sorted(expanded)
+            # String attribute refs first (sorted), relay entries after (sorted by
+            # (from_event, gate)) — a deterministic order over the mixed list.
+            new_side: list[str | RelayEntry] = sorted(expanded)
+            new_side.extend(sorted(relays))
+            new_ev[side] = new_side
 
         derived[event_name] = new_ev
 
     return derived
+
+
+def relay_gate_attrs(seed_map: dict[str, dict[str, Any]] | None = None) -> frozenset[str]:
+    """The CardAttribute slugs that gate a catalog :class:`RelayEntry`.
+
+    These are the within-card edge attributes whose carriers enable a relay
+    (the lifetrade draw/gain/drain couplings, relocated here from the dissolved
+    ``edge_roles.py`` sidecar — ADR 0026 Phase 2). The RESOLVED/PROVISIONAL
+    completeness label reads this set as the authored within-card edge attrs
+    (``engine_hydration.curated_edge_queries``), so the single source of truth for
+    "which synth attrs author a within-card edge" is the SEED_MAP relays, not a
+    separate hand-kept registry.
+    """
+    sm = seed_map if seed_map is not None else SEED_MAP
+    gates: set[str] = set()
+    for entry in sm.values():
+        for side in ('produced_by', 'triggers'):
+            for relay in entry.get(side, {}).get('relays', []):
+                gates.add(relay.gate)
+    return frozenset(gates)
 
 
 # ---------------------------------------------------------------------------

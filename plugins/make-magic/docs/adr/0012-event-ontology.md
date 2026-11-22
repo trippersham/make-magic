@@ -268,6 +268,24 @@ promotion only enriches existing events' producer seed sets, it does not touch t
 shape. Output-moving re-baseline under [0003] (0 headline/identity flips; 2 engines recovered, 0
 spurious; 73 strengthened; Shelob preserved + strictly improved).
 
+## Amendment — 2026-11-19 ([0026] Phase 0: the relay-entry shape; string-only invariant relaxed), 33 events unchanged
+
+The unified event graph ([0026], issue #83) dissolves `EventEffect` into `Event`: a
+`produced_by`/`triggers` entry is now uniformly a **CardAttribute ref (slug string) OR a
+`{from_event, gate}` relay** (`derive_card_events.RelayEntry` — `from_event` = the source Event
+slug, `gate` = the CardAttribute ref that gates the edge). The **string-only entry invariant is
+relaxed** to admit the relay shape; the event-node **field vocabulary is unchanged**
+(`{rule, produced_by, triggers, abbrev}` + `game-end` extras) and no `role`/`terminal` field is
+added — only the per-entry type widens from `str` to `str | RelayEntry`. Projection 1's
+EventEffect (`trigger_event → produced_event` edge) becomes a relay entry on the produced event's
+side; relay-injection (`relay.py`) is repurposed as the provisional-edge channel, not deleted.
+
+**Phase 0 is schema-only:** the real `SEED_MAP` authors **zero** relays, so `derive_card_events`
+emits the same all-string lists and the **held `event_catalog.json` stays byte-identical** (the P0
+SHA triple is unchanged). `test_event_ontology.py` gains `TestRelayEntryOntology` (raw catalog
+entries stay strings; the derived view admits a `RelayEntry` alongside strings). Relay families
+are authored in later [0026] phases under [0003].
+
 ## The bipartite graph and its projections
 
 The strategy engine operates on ONE bipartite graph with two projections.

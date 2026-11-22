@@ -64,6 +64,7 @@ from typing import Any
 from pipeline.transforms.strategy.catalog_integrity import is_bookkeeping_family, is_payoff_family
 from pipeline.transforms.strategy.derive_card_events import (
     SEED_MAP,
+    RelayEntry,
     descendant_closure,
     is_mechanic_exclusive,
     load_taxonomy,
@@ -816,10 +817,19 @@ def _build_projected_events(
         if cand.event not in projected:
             continue
         ev = dict(projected[cand.event])
-        current_list = set(ev.get(cand.side, []))
-        # Add the promoted candidate's descendant closure
-        current_list |= descendant_closure(cand.otag, taxonomy)
-        ev[cand.side] = sorted(current_list)
+        side = ev.get(cand.side, [])
+        # A ``produced_by`` / ``triggers`` list is a MIXED list of string
+        # CardAttribute refs and catalog ``RelayEntry`` objects (ADR 0026). The two
+        # kinds are not mutually comparable, so a single ``sorted()`` over the union
+        # raises ``TypeError``. Sort the string closure (merged with the promoted
+        # candidate's descendants) on its own, then append the sorted relays — the
+        # same string-refs-first ordering ``derive_card_events`` writes.
+        strings = {r for r in side if isinstance(r, str)}
+        relays = [r for r in side if isinstance(r, RelayEntry)]
+        strings |= descendant_closure(cand.otag, taxonomy)
+        projected_side: list[str | RelayEntry] = sorted(strings)
+        projected_side.extend(sorted(relays))
+        ev[cand.side] = projected_side
         projected[cand.event] = ev
 
     return projected

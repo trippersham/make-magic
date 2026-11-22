@@ -54,6 +54,17 @@ packages = ["pipeline"]
 # into a silent 0-0-0 table — the runner also guards its existence at runtime).
 [tool.hatch.build.targets.wheel.force-include]
 "pipeline/sim/java/forge-simai/make-magic-forge-simai.jar" = "pipeline/sim/java/forge-simai/make-magic-forge-simai.jar"
+# Ship the committed offline oracle-tags snapshot (+ its cursor meta) at the path the
+# INSTALLED loader reads it: `sources/oracle_tags.py` resolves the snapshot as
+# `Path(__file__).resolve().parents[2] / 'data' / 'snapshots' / ...`, which in a wheel
+# install is `<site-packages>/data/snapshots/...` (parents[2] of `pipeline/sources/` is
+# site-packages), OUTSIDE the packaged `pipeline/` dir. Without this, a wheel-installed
+# offline consumer with no lake FAILS the fail-open path — `derive_card_events.load_taxonomy`
+# raises FileNotFoundError and `assets.load_assets` returns zero catalog relays (#108 /
+# #83 MAJOR). The source tree already ships these files; the wheel must too. Packaging only
+# — the hashed resolve path reads the hydrated parquet, never this snapshot.
+"data/snapshots/oracle_tags.json.gz" = "data/snapshots/oracle_tags.json.gz"
+"data/snapshots/oracle_tags.meta.json" = "data/snapshots/oracle_tags.meta.json"
 
 [tool.pytest.ini_options]
 # `tests` is the repo suite; the strategy subpackage keeps its hermetic suite

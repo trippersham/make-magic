@@ -32,6 +32,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pipeline.transforms.strategy.assets import is_land
+from pipeline.transforms.strategy.determine_strategy_substantiveness import requirement_for
 from pipeline.transforms.strategy.engine_hydration import unauthored_cards
 from pipeline.transforms.strategy.machine_vocab import (
     CardAttribute,
@@ -40,7 +41,7 @@ from pipeline.transforms.strategy.machine_vocab import (
     load_store,
 )
 from pipeline.transforms.strategy.query import CardView, compile_query
-from pipeline.transforms.strategy.relay import elect_engine_units_with_relay
+from pipeline.transforms.strategy.relay import catalog_relay_directions, elect_engine_units_with_relay
 from pipeline.transforms.strategy.strategy_graph import compute_facts, determine_node_admitted
 
 # ---------------------------------------------------------------------------
@@ -282,11 +283,19 @@ def _characterize_engines(iso: dict, event_catalog: dict) -> list[NamedEngine]:
 
     # --- Standalone engines (not part of a cycle) ---
     for eng in standalone:
+        # Hub-less recursion (#83 MAJOR-4): a raw event→event edge injected through the
+        # ``combo_event_edges`` seam carries NO gate CardAttribute, so the event can be
+        # ``recursive-engine`` with ``interior_node`` None (the relay-augmented path always
+        # names a gate hub; a seam edge does not). The shipped engine passes ``None`` through
+        # that seam (the combo-certified families are deferred to #90), but this branch stays
+        # defensive for the #90 re-add: ``_abbrev_event`` always yields a non-empty label (the
+        # slug when no abbrev is catalogued), so the name is sensible, never blank or an
+        # exception, and the hub reads ``none`` to signal a loop with no single-card hub.
         hub = eng['interior_node']
         members = sorted(set(eng['producers']) | set(eng['consumers']))
         events = [eng['event']]
 
-        ev_abbrev = _abbrev_event(eng['event'], event_catalog)
+        ev_abbrev = _abbrev_event(eng['event'], event_catalog) or eng['event']
         name = f'{ev_abbrev} engine' if eng['kind'] == 'recursive-engine' else f'{ev_abbrev} payoff'
 
         hub_str = hub or 'none'
@@ -451,6 +460,28 @@ def identify_engines(
     #
     # With an empty store (the default/committed state), the loop body
     # never executes and behavior is byte-identical to before.
+    #
+    # ``matched_store_attrs`` records which store entries actually matched a card in
+    # THIS deck. A store entry's within-card edge role is injected into the relay walk
+    # only when it matched (ADR 0017 two-tier waterfall): a store slug can be in
+    # ``nodes`` for a DIFFERENT reason — a native CardAttribute of the same slug — so a
+    # zero-match store entry must not hijack that native node's role and rewrite the
+    # named cycle. A combo-implied edge (``combo_variant_id`` set) is grounded by its
+    # combo being PRESENT (``_assemble_present_combo_edges``), so it counts as matched.
+    #
+    # Freeze the GENUINE native carrier set BEFORE the store loop mutates
+    # ``ctx.attr_weight``. A catalog relay gate's liveness is ROLE-MATCHED (ADR 0026 §1):
+    # it is live via a real in-deck carrier of that gate CardAttribute, OR via a matched
+    # store (haiku) slug whose declared role agrees with the gate's catalog relay direction
+    # ``(from_event, owning_event)``. A store slug sharing a gate's name — added to
+    # ``attr_weight`` by its own query match, possibly with the WRONG role — must NOT revive
+    # the gate on name alone and mint a phantom recursive engine; only a correct-role matched
+    # slug is admitted. ``native_gate_carriers`` holds the carriers present before the loop;
+    # ``role_matched_store_gates`` (built after the loop, below) adds the correct-role matched
+    # store gates, and the union is threaded to ``elect_engine_units`` as ``gate_carriers``.
+    native_gate_carriers = frozenset(ctx.attr_weight)
+    relay_directions = catalog_relay_directions(ctx.assets.events)
+    matched_store_attrs: set[str] = set()
     if not store.is_empty:
         for ma in store.attributes:
             if not ma.query or not ma.trigger_event or not ma.produced_event:
@@ -467,7 +498,9 @@ def identify_engines(
             # with a native node.  This makes correctness structural (provenance)
             # rather than reliant on the incidental invariant that query-eval
             # membership always matches native otag membership (C3 review fix).
-            if ma.provenance.combo_variant_id and ma.name in ctx.nodes:
+            is_combo_edge = bool(ma.provenance.combo_variant_id)
+            if is_combo_edge and ma.name in ctx.nodes:
+                matched_store_attrs.add(ma.name)  # grounded: its combo is present
                 continue
             try:
                 pred = compile_query(ma.query)
@@ -476,15 +509,21 @@ def identify_engines(
 
             support_count = 0
             is_cmd_attr = False
+            matched = False
             for card in ctx.cards:
                 view = CardView.from_card(card)
                 if pred(view):
+                    matched = True
                     w = ctx.cfg.cmd_weight if card.get('role') == 'commander' else 1.0
                     ctx.attr_weight[ma.name] += w
                     if not is_land(card):
                         support_count += 1
                     if card.get('role') == 'commander':
                         is_cmd_attr = True
+            # A combo-implied edge is grounded by its PRESENT combo (above); a
+            # non-combo (haiku) entry is live only when its query hit a card here.
+            if matched or is_combo_edge:
+                matched_store_attrs.add(ma.name)
 
             # Node admission: >= 3 support cards OR commander attr (determine_node_admitted, ADR 0004).
             if determine_node_admitted(support_count, is_cmd_attr):
@@ -492,7 +531,32 @@ def identify_engines(
             if is_cmd_attr:
                 ctx.cmd_attrs.add(ma.name)
 
+    # A matched store slug makes its same-named catalog relay gate live only when its
+    # declared role ``(trigger_event, produced_event)`` is one of that gate's catalog relay
+    # directions ``(from_event, owning_event)`` — the role-matched-liveness predicate (ADR
+    # 0026 §1 / ADR 0017). Union with the frozen native carriers; threaded as ``gate_carriers``.
+    role_matched_store_gates = {
+        name
+        for name in matched_store_attrs
+        if (ma := store.get(name)) is not None
+        and (ma.trigger_event, ma.produced_event) in relay_directions.get(name, ())
+    }
+    gate_carriers = native_gate_carriers | role_matched_store_gates
+
     # 3. Run relay-augmented engine isolation.
+    #
+    # Superset-of-resolve (#83 MAJOR-4): the report must report at least what
+    # ``resolve()`` reports. ``resolve`` elects over the catalog edges under the
+    # archetype-substantiveness gate; the relay-augmented edges already superset the
+    # catalog edges, so threading the SAME ``earned_archetypes`` gate here makes the
+    # report's recursive set a superset of resolve's. Both are computed EXACTLY as
+    # ``strategy_graph.compute_facts`` does (same determiner) so the two public views
+    # can never disagree on a certified loop. The 7 combo-certified families are DEFERRED
+    # to #90 (ADR 0026 §4), so ``combo_event_edges`` is ``None`` in BOTH views — resolve
+    # and the report inject zero family edges, keeping the superset property exact.
+    earned_archetypes = {
+        arch for arch, st in ctx.strategies.items() if requirement_for(arch, ctx.cfg).satisfied(st, ctx, arch)
+    }
     iso = elect_engine_units_with_relay(
         ctx.nodes,
         ctx.assets.events,
@@ -500,6 +564,10 @@ def identify_engines(
         ctx.assets,
         ctx.cards,
         store=store,
+        earned_archetypes=earned_archetypes,
+        combo_event_edges=None,
+        matched_store_attrs=frozenset(matched_store_attrs),
+        gate_carriers=frozenset(gate_carriers),
     )
 
     # 4. Name / characterize each engine.

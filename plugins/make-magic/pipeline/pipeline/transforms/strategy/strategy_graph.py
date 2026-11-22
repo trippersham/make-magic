@@ -40,6 +40,7 @@ from pipeline.transforms.strategy.combo_win import (
 from pipeline.transforms.strategy.config import FACTS_ONLY_WHEN_DISABLED, StrategyConfig
 from pipeline.transforms.strategy.degree import compute_degree_axes, power_profile
 from pipeline.transforms.strategy.derive_card_attributes import derive_card_attributes
+from pipeline.transforms.strategy.derive_card_events import RelayEntry
 from pipeline.transforms.strategy.determine_strategy_substantiveness import determine_event
 from pipeline.transforms.strategy.distill_strategies import synth_attrs_for
 from pipeline.transforms.strategy.query import CardView
@@ -117,6 +118,191 @@ def _compute_answered_by(cards: list[dict], strategies: dict[str, dict]) -> dict
     return out
 
 
+def unified_event_graph_edges(
+    event_edges: list[tuple[str, str, str]],
+    events: dict,
+    nodes: set[str],
+    relay_gate_carriers: frozenset[str] | set[str] | None = None,
+    combo_event_edges: list[tuple[str, str]] | None = None,
+) -> tuple[set[tuple[str, str]], list[tuple[tuple[str, str], tuple[str, str]]]]:
+    """Edges of the ONE unified CardAttribute | Event graph (ADR 0026).
+
+    The engine models a single concept — the Event — as a first-class NODE, not a
+    bipartite edge label. Node keys are ``('a', <attr>)`` and ``('e', <event>)``
+    (the tag disambiguates an attr whose slug equals an event slug). Each
+    attr→attr ``event_edge`` ``(p, c, ev)`` is the collapsed form of the two
+    bipartite legs this graph restores: ``p → ev`` (``p`` produces the event) and
+    ``ev → c`` (the event triggers ``c``). A :class:`RelayEntry` authored on an
+    event's ``produced_by`` side (``produced_by``-only, owner-approved) is the
+    gated event→event edge ``from_event → owning-event``; it is live iff its
+    ``gate`` CardAttribute **has a carrier in the deck** (ADR 0026 §1 / the design's
+    "enabling cards" rule: the edge is live iff the gate has >= 1 carrier — a gate
+    carrier is the edge's enabler, NOT a claim that the gate is a substantive
+    identity node). *Relay-gate liveness is therefore PRESENCE, distinct from the
+    admission that governs string attr legs:* a relay closes a structural loop
+    (Sanguine Bond's gain→drain + Exquisite Blood's drain→gain = the recursive
+    lifegain↔life-loss-drain engine) whenever both enabler cards are in the deck,
+    even when each is a 1-2-card sub-threshold attr that never earns an identity
+    node. ``relay_gate_carriers`` names the present-attr set the gate is tested
+    against; when ``None`` it falls back to ``nodes`` (the structural callers that
+    pass a single set where present == admitted, e.g. ``loop_aware_nodes``, which
+    already passes ALL present attrs). This is the one place a relay is INTERPRETED
+    as a graph edge rather than dropped as a clean-miss string.
+
+    Legs come from TWO sources, unioned: the ``events`` catalog (every string
+    producer/consumer leg + the gated event→event relay edges) AND the passed
+    ``event_edges`` (which, on the relay-augmented walk, carries within-card edge
+    attrs injected into events that are NOT in the catalog dict — see
+    :mod:`.relay`). Building catalog legs directly from ``events`` — rather than
+    only from ``event_edges`` — is load-bearing: a relay-PRODUCED event has no
+    string producer, so its trigger legs ``ev → consumer`` would be missing from
+    the collapsed ``event_edges`` and its relay cycle could never close. A string
+    attr on BOTH sides of one event (e.g. ``rad`` ↔ proliferate) is a genuine
+    ``attr → ev → attr`` 2-cycle and is kept (no ``p != c`` filter here — that
+    filter is for the attr-only projected view, not the unified graph).
+
+    The returned node set contains exactly the nodes that appear in >= 1 edge; an
+    isolated event (no in-deck producer or consumer) cannot sit on a cycle and is
+    therefore immaterial to SCC detection.
+    """
+    gate_carriers = relay_gate_carriers if relay_gate_carriers is not None else nodes
+    graph_nodes: set[tuple[str, str]] = set()
+    edges: list[tuple[tuple[str, str], tuple[str, str]]] = []
+
+    def add(u: tuple[str, str], v: tuple[str, str]) -> None:
+        graph_nodes.add(u)
+        graph_nodes.add(v)
+        edges.append((u, v))
+
+    # (1) attr legs from the (possibly augmented) event_edges — the source of the
+    # relay-augmented walk's injected within-card edge attrs.
+    for p, c_, ev in event_edges:
+        add(('a', p), ('e', ev))
+        add(('e', ev), ('a', c_))
+    # (2) attr legs + gated relay edges straight from the event catalog.
+    for ev, spec in events.items():
+        en = ('e', ev)
+        for ref in spec.get('produced_by', ()):
+            if isinstance(ref, RelayEntry):
+                # event→event relay (ADR 0026, produced_by-only): live iff its gate
+                # CardAttribute HAS A CARRIER in the deck (presence), not iff the
+                # gate is an admitted identity node. A lifetrade relay closes its
+                # loop on the enabler card alone (Sanguine Bond + Exquisite Blood),
+                # which is often a 1-2-card sub-threshold attr.
+                if ref.gate in gate_carriers:
+                    add(('e', ref.from_event), en)
+            elif ref in nodes:
+                add(('a', ref), en)
+        for ref in spec.get('triggers', ()):
+            if isinstance(ref, str) and ref in nodes:
+                add(en, ('a', ref))
+    # (3) Optional per-deck event→event edges injected directly into the SCC walk. Each
+    # ``(a, b)`` is a pure event→event edge wired alongside the catalog relays; the caller
+    # passes both directions of a pair so the SCC closes the loop and the endpoint events'
+    # engine units report ``recursive-engine``. This is the injection seam reserved for the
+    # 7 resource-dependent combo-certified families, which are DEFERRED to #90 (ADR 0026 §4);
+    # in the shipped engine every caller passes ``None`` here, so no family edge reaches the
+    # graph. The seam is kept covered so #90 re-adds a vetted family layer without re-plumbing.
+    for a, b in combo_event_edges or ():
+        add(('e', a), ('e', b))
+    return graph_nodes, edges
+
+
+def _catalog_event_edges(events: dict, present: set[str]) -> list[tuple[str, str, str]]:
+    """``(producer, consumer, event)`` attr-edges over *present* string refs.
+
+    The ``produced_by x triggers`` cross-product the facts layer walks, restricted
+    to string CardAttribute refs that are ``present`` (``p != c``). RelayEntry refs
+    are NOT attr-edges — they are interpreted as event→event edges downstream.
+    """
+    edges: list[tuple[str, str, str]] = []
+    for evname, ev in events.items():
+        prods = [r for r in ev['produced_by'] if isinstance(r, str) and r in present]
+        cons = [r for r in ev['triggers'] if isinstance(r, str) and r in present]
+        for p in prods:
+            for c_ in cons:
+                if p != c_:
+                    edges.append((p, c_, evname))
+    return edges
+
+
+def loop_aware_nodes(
+    prevalent: set[str],
+    attr_weight: dict[str, float],
+    assets: StrategyAssets,
+) -> set[str]:
+    """Loop-aware substantiveness admission (ADR 0026 — the W2 rule).
+
+    A node is substantive iff it is **statistically prevalent** (``>= 3`` carriers,
+    or commander-carried — already in *prevalent*) **OR structurally load-bearing**
+    (on a closed cycle, among otherwise-substantive nodes). This is the provisional
+    cycle pass that lives INSIDE the substantiveness stage (structure, not mass —
+    honouring the ADR 0021 substantiveness→centrality order): it admits a
+    sub-threshold attr only when it participates in a nontrivial SCC of the unified
+    CardAttribute | Event graph that is **anchored by >= 1 already-prevalent attr**
+    (the "among otherwise-substantive nodes" clause — a cycle formed purely from
+    sub-threshold noise never earns admission). Binary SCC-membership, never a
+    continuous score; centrality/mass-election (ADR 0014) is untouched.
+
+    The provisional graph is built over every present attribute (``attr_weight``
+    keys), so a candidate's loop may route through other candidates as long as the
+    component carries a substantive anchor.
+    """
+    all_attrs = set(attr_weight)
+    candidates = all_attrs - prevalent
+    if not candidates:
+        return set(prevalent)
+    # The unified graph builds all catalog attr legs straight from ``events`` over
+    # the ``all_attrs`` filter, so no pre-collapsed ``event_edges`` is needed here.
+    graph_nodes, uni_edges = unified_event_graph_edges([], assets.events, all_attrs)
+    admitted = set(prevalent)
+    for comp in _graph.strongly_connected_components(graph_nodes, uni_edges):
+        if len(comp) < 2:
+            continue
+        attrs_in = {name for tag, name in comp if tag == 'a'}
+        if attrs_in & prevalent:  # anchored by an otherwise-substantive node
+            admitted |= attrs_in & candidates
+    return admitted
+
+
+def recursive_event_set(
+    event_edges: list[tuple[str, str, str]],
+    events: dict,
+    nodes: set[str],
+    relay_gate_carriers: frozenset[str] | set[str] | None = None,
+    combo_event_edges: list[tuple[str, str]] | None = None,
+) -> set[str]:
+    """Events on a true cycle of the unified graph — the ``recursive-engine`` set.
+
+    One sorted-Tarjan SCC pass over :func:`unified_event_graph_edges`. An event is
+    recursive iff its node lands in a nontrivial strongly-connected component
+    (size >= 2 — a real directed cycle). This REPLACES the ``producers &
+    consumers`` heuristic, which flagged an event as recursive whenever any one of
+    its producers also consumed *some* (possibly unrelated) event, without proving
+    the cycle ever returned. Per-event static-unit enumeration is unaffected: the
+    SCC only reclassifies recursive-vs-static.
+
+    ``relay_gate_carriers`` is the present-attr set a catalog :class:`RelayEntry`'s
+    gate is tested against (presence, per ADR 0026 §1); ``None`` falls back to
+    ``nodes``. Passing the full present set lets a lifetrade relay close its loop on
+    the enabler cards alone, even when the gate attr is sub-threshold for identity.
+
+    ``combo_event_edges`` is the optional per-deck event→event injection seam reserved for
+    the 7 resource-dependent combo-certified families (ADR 0026 §4), which are DEFERRED to
+    #90. The shipped engine passes ``None``, so no family edge enters the SCC walk; only the
+    Phase-1 framework cycles and the Phase-2 lifetrade catalog relays close loops here.
+    """
+    graph_nodes, edges = unified_event_graph_edges(event_edges, events, nodes, relay_gate_carriers, combo_event_edges)
+    recursive: set[str] = set()
+    for comp in _graph.strongly_connected_components(graph_nodes, edges):
+        if len(comp) < 2:
+            continue
+        for tag, name in comp:
+            if tag == 'e':
+                recursive.add(name)
+    return recursive
+
+
 def elect_engine_units(
     nodes: set[str],
     event_edges: list[tuple[str, str, str]],
@@ -124,6 +310,8 @@ def elect_engine_units(
     assets: StrategyAssets,
     cards: list[dict],
     earned_archetypes: set[str] | None = None,
+    combo_event_edges: list[tuple[str, str]] | None = None,
+    gate_carriers: frozenset[str] | None = None,
 ) -> dict:
     """STRUCTURE-ONLY a-priori engine isolation over the DIRECTED event graph.
 
@@ -181,6 +369,18 @@ def elect_engine_units(
     election. The reported ``engines`` list stays complete; exclusion applies to
     election candidacy only.
 
+    ``gate_carriers`` is the present-attr set a catalog :class:`RelayEntry`'s gate is
+    tested against for liveness (PRESENCE, ADR 0026 §1). It defaults to
+    ``set(attr_weight)``, which is correct for the store-free ``compute_facts`` path
+    where every weight is a native card attribute. The ``engine_report`` path instead
+    injects store (haiku) slugs into ``attr_weight`` by name+query match, so it passes a
+    ROLE-MATCHED live set: the genuine native carriers (frozen before any store injection)
+    PLUS the matched store slugs whose declared role agrees with the gate's catalog relay
+    direction. A correct-role matched store slug makes its gate live — that is how a
+    legitimate store-backed lifetrade loop closes through the catalog relay edges here —
+    while a same-named, wrong-role or zero-match slug is excluded, so it cannot make a
+    catalog gate falsely live and mint a phantom recursive engine.
+
     Purely additive to the label: reported under ``facts['engines']`` and never
     consulted by the naming layer (the label is unchanged; STRUCTURE-ONLY).
     """
@@ -196,6 +396,48 @@ def elect_engine_units(
     producers = {n for n in nodes if out_adj.get(n)}
     consumers = {n for n in nodes if in_adj.get(n)}
     relay = producers & consumers
+
+    # True-SCC recursion (ADR 0026): an event is a ``recursive-engine`` iff its
+    # node sits on a real directed cycle of the unified CardAttribute | Event
+    # graph, replacing the ``producers & consumers`` heuristic. ``relay`` stays as
+    # the reported hub signal (the producer that is also a consumer); the SCC
+    # decides the recursive-vs-static KIND. Catalog relay gates are tested for
+    # PRESENCE (a carrier in the deck = any attr in ``attr_weight``), not identity
+    # admission: a lifetrade loop (Sanguine Bond's gain→drain + Exquisite Blood's
+    # drain→gain) closes on the two enabler cards even when each gate attr is a
+    # 1-2-card sub-threshold attr that never earns an identity node (ADR 0026 §1).
+    # ``combo_event_edges`` is the optional injection seam for the 7 combo-certified
+    # families (ADR 0026 §4), DEFERRED to #90: the shipped engine passes ``None``, so this
+    # walk closes loops only from framework cycles and lifetrade relays.
+    # Catalog relay-gate liveness is tested against ROLE-MATCHED live carriers of the
+    # gate CardAttribute (``gate_present``), NOT the raw ``attr_weight`` keys: the
+    # engine_report path injects store (haiku) slugs into ``attr_weight`` by
+    # name+query match, so ``set(attr_weight)`` would admit a same-named, wrong-role
+    # store slug as a live catalog gate. ``gate_carriers`` is the native carriers the
+    # caller froze before any store injection, UNIONED with the matched store slugs
+    # whose role agrees with the gate's catalog relay direction — a correct-role store
+    # gate is live, a wrong-role one is not. ``None`` falls back to ``set(attr_weight)``
+    # (correct for the store-free ``compute_facts`` path, where every weight is native,
+    # keeping that path byte-identical).
+    gate_present = gate_carriers if gate_carriers is not None else frozenset(attr_weight)
+    # ONE sorted-Tarjan SCC pass over the unified CardAttribute | Event graph. It names
+    # both the recursive event set (events on a real directed cycle) AND, per event,
+    # the set of events sharing its strongly-connected component (``event_scc``) — the
+    # return-path membership the pure-event-cycle hub election reads below. This is the
+    # same computation as :func:`recursive_event_set`, kept inline because the hub
+    # election needs the per-event component, not just the flattened event set.
+    _graph_nodes, _uni_edges = unified_event_graph_edges(
+        event_edges, assets.events, nodes, gate_present, combo_event_edges
+    )
+    recursive_events: set[str] = set()
+    event_scc: dict[str, frozenset[str]] = {}
+    for _comp in _graph.strongly_connected_components(_graph_nodes, _uni_edges):
+        if len(_comp) < 2:
+            continue
+        _comp_events = frozenset(name for tag, name in _comp if tag == 'e')
+        recursive_events |= _comp_events
+        for _ev_name in _comp_events:
+            event_scc[_ev_name] = _comp_events
 
     def by_w(xs):
         return sorted(xs, key=lambda a: (-attr_weight[a], a))
@@ -213,16 +455,77 @@ def elect_engine_units(
                 'event': ev,
                 'interior_node': hub,
                 'enabler': hub or (by_w(P)[0] if P else None),
-                'kind': 'recursive-engine' if hub else 'static-payoff',
+                'kind': 'recursive-engine' if ev in recursive_events else 'static-payoff',
                 'producers': by_w(P),
                 'consumers': by_w(C),
                 'payoff_archetypes': archs(C),
+                # EVENT-NODE MASS (ADR 0026 W3 — owner-confirmed 2026-11-19, option
+                # (a): events carry ZERO intrinsic mass; the decision is recorded in
+                # ADR 0003 and the drift ledger). Events are first-class NODES for
+                # cycle detection, but a unit's mass is the node-weighted CardAttribute
+                # neighbourhood ``Σ attr_weight`` over its producer | consumer ATTRS —
+                # the ADR 0014 criterion is held. Events have no card carriers, so any
+                # intrinsic event weight would be an invented constant that distorts the
+                # election; zero is the deterministic, defensible default.
                 'mass': round(sum(attr_weight[a] for a in P | C), 1),
             }
         )
+
+    # PURE-EVENT-CYCLE loops (ADR 0026 §1 / #115): a catalog relay loop can make an
+    # event RECURSIVE through event→event edges alone, with NO admitted attr
+    # producer-consumer pair on that event — so the event never enters ``ev_prod`` and
+    # the per-event enumeration above skips it. The real Magic case is a lifetrade loop
+    # whose only enablers are sub-threshold gate carriers: Sanguine Bond (``gain-to-
+    # drain``) + Exquisite Blood (``drain-to-gain``) close the ``lifegain`` /
+    # ``life-loss-drain`` cycle, but each gate is a 1-2-card attr that never earns an
+    # identity node, so ``lifegain`` / ``life-loss-drain`` have no in-node attr producer
+    # and would be dropped, leaving a deck whose one loop is real reporting ``engines=[]``. Emit a
+    # ``recursive-engine`` unit for each such event, using its LIVE gate carriers (the
+    # relay enablers present in the deck — the same ``≥1 carrier`` liveness the SCC walk
+    # used) as the producer evidence. The unit makes no archetype claim (no attr
+    # consumers), so it is admitted as a pure structural event-loop; removing either
+    # enabler kills a relay, the SCC opens, and the unit is no longer emitted. Mass stays
+    # the node-weighted ``Σ attr_weight`` over the gate carriers (ADR 0014 unchanged;
+    # a dead gate carrier contributes 0 via the defaultdict).
+    for ev in sorted(recursive_events - set(ev_prod)):
+        spec = assets.events.get(ev, {})
+        relays = [
+            ref for ref in spec.get('produced_by', ()) if isinstance(ref, RelayEntry) and ref.gate in gate_present
+        ]
+        live_gates = by_w(ref.gate for ref in relays)
+        if not live_gates:
+            continue
+        # HUB = the loop's RETURN-PATH gate, not the globally-heaviest live gate. A
+        # relay ``(from_event, gate)`` is the edge ``from_event -> ev``; it closes the
+        # cycle only when ``from_event`` sits in ``ev``'s own SCC. A gate whose
+        # ``from_event`` is OUTSIDE the component merely FEEDS the loop (e.g. a draw
+        # engine: ``draw-a-card -> life-loss-drain`` via ``draw-to-drain``) and must
+        # not be named the interior hub. Fall back to the heaviest live gate only when
+        # no relay closes from within the component (defensive; a recursive event
+        # reached here always has at least one in-component return relay).
+        scc = event_scc.get(ev, frozenset())
+        return_gates = by_w(ref.gate for ref in relays if ref.from_event in scc)
+        hub = return_gates[0] if return_gates else live_gates[0]
+        engines.append(
+            {
+                'event': ev,
+                'interior_node': hub,
+                'enabler': hub,
+                'kind': 'recursive-engine',
+                'producers': live_gates,
+                'consumers': [],
+                'payoff_archetypes': [],
+                'mass': round(sum(attr_weight[a] for a in live_gates), 1),
+                # Flags the producer-only pure-event-cycle shape so ``_anchor`` gives
+                # it its own ``formation_mode`` instead of the ``bipartite`` fallback
+                # (ADR 0014 reserves bipartite for a unit with BOTH in-deck sides).
+                'relay_loop': True,
+            }
+        )
+
     # MASS ELECTION (ADR 0014): node-weighted event-neighborhood mass is the
     # authoritative engine signal. Each unit's mass m(U) = Σ attr_weight over
-    # producers ∪ consumers is already computed as e['mass']. Order by mass  # noqa: RUF003
+    # producers | consumers is already computed as e['mass']. Order by mass
     # desc; recursive status breaks an EXACT mass tie only (a reported attribute,
     # never a primary sort key); event name is the final determinism tiebreak.
     engines.sort(key=lambda e: (-e['mass'], e['kind'] != 'recursive-engine', e['event']))
@@ -237,11 +540,34 @@ def elect_engine_units(
                 chains.append([e2['event'], e['event']])
     chains.sort()
 
-    # commander attrs (used by commander_coupled below AND the loop probe)
+    # commander attrs (used by the event-/archetype-substantiveness gates AND the loop
+    # probe). Kept as the raw-otag-derived intersection those consumers already use, so
+    # their behaviour — and the parity baselines — are unchanged.
     cmd_idx = [i for i, c in enumerate(cards) if c.get('role') == 'commander']
     cmd_attrs: set[str] = set()
+    # Catalog RELAY gates (generic, DATA-keyed): the synthesized edge CardAttributes
+    # (gain-to-drain etc.) that author a catalog event->event relay. They are
+    # SYNTH_ALWAYS, never a raw Scryfall otag, so the raw-otag rebuild above drops
+    # them — yet a commander (e.g. Vito) is often the SOLE carrier of such a gate.
+    relay_gates = {
+        ref.gate
+        for spec in assets.events.values()
+        for ref in spec.get('produced_by', ())
+        if isinstance(ref, RelayEntry)
+    }
+    # Commander-COUPLING attrs ADD the commander's synthesized relay-gate attributes
+    # to the raw-otag commander attrs. These synth gates are the sole carriers that
+    # couple a pure-event-cycle unit to the command zone, so without them a
+    # commander-anchored lifetrade loop would report ``commander_coupled=False``.
+    # Scoped to relay gates and used ONLY by the reported ``commander_coupled`` field
+    # (never the mass election, ADR 0014), so only a pure-event-cycle unit — whose
+    # members ARE relay gates — can move; every other unit's members are string event
+    # refs that no relay gate shadows, leaving the parity baselines otherwise intact.
+    cmd_coupling_attrs: set[str] = set()
     for i in cmd_idx:
         cmd_attrs |= {t.lower() for t in cards[i].get('otags', [])} & nodes
+        cmd_coupling_attrs |= synth_attrs_for(cards[i], assets.synth_predicates) & nodes & relay_gates
+    cmd_coupling_attrs |= cmd_attrs
 
     def _members(e: dict) -> set[str]:
         return set(e['producers']) | set(e['consumers'])
@@ -250,6 +576,14 @@ def elect_engine_units(
         return len(a & b) / len(a | b) if (a or b) else 0.0
 
     def _anchor(e: dict) -> str:
+        # A producer-only pure-event-cycle (``relay_loop``) unit is a recursive
+        # STRUCTURAL loop closed entirely through event->event relays (ADR 0026 §1): it
+        # has gate producers and ``consumers=[]``, so without this it reaches the
+        # ``has_p and not has_c`` fallthrough and is mislabeled ``bipartite`` — the mode
+        # ADR 0014 reserves for a unit with BOTH in-deck sides. It is its own formation
+        # mode (the loop IS the structure; it never reaches ``game-end`` as a producer).
+        if e.get('relay_loop'):
+            return 'recursive-relay-loop'
         # Generic + structure-derived; NO hardcoded payoff list. The current
         # event_edges are in-deck producer -> in-deck consumer, so every unit is
         # bipartite (anchor mode 1). The terminal-producer (mode 2) and
@@ -329,7 +663,7 @@ def elect_engine_units(
                     'share': round(e['mass'] / total_mass, 3),
                     'formation_mode': anchor,
                     'recursive': e['kind'] == 'recursive-engine',
-                    'commander_coupled': bool(mem & cmd_attrs),
+                    'commander_coupled': bool(mem & cmd_coupling_attrs),
                     'marginal': anchor == 'exogenous-environmental',
                     'payoff_archetypes': e['payoff_archetypes'],
                 }
@@ -476,7 +810,12 @@ def compute_facts(
             if c.get('role') == 'commander':
                 cmd_attrs.add(a)
 
-    nodes = {a for a in attr_weight if determine_node_admitted(len(support_cards[a]), a in cmd_attrs)}
+    # Statistical prevalence (ADR 0004): >= 3 carriers, or commander-carried.
+    prevalent = {a for a in attr_weight if determine_node_admitted(len(support_cards[a]), a in cmd_attrs)}
+    # Loop-aware substantiveness (ADR 0026): add sub-threshold attrs that are
+    # structurally load-bearing on a closed cycle among otherwise-substantive
+    # nodes. Prevalence alone still suppresses incidental non-loop noise.
+    nodes = loop_aware_nodes(prevalent, attr_weight, assets)
     covered = sum(1 for i, c in enumerate(cards) if not is_land(c) and (card_attrs[i] & nodes))
     coverage = covered / n_nonland if n_nonland else 0.0
 
@@ -592,15 +931,12 @@ def compute_facts(
         if lift > 1.2:
             cooc_edges.append((a, b, round(lift, 2), nab))
 
-    def refs_to_nodes(refs: list[str]) -> list[str]:
-        return [r for r in refs if r in nodes]
-
-    event_edges = []
-    for evname, ev in assets.events.items():
-        for p in refs_to_nodes(ev['produced_by']):
-            for c_ in refs_to_nodes(ev['triggers']):
-                if p != c_:
-                    event_edges.append((p, c_, evname))
+    # attr→attr event edges (the projected view the communities + per-event unit
+    # enumeration walk). A RelayEntry ref is NOT an attr edge — it is interpreted
+    # as a gated event→event edge in the unified SCC graph (elect_engine_units /
+    # unified_event_graph_edges), so ``_catalog_event_edges`` keeps only string
+    # CardAttribute refs here rather than silently dropping the relay (ADR 0026).
+    event_edges = _catalog_event_edges(assets.events, nodes)
 
     weighted = [(a, b, lift) for a, b, lift, _nab in cooc_edges]
     weighted += [(p, c_, 1.5) for p, c_, _ev in event_edges]
@@ -796,8 +1132,15 @@ def compute_facts(
     # naming layer consults. ``satisfied`` reads ctx, so this runs post-ctx; the
     # resulting engine_units is then placed into the (shared) facts dict.
     earned_archetypes = {arch for arch, st in strategies.items() if requirement_for(arch, cfg).satisfied(st, ctx, arch)}
+    # The 7 resource-dependent combo-certified families (ETB/death, mana-refund, cast/copy,
+    # draw-wheel, untap-mana, counter, landfall) are DEFERRED to #90 (ADR 0026 §4): three
+    # adversarial reviews found every corpus false-positive concentrated in that family layer
+    # (executability / quantity / role / event-mapping bugs), so no combo-certified family edge
+    # is promoted into the SCC walk. ``combo_event_edges`` stays ``None`` here; the generic
+    # injection seam (``elect_engine_units``' optional arg) is retained for the #90 re-add. Only
+    # the Phase-1 framework and the Phase-2 lifetrade catalog relays close loops in this view.
     facts['engines']['engine_units'] = elect_engine_units(
-        nodes, event_edges, attr_weight, assets, cards, earned_archetypes
+        nodes, event_edges, attr_weight, assets, cards, earned_archetypes, None
     )
 
     # demoted_archetypes (ADR 0002, GENERIC -- no archetype-name branch): an archetype

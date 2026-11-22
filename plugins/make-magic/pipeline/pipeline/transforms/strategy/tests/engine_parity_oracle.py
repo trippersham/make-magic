@@ -406,7 +406,179 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   RESOLVE     940c38811193b6f4… -> 940c38811193b6f4… (UNCHANGED)
 # Proof: ~/.claude/plans/trippersham/magic-tools/2026-11-18-reproducibility-adversarial-test/
 # subagents/component0/delta-report.md.
-FULL_CORPUS_SHA = 'ec917355dd3eb2cfb8136fb0e078e83eee88950ce257fcedac79ea0a01307eff'
+# Re-baselined 2026-11-19 (#83 Phase 1 — unified event graph: events-as-nodes, true-SCC
+# recursive-engine, loop-aware substantiveness). This is an OUTPUT-MOVING, proof-carrying
+# re-baseline (ADR 0003) that is NOT the final Phase-5 ship re-baseline and does NOT bump
+# the version — it keeps the suite green while Phases 2-5 proceed. Three framework changes
+# move output: (1) `recursive-engine` is now true SCC membership over the unified
+# CardAttribute|Event graph, replacing `producers & consumers`; measured OFF/ON on the real
+# 187 corpus, the SCC LOST a recursive label on 62 decks (heuristic false-positives: an
+# event flagged recursive merely because one producer also consumed some UNRELATED event —
+# e.g. land-enters/token-created/draw-a-card/permanent-dies self-reported loops that never
+# returned) and GAINED a genuine cycle on 16 (e.g. Isperia creature-enters, Wilhelt/Teysa/
+# Krenko permanent-leaves, Narset rad). (2) Loop-aware substantiveness admits a sub-threshold
+# attr that is structurally load-bearing on a closed cycle anchored by a prevalent attr:
+# measured 84 node admissions across 29 decks, ALL genuine blink/ETB loop members
+# (flicker-*/enters-in-company/multiple-bodies on Urza/Roon/Brago/Aminatou/Shiko/Narset…),
+# aristocrat death->token members (leaves-body-behind/splits-on-death on Wilhelt/Celes/
+# Yawgmoth…), and proliferate->counter (pseudo-proliferate on Ezuri/Aminatou). W2 re-measure:
+# 0 spurious (none match the spike's relay-family false-circuit classes; Phase 1 authors ZERO
+# relay families). (3) Events are first-class NODES (zero intrinsic mass; the ADR-0014 mass
+# criterion is UNCHANGED). Drift ledger: ~/.claude/plans/trippersham/magic-tools/
+# 2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md (Phase 1).
+#   FULL_CORPUS ec917355dd3eb2cf… -> 5045f7af250529e7…
+#   ENGINE      4d3f5e6d9d8ed142… -> 80d0116a653ffb31…
+#   RESOLVE     940c38811193b6f4… -> 3ebb33fd9b469926…
+# Re-baselined 2026-11-20 (#83 Phase 2 — lifetrade gate-edges relocated to catalog
+# relays). The 6 lifetrade EventEffects (the draw/gain/drain directed pairs) moved
+# from the dissolved ``edge_roles.py`` sidecar into ``derive_card_events.SEED_MAP``
+# as ``RelayEntry(from_event, gate)`` edges on the PRODUCED event's ``produced_by``
+# (gate queries BYTE-FOR-BYTE unchanged). The one unified SCC walk now reads them
+# natively, and a catalog relay's gate is tested for PRESENCE (a carrier in the
+# deck, ADR 0026 §1 / design "enabling cards" rule) rather than identity admission —
+# a Phase-2 framework correction so a sub-threshold enabler pair (Sanguine Bond's
+# gain→drain + Exquisite Blood's drain→gain) closes the recursive lifegain↔life-loss-
+# drain loop, reconciling engine⟷combo (both need both cards). Measured OFF/ON on
+# the real 187 corpus (pinned lake): exactly 4/170 gauntlet decks gain a recursive
+# lifetrade event — celes/elenda/karlov/liesa, the 4 named split-brain decks — and
+# 0 others (no false lifetrade recursion anywhere; a one-sided deck with only one
+# gate stays open). The 17 hermetic fixtures carry NO lifetrade enabler PAIR, so
+# ENGINE + RESOLVE are BYTE-IDENTICAL; only the lake-backed FULL_CORPUS moves.
+# Determinism held (identical under PYTHONHASHSEED 0 and 4242). NOT a version bump —
+# Phase 5 owns the final ship re-baseline. Drift ledger: ~/.claude/plans/trippersham/
+# magic-tools/2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md (Phase 2).
+#   FULL_CORPUS 5045f7af250529e7… -> 85eba970fe1f0934…
+#   ENGINE      80d0116a653ffb31… (UNCHANGED)
+#   RESOLVE     3ebb33fd9b469926… (UNCHANGED)
+# Re-baselined 2026-11-20 (#83 Phase 3 — combo-certified promotion of the 7
+# resource-dependent relay families). For each deck, the event→event edges of the 7
+# families (ETB/death, mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall)
+# are promoted from loops ``combo_win`` ALREADY certified unbounded (reusing its per-fid
+# magnitudes via ``unbounded_intermediate_events``), NOT from naive gate queries — so the
+# false circuits (Grim Monolith nets -1 mana; one-shot copies; token/ETB false draw returns)
+# structurally cannot close (``combo_win`` never certified them). A family edge is admitted
+# only when BOTH its endpoint events are certified unbounded in the SAME combo; it only
+# reclassifies the KIND of an engine unit that already exists (no new node → no identity
+# drift). Measured OFF(P2)/ON(P3) on the real 187 corpus (pinned lake): 36/170 gauntlet decks
+# gain >=1 combo-certified recursive event across all 7 families; Class A 34 -> 26 (8 decks
+# reconciled: Karador/Derevi/Sharuum/Xenagos/Veyran/Selvala/Prosper/Xyris); the 10 named
+# false circuits ALL stay open. ENGINE + RESOLVE move via exactly 2 hermetic fixtures that
+# carry a combo-certified family combo (gauntlet__urza-lord-high-artificer: mana-refund +
+# cast/copy; owned__ozai). NOT a version bump — Phase 5 owns the ship re-baseline. Drift
+# ledger: ~/.claude/plans/trippersham/magic-tools/
+# 2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md (Phase 3).
+#   FULL_CORPUS 85eba970fe1f0934… -> 17e806fa5692f255…
+#   ENGINE      80d0116a653ffb31… -> 8f45c628b2be503b…
+#   RESOLVE     3ebb33fd9b469926… -> 6eed6ba71c308f80…
+# Re-baselined 2026-11-22 (#83 two corpus false-positives removed — #106 Cayth,
+# #107 Ezuri). Two engine corrections that REMOVE false recursive labels (ADR 0003
+# output-moving re-baseline):
+#   * #107 Ezuri: fid_event_adapter fid 651 ("Infinitely large creature until end of
+#     turn", Umbral Mantle) + the 30-fid "continuous +X/+X pump" class were mislabeled
+#     `counter-placed` though a power/size boost places ZERO counters. A pump is a static
+#     P/T modifier, not a CR trigger event (adr-event-ontology), so these map to
+#     event=None. They no longer certify the `counter` relay family (counter-placed<->
+#     untap), which had given Ezuri a false recursive counter engine off its 6 Umbral
+#     Mantle loops.
+#   * #106 Cayth: combo-certified promotion now evaluates a win combo's TEMPLATE pieces
+#     (combo_templates.json, keyed by the variant_id's `--<ids>` suffix) against the deck
+#     before promoting. Cayth's variant 2034-2744--5 requires a Persist Creature the deck
+#     lacks, so its etb-death family edges are dropped (the loop is non-executable);
+#     Marchesa's persist combo PASSES (Glen Elendra Archmage + River Kelpie) and is KEPT.
+# Measured OFF/ON (170 gauntlet pinned lake, reproduced at PYTHONHASHSEED 0 and 4242):
+# exactly 2/170 decks move, both FP removals — Ezuri loses `counter-placed` (raw+ranked);
+# Cayth loses `permanent-dies`/`token-created` (ranked) and `permanent-sacrificed` (raw),
+# keeping its 3 genuine ranked events (counter-placed, creature-enters-battlefield,
+# proliferate). 0 win-combo changes (Ezuri 12, Cayth 1 intact); Class A 26/Class B 42
+# UNCHANGED, 0 Class-A membership change; the ~36 genuine family loops (incl. Marchesa,
+# Ghave, Shorikai, Derevi) all survive byte-identical. The 17 hermetic fixtures carry
+# NEITHER touched case, so ENGINE + RESOLVE are UNCHANGED — only FULL_CORPUS moves:
+#   FULL_CORPUS 17e806fa5692f255… -> 7b59008f70d6b003…
+#   ENGINE      8f45c628b2be503b… (unchanged)
+#   RESOLVE     6eed6ba71c308f80… (unchanged)
+# Proof: subagents/fix-path1-fps/outbox.md.
+# Re-baselined 2026-11-22 (#83 the 7 combo-certified families DEFERRED to #90 — owner
+# decision after three adversarial reviews found every corpus false-positive concentrated
+# in the family layer: executability, quantity, role, and event-mapping bugs). The
+# combo-certified promotion of the 7 resource-dependent families (ETB/death, mana-refund,
+# cast/copy, draw-wheel, untap-mana, counter, landfall) is removed: ``resolve()`` and
+# ``engine_report()`` both pass ``combo_event_edges=None``, so ZERO family edge reaches the
+# SCC walk in either view. What SHIPS is the Phase-1 framework (true-SCC recursive-engine,
+# loop-aware admission) + the Phase-2 lifetrade catalog relays + the Phase-4 reconciliation
+# metric. The fid_event_adapter data corrections (30-pump->null, #107) STAY — correct data
+# that feeds combo_win magnitudes and the metric — but without promotion they no longer move
+# resolve/corpus output. Measured OFF(b117163)/ON (170 gauntlet + 17 fixtures, pinned lake,
+# reproduced at PYTHONHASHSEED 0 and 4242): all three composites revert BYTE-FOR-BYTE to the
+# Phase-2 (framework+lifetrade) state — the two per-deck baseline JSONs are byte-identical to
+# the Phase-2 commit 8ec1417. The ~36 combo-certified family loops are gone (deferred);
+# Class A rises 26 -> 34 (the 8 family-reconciled decks — Karador/Derevi/Sharuum/Xenagos/
+# Veyran/Selvala/Prosper/Xyris — return to the "loops to author" queue), Class B UNCHANGED at
+# 42. Framework recursion + lifetrade loops INTACT (Queza closes {lifegain, life-loss-drain,
+# draw-a-card}; celes/elenda/karlov/liesa reconcile; blink/aristocrat/proliferate P1 loops
+# remain). The 5 named FP decks (Cayth/Ezuri/Shiko/Xenagos/Zada) carry no family recursive
+# label. Drift ledger: ~/.claude/plans/trippersham/magic-tools/
+# 2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md ("families deferred").
+#   FULL_CORPUS 7b59008f70d6b003… -> 85eba970fe1f0934…
+#   ENGINE      8f45c628b2be503b… -> 80d0116a653ffb31…
+#   RESOLVE     6eed6ba71c308f80… -> 3ebb33fd9b469926…
+# Re-baselined 2026-11-22 (#115 — the election loop dropped a pure-event-cycle lifetrade
+# loop; ADR 0003 output-moving re-baseline). The Phase-2 lifetrade relays make an event
+# RECURSIVE through event→event edges alone (``recursive_event_set``), but ``elect_engine_
+# units`` enumerated units only for events in ``ev_prod`` — events carrying an admitted attr
+# producer-consumer pair. A lifetrade event whose only enablers are sub-threshold gate
+# carriers (Sanguine Bond ``gain-to-drain`` + Exquisite Blood ``drain-to-gain``) has NO such
+# pair, so it was recursive in the SCC yet never emitted a unit — a deck whose one loop was
+# that pair reported ``engines=[]``. The fix emits a ``recursive-engine`` unit for each event
+# in ``recursive_events - ev_prod`` using its LIVE gate carriers as evidence (pure structural
+# event-loop, no archetype claim; removing either enabler opens the SCC and drops the unit).
+# Measured OFF/ON (170 gauntlet + 17 fixtures, pinned lake, reproduced at PYTHONHASHSEED 0 and
+# 4242): exactly 3/170 gauntlet decks move — karlov/elenda/edgar-markov(celes slug), each a
+# genuine Sanguine Bond + Exquisite Blood lifedrain loop where ONE lifetrade event lacked an
+# attr producer-consumer pair and was being dropped (liesa, the 4th Phase-2 split-brain deck,
+# already carried both events in ``ev_prod``, so nothing was dropped there — it does NOT move).
+# 0 false lifetrade recursion; 0 win-combo changes; reconciliation Class A 34 / Class B 42
+# UNCHANGED (all 3 already had a loop at the metric grain). The 17 hermetic fixtures carry no
+# lifetrade enabler PAIR, so ENGINE + RESOLVE are BYTE-IDENTICAL; only FULL_CORPUS moves.
+# Proof: subagents/fix-pr114-review/outbox.md.
+#   FULL_CORPUS 85eba970fe1f0934… -> f3efdb0daacd354f…
+#   ENGINE      80d0116a653ffb31… (UNCHANGED)
+#   RESOLVE     3ebb33fd9b469926… (UNCHANGED)
+# Re-baselined 2026-11-22 (#114 review A — 4 metadata/robustness defects in the #115
+# pure-event-cycle emission; ADR 0003 output-moving re-baseline). Only the NEW emission's
+# per-unit metadata moves (the unit set, mass, kind, and election are all unchanged):
+#   * #1 store-hijack (report path only): the A-emission keyed gate liveness on
+#     ``set(attr_weight)``, which the engine_report path salts with store (haiku) slugs;
+#     a same-named, wrong-role slug could revive a catalog gate and mint a phantom
+#     recursive engine. Liveness tests a ROLE-MATCHED live set (``gate_carriers`` — native
+#     carriers frozen before store injection, plus correct-role matched store gates; the
+#     2026-11-22 #114-review role-matched correction replaced the original native-only form).
+#     Default ``resolve()``/corpus path is store-free, so this moves NOTHING in the corpus
+#     (regression-tested).
+#   * #2 hub naming: the pure-event-cycle hub is now the loop's RETURN-PATH gate (a relay
+#     whose source event is inside the event's SCC), not the globally-heaviest live gate.
+#     The 3 corpus movers carry no out-of-SCC feeder gate (no Queza-style draw→drain/gain
+#     card), so every hub is UNCHANGED in the corpus; the fix is exercised by the Queza test.
+#   * #3 commander_coupled now counts the commander's SYNTHESIZED relay-gate attrs
+#     (gain-to-drain etc., SYNTH_ALWAYS, never a raw otag). The 3 movers' gates are carried
+#     by Sanguine Bond / Exquisite Blood, NOT the commander, so commander_coupled is
+#     UNCHANGED (stays false) in the corpus; the fix is exercised by the Vito test.
+#   * #4 formation_mode: a producer-only pure-event-cycle unit was mislabeled ``bipartite``
+#     (or ``terminal-producer`` for life-loss-drain) — ADR 0014 reserves those for other
+#     shapes. It now carries its own ``recursive-relay-loop`` mode. This is the ONLY corpus
+#     move (plus the raw unit's new ``relay_loop: true`` marker).
+# Measured OFF/ON (170 gauntlet + 17 fixtures, pinned lake, reproduced at PYTHONHASHSEED 0
+# and 4242): EXACTLY 3/170 decks move — karlov, elenda, celes(edgar-markov slug) — the same
+# 3 lifetrade decks #115 touched; each change is ONLY formation_mode (terminal-producer/
+# bipartite -> recursive-relay-loop) + the raw relay_loop marker; interior_node and
+# commander_coupled verified UNCHANGED-and-correct, mass/kind/election unchanged. liesa does
+# not move (its lifetrade events are in ev_prod, not A-emitted). 0 win-combo changes;
+# reconciliation Class A 34 / Class B 42 UNCHANGED. The 17 hermetic fixtures carry no
+# lifetrade enabler PAIR, so ENGINE + RESOLVE are BYTE-IDENTICAL; only FULL_CORPUS moves.
+# Proof: subagents/fix-a-metadata/outbox.md.
+#   FULL_CORPUS f3efdb0daacd354f… -> c85e4ae51a3e442a…
+#   ENGINE      80d0116a653ffb31… (UNCHANGED)
+#   RESOLVE     3ebb33fd9b469926… (UNCHANGED)
+FULL_CORPUS_SHA = 'c85e4ae51a3e442a58d38659a4bedf50ffc7e3b0c960c27285e14fba6179d187'
 
 
 def full_corpus_sha() -> str:

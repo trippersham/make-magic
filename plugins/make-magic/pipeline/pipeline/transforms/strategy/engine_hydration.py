@@ -100,15 +100,18 @@ def engine_relevant_otags() -> tuple[frozenset[str], frozenset[str]]:
 def curated_edge_queries() -> list[tuple[str, str]]:
     """Return the ``(name, query)`` pairs for curated within-card edge attributes.
 
-    These are the edge-category entries from ``SYNTH_ALWAYS_ATTRIBUTES`` that
-    have registered roles in ``CURATED_EDGE_ROLES``.  The caller concatenates
-    these with any machine-store edge queries to form the ``authored_edges``
-    argument to :func:`unauthored_cards`.
+    These are the edge-category entries from ``SYNTH_ALWAYS_ATTRIBUTES`` that gate
+    a catalog :class:`.derive_card_events.RelayEntry` (the lifetrade draw/gain/drain
+    couplings — ADR 0026 Phase 2, relocated from the dissolved ``edge_roles.py``
+    sidecar).  The caller concatenates these with any machine-store edge queries to
+    form the ``authored_edges`` argument to :func:`unauthored_cards`, so a card
+    carrying a lifetrade gate still counts as RESOLVED.
     """
+    from pipeline.transforms.strategy.derive_card_events import relay_gate_attrs
     from pipeline.transforms.strategy.distill_strategies import SYNTH_ALWAYS_ATTRIBUTES
-    from pipeline.transforms.strategy.edge_roles import CURATED_EDGE_ROLES
 
-    return [(n, q) for n, q in SYNTH_ALWAYS_ATTRIBUTES if n in CURATED_EDGE_ROLES]
+    gates = relay_gate_attrs()
+    return [(n, q) for n, q in SYNTH_ALWAYS_ATTRIBUTES if n in gates]
 
 
 # ---------------------------------------------------------------------------

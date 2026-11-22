@@ -12,6 +12,77 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+Ships the **unified event graph** (issue #83): the strategy engine's loop model is rebuilt so
+engine-detected recursion and combo-detected wins are **independent signals whose disagreement the
+new reconciliation metric measures** (the "loops to author" queue), not two drifting heuristics
+asserted to agree. The combo-certified families that would close the remaining disagreement are
+deferred to #90.
+
+### Added
+
+- **Unified event graph — events-as-nodes, one Tarjan-SCC walk, loop-aware substantiveness
+  (ADR 0026).** `Event` and the former `EventEffect` sidecar collapse into one concept: a
+  single directed graph over CardAttribute ∪ Event nodes, walked once. `recursive-engine`
+  becomes **true SCC membership** (a real directed cycle), replacing the `producers &
+  consumers` heuristic — removing 62 corpus-wide heuristic false-positives and recovering 16
+  genuine cycles it missed. Substantiveness gains a structural signal: a sub-threshold
+  attribute is admitted when it is **structurally load-bearing on a closed cycle anchored by a
+  prevalent node** (prevalence ∨ cycle-membership), retiring the "thematic vs mechanical"
+  framing. The "thematic vs mechanical" admission question is answered by structure, not a
+  hand label.
+
+- **Lifetrade recursion via catalog relays.** The 6 lifetrade `EventEffect`s (the directed
+  draw/gain/drain pairs) move from the dissolved `edge_roles.py` sidecar into `SEED_MAP` as
+  `RelayEntry(from_event, gate)` edges (gate queries byte-for-byte unchanged). Relay liveness
+  is **presence** of ≥1 gate carrier, so the real Magic enabler pair (Sanguine Bond +
+  Exquisite Blood — each a 1–2-card sub-threshold attribute) closes the recursive
+  `lifegain ↔ life-loss-drain` loop. A one-sided deck does not recurse.
+
+- **Internal engine⟷combo reconciliation metric (ADR 0026 §5).** A pipeline **quality metric**
+  (`reconciliation.py`), emitted only into the corpus-run summary — never into a `resolve()`
+  record. The dumb honest diff of the two loop-signals the engine already computes, read with a
+  symmetric predicate (`recursive-engine` unit **or** closing commander loop): **Class A** =
+  combo win but the engine sees no loop (the "loops to author" queue); **Class B** = the engine
+  sees a loop but there is no combo win. At release: Class A = 34, Class B = 42 on the 170-deck
+  gauntlet.
+
+### Deferred
+
+- **The 7 resource-dependent combo-certified families are deferred to #90** (ETB/death-recursion,
+  mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall). A promotion that gave these
+  families event→event edges from loops the combo detector had already certified unbounded was
+  built and measured, but three adversarial pre-merge reviews found every corpus false-positive
+  concentrated in this one layer: the certified-unbounded set is **necessary but not sufficient**
+  for an executable in-deck loop — it is blind to template pieces the deck lacks, to per-piece
+  quantity, to a commander-only role on a main-deck card, and to a few fid-adapter event-mapping
+  errors (Cayth, Ezuri, Shiko, Xenagos). The promotion and its template-gating are **removed**;
+  `resolve()` and the engine report inject **zero** family edges. A vetted re-add waits on the #86
+  executability / magnitude / topology work, then lands in #90. The shipped engine keeps the
+  framework recursion (Phase 1), the lifetrade catalog relays (Phase 2), and the reconciliation
+  metric (Phase 4); the ~36 combo-certified family loops are gone, so **Class A rises 26 → 34**
+  (the 8 family-reconciled decks return to the "loops to author" queue).
+
+- **Self-mill (`card-enters-graveyard`) and extra-turn families are deferred to #90.** They were
+  built and reverted: the single-event self-edge shape they required is topology-erased (a real
+  self-mill loop routes through its true carrier, e.g. Phenax through `untap`) and leaked a
+  false positive (Bruvac + Traumatize is a one-shot full-mill the Spellbook DB mislabels
+  `near-infinite`). A faithful re-add waits on the #86 magnitude + loop-topology work. Bruvac,
+  Phenax, and Kess therefore keep `card-enters-graveyard` as `static-payoff`. Combo
+  **win-detection** is unaffected.
+
+### Notes
+
+- Proof-carrying re-baseline (ADR 0003): the whole #83 change ships as ONE cumulative OFF→ON
+  from pre-#83 `main` to the families-deferred tip — ENGINE `4d3f5e6d…`→`80d0116a…`, RESOLVE
+  `940c3881…`→`3ebb33fd…`, FULL_CORPUS `ec917355…`→`85eba970…` — reproduced identically across
+  two fresh runs (`PYTHONHASHSEED` 0 and 4242). Deferring the 7 combo-certified families reverts
+  all three composites byte-for-byte to the framework+lifetrade (Phase-2) state. The #115
+  election-loop fix (a pure-event-cycle lifetrade loop that was silently dropped) then moves
+  **FULL_CORPUS `85eba970…`→`f3efdb0d…`** for 3 corpus decks (Karlov / Elenda / Edgar Markov, each a
+  genuine Sanguine Bond + Exquisite Blood loop); ENGINE + RESOLVE stay byte-identical and the
+  reconciliation census holds at Class A 34 / Class B 42. Tier-1 output stays byte-deterministic
+  and network-free.
+
 ## [0.8.0] — 2026-11-19
 
 A **feature** release — under this project's pre-1.0 `0.y.z` convention the **minor**
