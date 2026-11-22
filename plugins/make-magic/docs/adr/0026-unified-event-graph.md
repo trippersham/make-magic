@@ -142,7 +142,8 @@ stay surfaced for owner triage; they are never force-closed by a false gate edge
 The one walk consumes **catalog edges + the runtime store-backed provisional edges**
 (combo_edges spellbook fids, ADR-0017 haiku `ProvisionalAttributeStore`), so
 `engine_report`'s RESOLVED/PROVISIONAL label and `combo_edges` keep working. The 6 lifetrade
-+ 7 families are catalog-static; spellbook/haiku edges stay per-deck runtime.
+relays are catalog-static (the 7 families are deferred to #90); spellbook/haiku edges stay
+per-deck runtime.
 
 ## Reasons
 
@@ -201,8 +202,11 @@ The one walk consumes **catalog edges + the runtime store-backed provisional edg
   lifetrade recursions, one-sided decks stay open; ENGINE/RESOLVE byte-identical (no hermetic fixture
   carries an enabler pair), FULL_CORPUS re-baselined `5045f7af…→85eba970…`. `CURATED_EDGE_ROLES` is
   now empty; the `EventEffect` type + the store waterfall remain for haiku/spellbook provisional edges.
-- **Phase 3 (DONE 2026-11-20): combo-certified promotion of the 7 resource-dependent families**
-  (ETB/death-recursion, mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall). These
+- **Phase 3 (built 2026-11-20, DEFERRED to #90 on 2026-11-22 — did NOT ship in 0.9.0; see the
+  scope-reduction bullet below): combo-certified promotion of the 7 resource-dependent families**
+  (ETB/death-recursion, mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall).
+  *The 36/170 and Class A 34 → 26 figures in this bullet describe what the built-then-deferred
+  phase measured; the shipped 0.9.0 state reverts to the Phase-2 tip (Class A 34).* These
   families get their event→event edges by reusing loops `combo_win` has ALREADY certified unbounded
   (`combo_win.unbounded_intermediate_events`, which reads `fid_route`'s per-fid magnitudes — no
   re-derived resource arithmetic, no gate query), NOT from naive gate edges (§4). `combo_promotion.py`
@@ -243,13 +247,16 @@ The one walk consumes **catalog edges + the runtime store-backed provisional edg
   the P0 SHA triple is **byte-unchanged** (ENGINE `8f45c628…`, RESOLVE `6eed6ba7…`, FULL_CORPUS
   `17e806fa…`; a pure addition). At the Phase-3 tip, gauntlet corpus: **Class A = 26, Class B =
   42** (`test_reconciliation.py::TestReconciliationCensus` pins the 26 named decks).
-- **Phase 5 (DONE 2026-11-20): behavioral verification + the cumulative 0.9.0 re-baseline.** The
-  feature is verified end-to-end on the real corpus (lifetrade + the 7 families close; the 10
-  named false circuits stay open; the deferred families stay `static-payoff`; Class A = 26 /
-  Class B = 42) and the whole #83 change ships as ONE proof-carrying cumulative re-baseline from
-  pre-#83 `main` (ENGINE `4d3f5e6d…`, RESOLVE `940c3881…`, FULL_CORPUS `ec917355…`) to the P3 tip
-  (ENGINE `8f45c628…`, RESOLVE `6eed6ba7…`, FULL_CORPUS `17e806fa…`) — see the ADR 0003
-  2026-11-20 entry. Version bumped 0.8.0 → **0.9.0** (lockstep).
+- **Phase 5 (2026-11-20 behavioral verification; final ship target updated by the 2026-11-22
+  deferral below).** The feature is verified end-to-end on the real corpus (lifetrade closes; the
+  10 named false circuits stay open; the deferred families stay `static-payoff`) and the whole #83
+  change ships as ONE proof-carrying cumulative re-baseline from pre-#83 `main` (ENGINE
+  `4d3f5e6d…`, RESOLVE `940c3881…`, FULL_CORPUS `ec917355…`). **What ships in 0.9.0 is the
+  framework + lifetrade + metric: the 2026-11-22 family deferral moves the ship target to the
+  Phase-2 tip** — ENGINE `80d0116a…`, RESOLVE `3ebb33fd…`, FULL_CORPUS `85eba970…`, **Class A = 34
+  / Class B = 42** — not the Phase-3 tip (`8f45c628…`/`6eed6ba7…`/`17e806fa…`), which was the
+  built-then-deferred state. See the ADR 0003 2026-11-20 and 2026-11-22 entries. Version bumped
+  0.8.0 → **0.9.0** (lockstep).
 - **Scope reduction (2026-11-22): the 7 combo-certified families DEFERRED to #90.** After three
   adversarial pre-merge reviews each found the corpus false-positives concentrated entirely in the
   family layer (Cayth / Ezuri / Shiko / Xenagos + executability / quantity / role / event-mapping

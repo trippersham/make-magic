@@ -45,6 +45,18 @@ re-baseline makes every *intended* change legible as such.
 - The hermetic oracle is 17 decks; the full-corpus parity (170 decks) needs lake access.
   This gap is now covered by `full_corpus_sha()` + `FULL_CORPUS_SHA` in
   `engine_parity_oracle.py`, with a lake-gated test asserting the recorded value.
+- **Corpus count — 170 is canonical.** `recalc_corpus()` resolves and hashes **one record per
+  gauntlet `.dck` list**, with no dedup by deck name (`gauntlet_decks()` enumerates the
+  `casual`/`mid`/`cedh`/`precons` bundles + loose `.dck` under
+  `data/gauntlet/commander/`), so the parity hash covers all **170** lists — the one canonical
+  count used throughout this record. Footnote on file-count-vs-distinct-key: the 170 files
+  currently carry **158** distinct deck names (duplicate commander names — 10 pairs + 1 triple),
+  so keying the records by deck name instead collapses them to 158 keys; the **157** figure that
+  some pre-2026-11-19 entries below originally cited is that same by-name-keying artifact over a
+  then-larger duplicate-name set — a property of the *keying*, not a smaller corpus — and those
+  entries are normalized here to the canonical 170-list count. (The ~205 `.dck` files under
+  `data/gauntlet/` also include 35 `constructed/` sim-lab decks that `gauntlet_decks()` does
+  **not** enumerate; they are not part of the strategy corpus.)
 
 ## Later changes
 - **2026-11-11 — first sanctioned re-baseline.** Two output-changing bug fixes shifted the
@@ -295,7 +307,7 @@ re-baseline makes every *intended* change legible as such.
   `7a73aba98b9fb877…095442` → `1eb27096118d38ad…f3529b`; resolve `1e54293cd148f2fd…691a59a` →
   `00fbb8360a711583…e77063`. `FULL_CORPUS_SHA` + all engine/resolve constants (7 test files) +
   `distill_parity_baseline.json` + `engine_isolation_baseline.json` regenerated in the same change.
-  **Correctness proof (full OFF/ON delta over 157 gauntlet + 17 fixtures):** 60/157 + 5/17 decks moved;
+  **Correctness proof (full OFF/ON delta over 170 gauntlet + 17 fixtures):** 60/170 + 5/17 decks moved;
   the catalog-level diff is EXACTLY the 7 fixes (no foreign slug leaked into any closure); **0 engines
   lost** except the **3 intended** `food-created` false-positives (Karlov/Liesa/Judith are Treasure decks,
   not Food); `sac`→`sacrifice-outlet` replaced sac-node edges 1:1 at the deck level and expanded coverage;
@@ -316,11 +328,11 @@ re-baseline makes every *intended* change legible as such.
   poison givers `poisonous`/`poison-opponents`/`gives-infect`/`gives-toxic`/`gives-poisonous`,
   163 cards, triggers `synergy-poison`) + its `poisoned → game-end` WIN rule-edge
   (`EVENT_EDGE_CLASSES['poisoned'] = ['altwin::poisoned']`, ADR 0016). Event count **28 → 29**.
-  **Measured OFF/ON delta (157 gauntlet + 17 fixtures): only FULL_CORPUS moved;
+  **Measured OFF/ON delta (170 gauntlet + 17 fixtures): only FULL_CORPUS moved;
   ENGINE + RESOLVE are UNCHANGED** (the 17 hermetic fixtures carry none of the touched families).
   `FULL_CORPUS_SHA 38dd7733a440fb13… → 604f6673e7d3d42c…`; ENGINE `1eb27096…` and RESOLVE
   `00fbb836…` constants left as-is (byte-identical; `distill_parity_baseline.json` +
-  `engine_isolation_baseline.json` unchanged). **Correctness proof:** exactly **1/157** gauntlet
+  `engine_isolation_baseline.json` unchanged). **Correctness proof:** exactly **1/170** gauntlet
   decks moved — `WakandaForever_2026` gains the monarch maker→payoff engine
   (`enabler=monarch-maker, consumers=[monarch-matters], event=monarch`); **0 evictions, 0 foreign
   slugs, 0 spurious leads.** The energy + poison edges form **0 deck changes on this corpus**
@@ -342,12 +354,12 @@ re-baseline makes every *intended* change legible as such.
   (`EVENT_EDGE_CLASSES['domain'] = ['altwin::domain']`, ADR 0016); (4) `free-cast-another` (437)
   folded into `spell-cast.produced_by`. `life-threshold` was specced in [0024] but **dropped**
   (the existing `lifegain` event already owns `altwin::lifegain` = Felidar/Angel/Test; a second
-  event would double-count). Event count **29 → 30**. **Measured OFF (code@736afe0) vs ON (157
+  event would double-count). Event count **29 → 30**. **Measured OFF (code@736afe0) vs ON (170
   gauntlet + 17 fixtures): all three SHAs moved** — the fixtures DO carry color-fixing/free-cast.
   `FULL_CORPUS_SHA 604f6673e7d3d42c… → 39f1136e9c2289ef…`; `ENGINE 1eb27096… → 84b9617efcf0…`
   (3 fixtures: urza/grandlarceny/fantastic-four); `RESOLVE 00fbb836… → 5a43fc56ce9f…` (12 fixtures);
   all engine/resolve constants (7 test files) + `distill_parity_baseline.json` +
-  `engine_isolation_baseline.json` regenerated. **Correctness proof:** 105/157 gauntlet decks moved,
+  `engine_isolation_baseline.json` regenerated. **Correctness proof:** 105/170 gauntlet decks moved,
   **0 label/identity flips, 0 spurious leads, 0 evictions**; every changed leaf traces to
   `color-fixing` (attribute surfacing + ramp-community membership + `n_nodes`+1 + tiny confidence
   drift) or `free-cast-another` (spell-cast producer, mass 116→122; +5 commander-loop closures).
@@ -378,7 +390,7 @@ re-baseline makes every *intended* change legible as such.
   facts-graph strategies/community archetypes). `distill_parity_baseline.json` regenerated
   (2 fixtures: Baral, Peace Offering); `engine_isolation_baseline.json` byte-identical;
   `FULL_CORPUS_SHA` + the RESOLVE constant across 7 test files updated in the same change.
-  **Correctness proof (OFF/ON, 157 gauntlet + 17 fixtures):** exactly **2 gauntlet decks**
+  **Correctness proof (OFF/ON, 170 gauntlet + 17 fixtures):** exactly **2 gauntlet decks**
   (Azami, Baral) + **2 fixtures** (Baral, Peace Offering) moved — precisely the 4 that admit
   `wincon` as a node (≥3 wincon cards); **0 headline flips, 0 archetype_identity membership
   flips, 0 confidence-tier flips, 0 spurious leads, 0 evictions**. Every changed leaf traces to
@@ -482,11 +494,11 @@ re-baseline makes every *intended* change legible as such.
     where the filler→reanimate "graveyard engine" still lives (the reanimate family is a consumer
     THERE). Relocation, not loss. The opponent-scoped `discard` otag (opponent-hand attack; §3.3) and
     the dead `sac` ref are dropped with them.
-  **Measured OFF (`31f5c7c`) / ON (157 gauntlet + 17 fixtures): all three SHAs moved** (fixtures
+  **Measured OFF (`31f5c7c`) / ON (170 gauntlet + 17 fixtures): all three SHAs moved** (fixtures
   carry the recursion/reanimate families). `FULL_CORPUS 62d5fa5c87e2c962… → cb1a103be7614116…`;
   `ENGINE 9559fa42ea76f661… → 4549062831f5bfc9…`; `RESOLVE b88d8bb5d3a32414… → f209237b352ebf62…`;
   all engine/resolve constants (7 test files) + `distill_parity_baseline.json` +
-  `engine_isolation_baseline.json` regenerated. **Correctness proof:** 85/157 records moved, but **0
+  `engine_isolation_baseline.json` regenerated. **Correctness proof:** 85/170 records moved, but **0
   headline/pre_combo_name/archetype_identity/ranked_identity/confidence-tier/combo/bracket/win-combo/
   tribe flips, 0 determinism flips, 0 reanimator engine losses.** `recursion-from-graveyard` stops
   electing as a redundant graveyard engine on 23 decks (each already had `card-enters-graveyard`, or
@@ -590,9 +602,9 @@ re-baseline makes every *intended* change legible as such.
   `spell-on-stack` gets `cast_drain`; `altwin::player-counter` (Azor's filibuster) is **unmapped**
   (the former node spuriously let infinite energy/experience win through it); `fid_route` re-routes 7
   magecraft/copy fids → `spell-on-stack` + the energy/experience fids. **Measured OFF (`34b2a08`) /
-  ON (157 gauntlet + 17 fixtures):** **0** pre_combo_name / bracket / confidence / archetype_identity /
+  ON (170 gauntlet + 17 fixtures):** **0** pre_combo_name / bracket / confidence / archetype_identity /
   ranked_identity / combo_identity flips; **1** benign `n_nodes` +1 (`simic__ezuri` gains the
-  `experience-counter` attr); **10/157** gauntlet engine relocations, all `spell-cast ↔ spell-copied/
+  `experience-counter` attr); **10/170** gauntlet engine relocations, all `spell-cast ↔ spell-copied/
   spell-on-stack` — genuine cast decks (carrying `impulse-cast`/`free-cast-another`) **KEEP**
   `spell-cast`, pure-copy decks drop the mis-attributed copy→storm/prowess engine, copy+magecraft decks
   (veyran/kalamax/JeskaiStriker/shiko) relocate to `spell-on-stack`; **0 player-counter engines** in the
@@ -625,9 +637,9 @@ re-baseline makes every *intended* change legible as such.
   `empty-library` + `library-size-matters`. `card-enters-graveyard.produced_by` gains
   `mill-each`/`mill-opponent` as an **output-inert** shared-seed signal (already under the `mill`
   parent closure) so the cross-mechanic umbrella guard does not flag the shared mill mechanic.
-  **Measured OFF (`fc22e46`: `03a5880c`/`a63f268b`) / ON (157 gauntlet + 17 fixtures):** **0** label /
+  **Measured OFF (`fc22e46`: `03a5880c`/`a63f268b`) / ON (170 gauntlet + 17 fixtures):** **0** label /
   pre_combo_name / bracket / confidence / archetype_identity / combo_identity / ranked_identity /
-  n_win_combos / n_detected_combos flips; **0** engine relocations; **35/157** gauntlet + **1/17**
+  n_win_combos / n_detected_combos flips; **0** engine relocations; **35/170** gauntlet + **1/17**
   fixture benign `n_nodes` +1 (all the newly-admitted edge-less `color-fixing` attr node from B2).
   B4/B5 are gauntlet-inert (0 decks carry an alternate-loss card or a deckout consumer — wiring is
   correct, lights up for a real loss-wincon/deckout deck, mirroring domain/poison). **ENGINE SHA
@@ -710,7 +722,12 @@ re-baseline makes every *intended* change legible as such.
   re-baseline. See ADR 0022 (the derived adjacency the gate verifies did not silently fall back).
 
 - **2026-11-20 — the unified event graph (#83): ONE cumulative, proof-carrying re-baseline
-  (ADR 0026).** This is the ship re-baseline for the whole #83 change, consolidating the
+  (ADR 0026).** **Superseded for the final 0.9.0 ship by the 2026-11-22 entries below** (the
+  #106/#107 FP removals and the 7-family deferral to #90). This entry records the 2026-11-20
+  cumulative narrative as it then stood (Phase 1–4, families included); the shipped 0.9.0 state is
+  the framework+lifetrade Phase-2 tip — **FULL_CORPUS `85eba970…`, Class A 34** (not the Phase-3
+  values below) — so every "Phase 3 / 7 families" number in this entry is built-then-deferred, not
+  shipped. This is the ship re-baseline for the whole #83 change, consolidating the
   per-phase drift ledger (`~/.claude/plans/trippersham/magic-tools/
   2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md`, Phases 1–4) into one
   OFF→ON for the owner gate. The intermediate phases each regenerated the local baselines to
@@ -746,8 +763,9 @@ re-baseline makes every *intended* change legible as such.
     landfall) get event→event edges by **combo-certified promotion** — loops `combo_win` has
     ALREADY certified unbounded (`unbounded_intermediate_events`, reusing `fid_route`), never from
     naive gate queries (the W1 constraint). **36/170 gauntlet decks** gain ≥1 combo-certified
-    recursive event; recursive-engine decks 90 → 98; **Class A 34 → 26** (8 decks reconciled, incl.
-    the audit's named Selvala/Derevi). **W5 HARD GATE held: all 10 named false circuits stay OPEN**
+    recursive event; decks with a recursive unit **or** a closing commander loop 90 → 98 (decks
+    with a recursive unit **alone** 39 → 63 — the two are distinct counts, not interchangeable);
+    **Class A 34 → 26** (8 decks reconciled, incl. the audit's named Selvala/Derevi). **W5 HARD GATE held: all 10 named false circuits stay OPEN**
     (a false carrier's event is finite → not in the certified-unbounded set → its family edge can
     never form). Zero identity drift by construction (only the KIND of an already-enumerated unit
     moves). ENGINE `80d0116a…` → `8f45c628…`, RESOLVE `3ebb33fd…` → `6eed6ba7…` (both via exactly 2
@@ -769,9 +787,13 @@ re-baseline makes every *intended* change legible as such.
 
   **Behavioral verification (Phase 5, this change)** — captured in
   `research/p5-behavioral-evidence.md`: the Queza relay fixture closes the recursive
-  `{lifegain, life-loss-drain, draw-a-card}` SCC; the 4 split-brain decks close the full
-  `{lifegain, life-loss-drain}` SCC and reconcile out of Class A; each of the 7 families reports a
-  `recursive-engine` on its named deck; the 10 false circuits stay OPEN; Bruvac/Phenax/Kess
+  `{lifegain, life-loss-drain, draw-a-card}` SCC; the 4 split-brain decks all close the full
+  `{lifegain, life-loss-drain}` SCC, but only **Liesa** thereby leaves Class A — the P2 Class-A
+  movement is **35 → 34**, not four decks out. Karlov/Elenda/Celes already had a closing commander
+  loop (so they were already outside Class A under the `recursive-engine ∨ commander_loop.closes`
+  predicate) and merely *gain a lifetrade recursive label* — a different count from "left Class A".
+  (Each of the 7 families reports a `recursive-engine` on its named deck under the Phase-3 build
+  above — deferred to #90, not shipped.) The 10 false circuits stay OPEN; Bruvac/Phenax/Kess
   `card-enters-graveyard` == `static-payoff`; the metric reports Class A = 26 / Class B = 42.
   `distill_parity_baseline.json`, `engine_isolation_baseline.json`, `FULL_CORPUS_SHA`, the 7
   per-file ENGINE/RESOLVE constants, and the pinned `manifest.json` all reflect ON (regenerated by
