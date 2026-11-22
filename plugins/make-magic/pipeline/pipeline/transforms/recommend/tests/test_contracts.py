@@ -9,9 +9,12 @@ closed-vocabulary rejection, and the one invariant the model enforces:
 
 from __future__ import annotations
 
+from typing import get_args
+
 import pytest
 from pydantic import ValidationError
 
+from pipeline.transforms.comparison.contracts import Confidence as ComparisonConfidence
 from pipeline.transforms.comparison.contracts import StrengthAgnostic, StrengthRecord, StrengthRelative
 from pipeline.transforms.recommend.contracts import (
     Candidate,
@@ -22,6 +25,7 @@ from pipeline.transforms.recommend.contracts import (
     RecommendationResult,
     StrategyGraphMembership,
 )
+from pipeline.transforms.recommend.contracts import Confidence as RecommendConfidence
 
 # --------------------------------------------------------------------------- #
 # Small builders so each test states only what it exercises.
@@ -213,6 +217,17 @@ def test_rationale_strength_rejects_non_conforming_payload() -> None:
             prose='p',
             strength={'strength_agnostic': {'edhrec_rank': -1}},  # type: ignore[arg-type]  # gt=0 violated
         )
+
+
+def test_confidence_vocab_matches_comparison_package() -> None:
+    """Cross-package invariant: the ``Confidence`` band vocabulary is mirrored, not
+    shared by import, so the recommendation and deck-comparison packages stay
+    decoupled (no cross-dependency). This guard asserts the two ``Literal`` sets stay
+    byte-for-byte equal — a drift on either side (a renamed/added/removed band) is a
+    loud failure here rather than a silent seam mismatch when a ``StrengthRecord``'s
+    ``confidence`` is co-presented with a ``Rationale``'s. See the deck-comparison
+    handoff (``handoff-to-card-rec.md``), which specifies this test."""
+    assert get_args(RecommendConfidence) == get_args(ComparisonConfidence)
 
 
 # --------------------------------------------------------------------------- #
