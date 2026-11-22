@@ -97,3 +97,116 @@ def test_reference_resolution_handles_a_live_precon(ctx, tmp_path) -> None:
     # The Wakanda precon reads as an artifacts / combat / counters deck (spike Pair 1).
     assert dump.degree_axes.get('ramp', {}).get('n') is not None
     assert dump.semantic_dump['archetype_identity']['archetype_identity']
+
+
+# --------------------------------------------------------------------------- #
+# Layer ② — World Reclaimer land-loop reproduces wr-framework-admission.md.
+# --------------------------------------------------------------------------- #
+
+_SNAPSHOT = (
+    Path(__file__).parent.parent
+    / 'pipeline'
+    / 'transforms'
+    / 'strategy'
+    / 'tests'
+    / 'fixtures'
+    / 'machine_vocab_tchalla_frozen.json'
+)
+
+
+def test_wr_layer2_reproduces_the_framework_admission(ctx, fixture, tmp_path) -> None:
+    """The WR land-loop surfaces as a convergent SCC + closing commander loop (layer ②).
+
+    Reproduces ``wr-framework-admission.md``: a 42-node / 6-event convergent component
+    (weight 388), ``commander_loop.closes`` with ``reaches_back_to`` the recursion/
+    reanimate/crucible hubs, relay hubs ``[sac, recursion-land, reanimate-land,
+    crucible-of-worlds]``, and every ranked unit ``recursive:false`` — a value grind that
+    closes, NOT a certified infinite (#90 is not a gate).
+    """
+    from pipeline.transforms.comparison import cached_deck_dump, classify_regime, diff_engine
+    from pipeline.transforms.comparison.deck_semantics import deck_from_cards
+    from pipeline.transforms.comparison.engine_diff import REGIME_LOOP, heaviest_cycle
+
+    wr_spec, ws_spec = fixture['world_reclaimer'], fixture['world_shaper']
+    wr = deck_from_cards(wr_spec['name'], _entries(wr_spec), ctx, bracket=wr_spec['bracket'])
+    ws = deck_from_cards(ws_spec['name'], _entries(ws_spec), ctx, bracket=ws_spec['bracket'], bundle='precons')
+    dump_wr, _ = cached_deck_dump(wr, ctx, slug='wr-eng', store_dir=tmp_path)
+    dump_ws, _ = cached_deck_dump(ws, ctx, slug='ws-eng', store_dir=tmp_path)
+
+    # The convergent cycle: 42 nodes / 6 events / weight 388 over the land-sac loop events.
+    cyc = heaviest_cycle(dump_wr.engine)
+    assert cyc is not None
+    assert cyc['size'] == 42 and cyc['n_events'] == 6 and cyc['weight'] == 388.0
+    assert cyc['events'] == [
+        'card-enters-graveyard',
+        'creature-attacks',
+        'land-enters-battlefield',
+        'permanent-dies',
+        'permanent-sacrificed',
+        'token-created',
+    ]
+    assert classify_regime(dump_wr.engine) == REGIME_LOOP
+
+    # Commander loop closes and reaches back to the recursion/reanimate/crucible hubs.
+    cl = dump_wr.engine['commander_loop']
+    assert cl['closes'] is True
+    assert cl['reaches_back_to'] == ['recursion-land', 'reanimate-land', 'crucible-of-worlds']
+    assert dump_wr.engine['relay_hubs'] == ['sac', 'recursion-land', 'reanimate-land', 'crucible-of-worlds']
+
+    # The #90-honest read: a grind that closes, never a certified infinite.
+    assert all(not u['recursive'] for u in dump_wr.engine['ranked_units'])
+
+    d = diff_engine(dump_wr.engine, dump_ws.engine, a_name='World Reclaimer', b_name='World Shaper')
+    assert d.regime_a == REGIME_LOOP  # WR is a grind engine
+    assert d.a_certified_infinite is False
+    assert 'value grind that closes, not a certified infinite' in d.reading
+    assert 'land-enters-battlefield' in d.a_cycle_events
+
+
+# --------------------------------------------------------------------------- #
+# Opt-in snapshot — Wakanda ≥4-MV-artifact-cast lean surfaces; default byte-identical.
+# --------------------------------------------------------------------------- #
+
+
+def test_opt_in_snapshot_surfaces_the_cast_lean_default_is_byte_identical(ctx, tmp_path) -> None:
+    """The frozen T'Challa snapshot adds ``artifact-cast-mv4`` as a ``counter-placed``
+    producer (layer ②); WITHOUT it, the engine surface is byte-identical to the default.
+    """
+    from pipeline.transforms.comparison.deck_semantics import resolve_deck_dump, resolve_reference
+
+    deck = resolve_reference('WakandaForever_2026', ctx)
+
+    default = resolve_deck_dump(deck, ctx)
+    augmented = resolve_deck_dump(deck, ctx, edges_snapshot=_SNAPSHOT)
+
+    def _producers(engine: dict, event: str) -> list[str]:
+        return engine['events'].get(event, {}).get('producers', [])
+
+    # WITHOUT the snapshot: default counter-placed producers (no injected edge).
+    assert 'artifact-cast-mv4' not in _producers(default.engine, 'counter-placed')
+    # WITH the snapshot: the authored T'Challa edge surfaces as a counter-placed producer.
+    assert 'artifact-cast-mv4' in _producers(augmented.engine, 'counter-placed')
+
+    # The default path is byte-identical to a plain resolve of the same deck (the opt-in
+    # snapshot is the ONLY thing that moves the engine surface).
+    baseline = resolve_deck_dump(deck, ctx)
+    assert default.engine == baseline.engine
+    assert default.semantic_dump == baseline.semantic_dump
+    assert default.card_attributes == baseline.card_attributes
+
+
+def test_opt_in_snapshot_never_touches_the_shared_cache(ctx, tmp_path) -> None:
+    """``edges_snapshot`` bypasses the dump cache: it reports a miss and writes nothing."""
+    from pipeline.transforms.comparison import cached_deck_dump
+    from pipeline.transforms.comparison.deck_semantics import resolve_reference
+
+    deck = resolve_reference('WakandaForever_2026', ctx)
+    _dump, hit = cached_deck_dump(deck, ctx, slug='wakanda-snap', store_dir=tmp_path, edges_snapshot=_SNAPSHOT)
+    assert hit is False  # opt-in never served a hit
+    # Nothing was persisted for the snapshot slug (the live/dump store is untouched).
+    store = tmp_path / 'semantic_dumps.jsonl'
+    if store.exists():
+        import json as _json
+
+        slugs = {_json.loads(ln)['slug'] for ln in store.read_text().splitlines() if ln.strip()}
+        assert 'wakanda-snap' not in slugs

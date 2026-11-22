@@ -76,33 +76,133 @@ class LakeContext:
         return bool(slugs and (_RAMP_OTAGS & set(slugs)))
 
 
-def build_deck_dump(deck: dict[str, Any], rec: dict[str, Any], ctx: LakeContext) -> DeckDump:
+def engine_surface_from_facts(
+    facts_engines: dict[str, Any],
+    *,
+    augmented_isolation: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize ``facts['engines']`` into the layer-② / ④ engine surface.
+
+    Reads the structure-only engine facts: ``convergent_event_components`` (the SCC
+    cycles) stay from the default resolve, while the per-event engine isolation comes
+    from ``engine_units`` by default, or from ``augmented_isolation`` (an
+    ``identify_engines(...).raw_isolation`` dict carrying the opt-in snapshot's injected
+    edges) when the caller resolved with an authored-edge snapshot. The convergent
+    components are NOT recomputed under a snapshot (injection augments the elected units /
+    producers, not the event-edge SCCs), so they are always the default resolve's.
+
+    Returns ``{convergent_event_components, ranked_units, relay_hubs, commander_loop,
+    forward_chains, events}``; ``events`` maps each event to its in-deck producer /
+    consumer attrs (+ mass / kind) — the stable anchor layer ④ joins cards against.
+    """
+    eu = augmented_isolation if augmented_isolation is not None else (facts_engines.get('engine_units') or {})
+    events: dict[str, dict[str, Any]] = {}
+    for e in eu.get('engines') or []:
+        events[e['event']] = {
+            'producers': sorted(e.get('producers', [])),
+            'consumers': sorted(e.get('consumers', [])),
+            'mass': e.get('mass'),
+            'kind': e.get('kind'),
+        }
+    return {
+        'convergent_event_components': facts_engines.get('convergent_event_components') or [],
+        'ranked_units': eu.get('ranked_units') or [],
+        'relay_hubs': eu.get('relay_hubs') or [],
+        'commander_loop': eu.get('commander_loop'),
+        'forward_chains': [list(fc) for fc in (eu.get('forward_chains') or [])],
+        'events': events,
+    }
+
+
+def card_attributes(deck: dict[str, Any], ctx: LakeContext) -> list[dict[str, Any]]:
+    """Per-card derived engine attributes, oracle_id-keyed, for layer ④'s join.
+
+    Re-homes the spike's per-card attribute derivation onto the SAME one-named-rule the
+    engine uses (``derive_card_attributes`` + ``synth_attrs_for``, ADR 0001), so the
+    comparison layer and the engine never read a card's attrs differently. Keyed by
+    ``oracle_id`` (never name): a card is ``{oracle_id, name, attrs, mv, type_line,
+    commander}``. Does not mutate ``deck``.
+    """
+    from pipeline.transforms.strategy.derive_card_attributes import derive_card_attributes
+    from pipeline.transforms.strategy.distill_strategies import synth_attrs_for
+
+    out: list[dict[str, Any]] = []
+    for c in deck.get('cards', []):
+        closure = {t.lower() for t in c.get('otags', [])}
+        attrs = derive_card_attributes(closure, ctx.assets) | synth_attrs_for(c, ctx.assets.synth_predicates)
+        out.append(
+            {
+                'oracle_id': c.get('oracle_id'),
+                'name': c.get('name'),
+                'attrs': sorted(attrs),
+                'mv': float(c.get('cmc') or 0.0),
+                'type_line': c.get('type_line') or '',
+                'commander': c.get('role') == 'commander',
+            }
+        )
+    return out
+
+
+def build_deck_dump(
+    deck: dict[str, Any],
+    rec: dict[str, Any],
+    ctx: LakeContext,
+    *,
+    engine_report: Any | None = None,
+) -> DeckDump:
     """Assemble a :class:`DeckDump` from a deck + its ``resolve()`` record. Pure-ish.
 
     Reads ``semantic_dump.build_record`` (the shared artifact), the ``degree_axes``
-    / ``power_profile`` facts, the identity gap, and the lake-computed curve. Does
-    not mutate ``deck`` or ``rec``.
+    / ``power_profile`` facts, the identity gap, the lake-computed curve, the normalized
+    engine surface, and the oracle_id-keyed card attributes. When ``engine_report`` is
+    given (the opt-in snapshot path — an ``identify_engines(...)`` result), its injected
+    edges augment the engine surface's elected units; otherwise the default resolve's
+    engine facts are used verbatim. Does not mutate ``deck`` or ``rec``.
     """
     from pipeline.transforms.strategy.tests.repro import semantic_dump
 
     sd = semantic_dump.build_record(deck, rec)
     curve = deck_curve(sd['pool'], cmc_of=ctx._cmc_of, is_early_ramp=ctx._is_early_ramp)
     facts = rec.get('facts', {})
+    augmented = engine_report.raw_isolation if engine_report is not None else None
+    engine = engine_surface_from_facts(facts.get('engines', {}), augmented_isolation=augmented)
     return DeckDump(
         semantic_dump=sd,
         degree_axes=facts.get('degree_axes', {}),
         power_profile=facts.get('power_profile', {}),
         curve=curve,
+        engine=engine,
+        card_attributes=card_attributes(deck, ctx),
         identity_gap=rec.get('archetype_identity_gap'),
     )
 
 
-def resolve_deck_dump(deck: dict[str, Any], ctx: LakeContext) -> DeckDump:
-    """Resolve a deck and build its :class:`DeckDump` (no cache). Runs the engine."""
+def resolve_deck_dump(
+    deck: dict[str, Any],
+    ctx: LakeContext,
+    *,
+    edges_snapshot: Path | str | None = None,
+) -> DeckDump:
+    """Resolve a deck and build its :class:`DeckDump` (no cache). Runs the engine.
+
+    ``edges_snapshot`` is the comparison-owned, **opt-in** authored-edge path: a frozen
+    machine-vocab snapshot (``machine_vocab.load_frozen_snapshot``) whose edges are
+    injected via ``identify_engines`` so the engine surface shows the extra edges (e.g.
+    Wakanda's ``artifact-cast-mv4 → counter-placed`` cast lean). ``resolve()`` itself is
+    ALWAYS the default (no snapshot) call — the snapshot only augments the read-side
+    engine isolation, never the live store and never the default resolve output.
+    """
     from pipeline.transforms.strategy.resolve import resolve
 
     rec = resolve(deck, ctx.combos, assets=ctx.assets)
-    return build_deck_dump(deck, rec, ctx)
+    engine_report = None
+    if edges_snapshot is not None:
+        from pipeline.transforms.strategy.engine_report import identify_engines
+        from pipeline.transforms.strategy.machine_vocab import load_frozen_snapshot
+
+        store = load_frozen_snapshot(Path(edges_snapshot))
+        engine_report = identify_engines(deck, store=store, combos=ctx.combos)
+    return build_deck_dump(deck, rec, ctx, engine_report=engine_report)
 
 
 def cached_deck_dump(
@@ -111,13 +211,22 @@ def cached_deck_dump(
     *,
     slug: str | None = None,
     store_dir: Path | str | None = None,
+    edges_snapshot: Path | str | None = None,
 ) -> tuple[DeckDump, bool]:
     """Return ``(dump, cache_hit)`` for a deck, resolving + persisting only on a miss.
 
     A fresh cached dump (same deck input + :data:`~.cache.DUMP_CACHE_VERSION`) is
     returned WITHOUT a re-resolve (``cache_hit=True``). On a miss the deck is
     resolved, its dump built + persisted, and returned (``cache_hit=False``).
+
+    The opt-in ``edges_snapshot`` path **bypasses the shared cache entirely**: it always
+    resolves fresh and never reads or writes the durable dump store, so loading a snapshot
+    can neither be served a non-snapshot cache hit nor pollute the default cache (keeping
+    the default path byte-identical and the live store untouched). Its ``cache_hit`` is
+    always ``False``.
     """
+    if edges_snapshot is not None:
+        return resolve_deck_dump(deck, ctx, edges_snapshot=edges_snapshot), False
     deck_slug = slug or str(deck.get('name') or 'deck')
     key = dump_cache.dump_input_hash(deck)
     cache = dump_cache.load_cache(store_dir)

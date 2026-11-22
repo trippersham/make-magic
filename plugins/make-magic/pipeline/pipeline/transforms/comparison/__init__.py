@@ -37,6 +37,8 @@ from pipeline.transforms.comparison.contracts import (
 from pipeline.transforms.comparison.deck_semantics import (
     LakeContext,
     cached_deck_dump,
+    card_attributes,
+    engine_surface_from_facts,
     resolve_reference,
 )
 from pipeline.transforms.comparison.dump_diff import (
@@ -47,6 +49,12 @@ from pipeline.transforms.comparison.dump_diff import (
     layer_detail,
     render_report,
 )
+from pipeline.transforms.comparison.engine_diff import (
+    EngineDiff,
+    UnitDelta,
+    classify_regime,
+    diff_engine,
+)
 from pipeline.transforms.comparison.execution_diff import (
     ExecutionDiff,
     deck_curve,
@@ -55,6 +63,13 @@ from pipeline.transforms.comparison.execution_diff import (
 from pipeline.transforms.comparison.identity_diff import (
     IdentityDiff,
     diff_identity,
+)
+from pipeline.transforms.comparison.intent_diff import (
+    EventDivergence,
+    IntentCard,
+    IntentDiff,
+    diff_intent,
+    event_investment,
 )
 from pipeline.transforms.comparison.strength import marginal_participation, strength
 from pipeline.transforms.comparison.strength_fetch import (
@@ -74,8 +89,12 @@ __all__ = [
     'LAYERS',
     'CardSetDiff',
     'DeckDump',
+    'EngineDiff',
+    'EventDivergence',
     'ExecutionDiff',
     'IdentityDiff',
+    'IntentCard',
+    'IntentDiff',
     'LakeContext',
     'MarginalParticipation',
     'SemanticDumpCache',
@@ -83,13 +102,20 @@ __all__ = [
     'StrengthData',
     'StrengthRecord',
     'StrengthRelative',
+    'UnitDelta',
     'cached_deck_dump',
+    'card_attributes',
     'classify_layer',
+    'classify_regime',
     'deck_curve',
     'diff_card_sets',
     'diff_dumps',
+    'diff_engine',
     'diff_execution',
     'diff_identity',
+    'diff_intent',
+    'engine_surface_from_facts',
+    'event_investment',
     'exit_code',
     'fetch_strength',
     'layer_detail',

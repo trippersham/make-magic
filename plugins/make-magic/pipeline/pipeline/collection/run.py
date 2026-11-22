@@ -2084,22 +2084,55 @@ def _compare(argv: list[str]) -> None:
     parser.add_argument(
         '--cohort', default=None, help='Phase-5 stub: a gauntlet bundle to place A among (centroid TBD).'
     )
+    parser.add_argument(
+        '--with-snapshot',
+        default=None,
+        metavar='PATH',
+        help='Opt-in: resolve deck A with an extra frozen machine-vocab edge snapshot '
+        "(surfaces authored edges like Wakanda's artifact-cast lean in layer 2). "
+        'Default (omitted) is byte-identical and never touches the live store.',
+    )
     parser.add_argument('--json', action='store_true', help='Emit the structured comparison payload as JSON.')
     args = parser.parse_args(argv)
 
     from pipeline.transforms.comparison import LakeContext, cached_deck_dump, resolve_reference
+    from pipeline.transforms.comparison.engine_diff import diff_engine
     from pipeline.transforms.comparison.execution_diff import diff_execution
     from pipeline.transforms.comparison.identity_diff import diff_identity
+    from pipeline.transforms.comparison.intent_diff import diff_intent
     from pipeline.transforms.comparison.report import comparison_payload, render_text
+    from pipeline.transforms.comparison.value_density import load_value_table, value_density
 
     ctx = LakeContext.build()
     deck_a = resolve_reference(args.a, ctx)
     deck_b = resolve_reference(args.b, ctx)
-    dump_a, hit_a = cached_deck_dump(deck_a, ctx, slug=str(deck_a.get('name') or args.a))
-    dump_b, hit_b = cached_deck_dump(deck_b, ctx, slug=str(deck_b.get('name') or args.b))
+    name_a = str(deck_a.get('name') or args.a)
+    name_b = str(deck_b.get('name') or args.b)
+    # The opt-in snapshot path bypasses the shared cache (keeps the default byte-identical),
+    # so it reports as a miss and is never served a non-snapshot hit.
+    dump_a, hit_a = cached_deck_dump(deck_a, ctx, slug=name_a, edges_snapshot=args.with_snapshot)
+    dump_b, hit_b = cached_deck_dump(deck_b, ctx, slug=name_b)
 
     id_diff = diff_identity(dump_a.semantic_dump, dump_b.semantic_dump)
     exec_diff = diff_execution(dump_a.execution_surface(), dump_b.execution_surface())
+    engine_diff = diff_engine(dump_a.engine, dump_b.engine, a_name=name_a, b_name=name_b)
+
+    # Phase-2 value-density is the signature-card RANKING aid (ADR 0027), not the
+    # discovery mechanism: participation discovers the signature cards; value-density
+    # orders them. Pure + offline (the shipped attribute-value table), no lake.
+    value_table = load_value_table()
+
+    def _ranker(rec: dict) -> float:
+        return value_density(set(rec.get('attrs') or ()), float(rec.get('mv') or 0.0), table=value_table)
+
+    intent_diff = diff_intent(
+        dump_a.intent_surface(),
+        dump_b.intent_surface(),
+        a_name=name_a,
+        b_name=name_b,
+        a_ranker=_ranker,
+        b_ranker=_ranker,
+    )
 
     cohort = None
     if args.cohort is not None:
@@ -2115,12 +2148,14 @@ def _compare(argv: list[str]) -> None:
     payload = comparison_payload(
         id_diff,
         exec_diff,
-        a_name=str(deck_a.get('name') or args.a),
-        b_name=str(deck_b.get('name') or args.b),
+        a_name=name_a,
+        b_name=name_b,
         a_identity_gap=dump_a.identity_gap,
         b_identity_gap=dump_b.identity_gap,
         cache_hits=(hit_a, hit_b),
         cohort=cohort,
+        engine_diff=engine_diff,
+        intent_diff=intent_diff,
     )
     if args.json:
         print(json.dumps(payload, indent=2))

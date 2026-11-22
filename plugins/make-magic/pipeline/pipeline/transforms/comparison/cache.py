@@ -46,7 +46,12 @@ from pipeline.transforms.strategy.engine_cache import (
 #: execution field, or an engine-semantics change that moves ``resolve()``'s
 #: output. The deck-input hash self-invalidates on a deck edit; this version
 #: self-invalidates on an extraction/engine change (the two-layer ADR 0021 model).
-DUMP_CACHE_VERSION: int = 1
+#:
+#: v2 (P4): the dump gained the layer-② ``engine`` surface (convergent components /
+#: ranked units / relay hubs / commander loop / per-event attrs) and the layer-④
+#: oracle_id-keyed ``card_attributes``. Bumping invalidates v1 records (which lack both)
+#: so they re-resolve; it does NOT change ``resolve()`` / ``semantic_dump`` output.
+DUMP_CACHE_VERSION: int = 2
 
 #: Filename within the (shared) store directory. Sits beside ``engines.jsonl``.
 _STORE_FILENAME = 'semantic_dumps.jsonl'
@@ -67,6 +72,15 @@ class DeckDump:
         degree_axes: ``facts['degree_axes']`` — the execution degree axes.
         power_profile: ``facts['power_profile']`` — the interaction-efficiency surface.
         curve: the lake-computed nonland mana curve (see ``execution_diff.deck_curve``).
+        engine: the normalized ``facts['engines']`` surface for layer ② / ④ —
+            ``convergent_event_components`` / ``ranked_units`` / ``relay_hubs`` /
+            ``commander_loop`` / ``forward_chains`` / ``events`` (per-event producer /
+            consumer attrs). Built by ``deck_semantics.engine_surface_from_facts``; the
+            opt-in snapshot path overrides its ``ranked_units`` / ``relay_hubs`` /
+            ``commander_loop`` / ``events`` with the injected-edge isolation.
+        card_attributes: per-card derived engine attributes, oracle_id-keyed, for layer
+            ④'s signature-card join: a list of ``{oracle_id, name, attrs, mv, type_line,
+            commander}``. Never joined by name (DFC / ``|MSC|`` safe).
         identity_gap: ``resolve()``'s ``archetype_identity_gap`` scalar (deck-level
             identity-separation signal), or None.
         strength: a reserved slot the card-recommendation effort fills with its
@@ -77,6 +91,8 @@ class DeckDump:
     degree_axes: dict[str, Any]
     power_profile: dict[str, Any]
     curve: dict[str, Any]
+    engine: dict[str, Any] = field(default_factory=dict)
+    card_attributes: list[dict[str, Any]] = field(default_factory=list)
     identity_gap: float | None = None
     strength: dict[str, Any] | None = None
 
@@ -84,12 +100,18 @@ class DeckDump:
         """The ``{degree_axes, power_profile, curve}`` surface ``diff_execution`` reads."""
         return {'degree_axes': self.degree_axes, 'power_profile': self.power_profile, 'curve': self.curve}
 
+    def intent_surface(self) -> dict[str, Any]:
+        """The ``{engine, card_attributes}`` surface ``intent_diff.diff_intent`` reads."""
+        return {'engine': self.engine, 'card_attributes': self.card_attributes}
+
     def as_dict(self) -> dict[str, Any]:
         return {
             'semantic_dump': self.semantic_dump,
             'degree_axes': self.degree_axes,
             'power_profile': self.power_profile,
             'curve': self.curve,
+            'engine': self.engine,
+            'card_attributes': self.card_attributes,
             'identity_gap': self.identity_gap,
             'strength': self.strength,
         }
@@ -101,6 +123,8 @@ class DeckDump:
             degree_axes=d.get('degree_axes', {}),
             power_profile=d.get('power_profile', {}),
             curve=d.get('curve', {}),
+            engine=d.get('engine', {}),
+            card_attributes=d.get('card_attributes', []),
             identity_gap=d.get('identity_gap'),
             strength=d.get('strength'),
         )
