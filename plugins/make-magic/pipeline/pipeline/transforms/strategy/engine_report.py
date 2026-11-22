@@ -460,6 +460,15 @@ def identify_engines(
     #
     # With an empty store (the default/committed state), the loop body
     # never executes and behavior is byte-identical to before.
+    #
+    # ``matched_store_attrs`` records which store entries actually matched a card in
+    # THIS deck. A store entry's within-card edge role is injected into the relay walk
+    # only when it matched (ADR 0017 two-tier waterfall): a store slug can be in
+    # ``nodes`` for a DIFFERENT reason — a native CardAttribute of the same slug — so a
+    # zero-match store entry must not hijack that native node's role and rewrite the
+    # named cycle. A combo-implied edge (``combo_variant_id`` set) is grounded by its
+    # combo being PRESENT (``_assemble_present_combo_edges``), so it counts as matched.
+    matched_store_attrs: set[str] = set()
     if not store.is_empty:
         for ma in store.attributes:
             if not ma.query or not ma.trigger_event or not ma.produced_event:
@@ -476,7 +485,9 @@ def identify_engines(
             # with a native node.  This makes correctness structural (provenance)
             # rather than reliant on the incidental invariant that query-eval
             # membership always matches native otag membership (C3 review fix).
-            if ma.provenance.combo_variant_id and ma.name in ctx.nodes:
+            is_combo_edge = bool(ma.provenance.combo_variant_id)
+            if is_combo_edge and ma.name in ctx.nodes:
+                matched_store_attrs.add(ma.name)  # grounded: its combo is present
                 continue
             try:
                 pred = compile_query(ma.query)
@@ -485,15 +496,21 @@ def identify_engines(
 
             support_count = 0
             is_cmd_attr = False
+            matched = False
             for card in ctx.cards:
                 view = CardView.from_card(card)
                 if pred(view):
+                    matched = True
                     w = ctx.cfg.cmd_weight if card.get('role') == 'commander' else 1.0
                     ctx.attr_weight[ma.name] += w
                     if not is_land(card):
                         support_count += 1
                     if card.get('role') == 'commander':
                         is_cmd_attr = True
+            # A combo-implied edge is grounded by its PRESENT combo (above); a
+            # non-combo (haiku) entry is live only when its query hit a card here.
+            if matched or is_combo_edge:
+                matched_store_attrs.add(ma.name)
 
             # Node admission: >= 3 support cards OR commander attr (determine_node_admitted, ADR 0004).
             if determine_node_admitted(support_count, is_cmd_attr):
@@ -524,6 +541,7 @@ def identify_engines(
         store=store,
         earned_archetypes=earned_archetypes,
         combo_event_edges=None,
+        matched_store_attrs=frozenset(matched_store_attrs),
     )
 
     # 4. Name / characterize each engine.

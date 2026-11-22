@@ -70,6 +70,7 @@ from pipeline.transforms.strategy.strategy_graph import elect_engine_units
 def _get_role_with_store(
     attr_name: str,
     store: ProvisionalAttributeStore | None,
+    matched_store_attrs: frozenset[str] | None = None,
 ) -> EventEffect | None:
     """Look up an edge role from curated roles first, then the machine store.
 
@@ -78,12 +79,23 @@ def _get_role_with_store(
     checked for a matching name with ``trigger_event``/``produced_event`` set,
     and a synthetic :class:`EventEffect` is constructed on the fly.
 
+    A store entry's role is injected only when the entry's query actually matched
+    a card in THIS deck. ``matched_store_attrs`` names the store entries whose
+    query matched (computed by :func:`.engine_report.identify_engines`, the caller
+    that evaluates store queries against the deck). A store name can be in ``nodes``
+    for a DIFFERENT reason — a native CardAttribute of the same slug put it there —
+    so without this gate a zero-match store entry would hijack that native node's
+    role and silently rewrite the named cycle. ``None`` (the structural callers that
+    pass no match map) keeps the ungated two-tier waterfall.
+
     With an empty or ``None`` store this is identical to ``get_role(attr_name)``.
     """
     curated = get_role(attr_name)
     if curated is not None:
         return curated
     if store is None or store.is_empty:
+        return None
+    if matched_store_attrs is not None and attr_name not in matched_store_attrs:
         return None
     machine_attr = store.get(attr_name)
     if machine_attr is None:
@@ -102,6 +114,7 @@ def build_relay_augmented_event_edges(
     events: dict[str, dict],
     *,
     store: ProvisionalAttributeStore | None = None,
+    matched_store_attrs: frozenset[str] | None = None,
 ) -> list[tuple[str, str, str]]:
     """Build event-edges with relay-node injection from within-card edge attrs.
 
@@ -123,6 +136,10 @@ def build_relay_augmented_event_edges(
     events
         ``assets.events`` — the event catalog dict (keys = event slugs,
         values have ``produced_by`` and ``triggers`` lists).
+    matched_store_attrs
+        The store entries whose query matched a card in this deck; a store role is
+        injected only for a matched entry (see :func:`_get_role_with_store`). ``None``
+        keeps the ungated waterfall.
 
     Returns
     -------
@@ -165,7 +182,7 @@ def build_relay_augmented_event_edges(
     # Sorted iteration for determinism (the injection order does not affect the
     # cross-product, but the produced_by/triggers append order is stable).
     for attr in sorted(nodes):
-        role = _get_role_with_store(attr, store)
+        role = _get_role_with_store(attr, store, matched_store_attrs)
         if role is None:
             continue
         _inject(attr, role.trigger_event, role.produced_event)
@@ -194,6 +211,7 @@ def elect_engine_units_with_relay(
     store: ProvisionalAttributeStore | None = None,
     earned_archetypes: set[str] | None = None,
     combo_event_edges: list[tuple[str, str]] | None = None,
+    matched_store_attrs: frozenset[str] | None = None,
 ) -> dict:
     """Run ``elect_engine_units`` over the relay-augmented event graph.
 
@@ -238,11 +256,19 @@ def elect_engine_units_with_relay(
         ``None`` (the default), adding no combo edges; the seam is retained — and
         exercised by ``test_relay`` — so #90 re-adds a vetted family layer without
         re-plumbing.
+    matched_store_attrs
+        The store entries whose query actually matched a card in this deck (computed
+        by :func:`.engine_report.identify_engines`). A store entry's role is injected
+        only when its name is in this set, so a zero-match store query never rewrites
+        the named cycle of a same-slug native node. ``None`` (the default) keeps the
+        ungated waterfall for structural callers that do not evaluate store queries.
 
     Returns
     -------
     dict
         The engine-isolation dict, same shape as ``elect_engine_units`` output.
     """
-    augmented_edges = build_relay_augmented_event_edges(nodes, events, store=store)
+    augmented_edges = build_relay_augmented_event_edges(
+        nodes, events, store=store, matched_store_attrs=matched_store_attrs
+    )
     return elect_engine_units(nodes, augmented_edges, attr_weight, assets, cards, earned_archetypes, combo_event_edges)

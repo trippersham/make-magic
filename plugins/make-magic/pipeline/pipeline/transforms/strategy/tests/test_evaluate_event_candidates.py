@@ -350,3 +350,59 @@ class TestShadowMeasurement:
         report = run_candidate_evaluation_shadow(residue_otags)
         # With promoted candidates, unlock should be at least the current 72%
         assert report.projected_unlock_pct >= 72.0, f'Projected unlock {report.projected_unlock_pct:.1f}% < 72%'
+
+
+# ---------------------------------------------------------------------------
+# 7. Projection over a relay-bearing event (mixed str + RelayEntry list)
+# ---------------------------------------------------------------------------
+
+
+class TestProjectionRelayBearingEvent:
+    """``_build_projected_events`` projects a candidate onto a side that already
+    carries catalog ``RelayEntry`` objects (ADR 0026), without a mixed-sort crash.
+
+    A ``produced_by`` / ``triggers`` list mixes string CardAttribute refs with
+    ``RelayEntry`` objects, which are not mutually comparable. Projecting a promoted
+    string candidate onto such a side must sort the strings on their own and keep
+    the relays after them — never ``sorted(strings | relays)``, which raises
+    ``TypeError``.
+    """
+
+    def test_projection_preserves_relays_and_sorts_strings(self) -> None:
+        from pipeline.transforms.strategy.derive_card_events import RelayEntry
+        from pipeline.transforms.strategy.evaluate_event_candidates import (
+            CandidateSeed,
+            _build_projected_events,
+        )
+
+        # ``draw-a-card`` shape: a relay-bearing ``produced_by`` side (the lifetrade
+        # gain-to-draw / drain-to-draw relays) alongside string producers.
+        relay_a = RelayEntry(from_event='lifegain', gate='gain-to-draw')
+        relay_b = RelayEntry(from_event='life-loss-drain', gate='drain-to-draw')
+        events = {
+            'draw-a-card': {
+                'rule': 'a card is drawn',
+                'produced_by': ['wheel', 'repeatable-draw', relay_a, relay_b],
+                'triggers': ['draw-matters'],
+            }
+        }
+        cand = CandidateSeed(
+            event='draw-a-card',
+            side='produced_by',
+            otag='curiosity-like',
+            corroborating_cards=frozenset({'oid-1', 'oid-2', 'oid-3'}),
+        )
+
+        projected = _build_projected_events(events, [cand])
+        side = projected['draw-a-card']['produced_by']
+
+        strings = [r for r in side if isinstance(r, str)]
+        relays = [r for r in side if isinstance(r, RelayEntry)]
+        # Strings are sorted and include the promoted candidate's closure anchor.
+        assert strings == sorted(strings)
+        assert 'curiosity-like' in strings
+        # Both relays are carried through un-clobbered, after the strings.
+        assert set(relays) == {relay_a, relay_b}
+        assert side.index(relays[0]) > max(i for i, r in enumerate(side) if isinstance(r, str))
+        # The original catalog list is not mutated (shadow-only projection).
+        assert events['draw-a-card']['produced_by'] == ['wheel', 'repeatable-draw', relay_a, relay_b]
