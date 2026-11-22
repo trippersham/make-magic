@@ -10,6 +10,7 @@ Commander's Sphere, and a rank-blind crossover card reads UNKNOWN (not weak).
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import pytest
@@ -145,3 +146,48 @@ def test_round_trips_through_json(deck, draw_pool, draw_data) -> None:
     )
     for r in recs.values():
         assert StrengthRecord.model_validate_json(r.model_dump_json()) == r
+
+
+# --------------------------------------------------------------------------- #
+# M1 — an unknown / typo anchor_event must RAISE, never silently degrade to a
+# whole-card density (which inverts the ranking: a kitchen-sink card beats a
+# focused one). The catalog is the engine's own event set.
+# --------------------------------------------------------------------------- #
+
+
+def test_unknown_anchor_event_raises(deck, draw_pool, draw_data) -> None:
+    """A bogus anchor_event raises ValueError rather than reading the whole card."""
+    with pytest.raises(ValueError, match='anchor_event'):
+        strength(
+            deck,
+            list(draw_pool),
+            anchor_event='drwa-a-card',  # typo — not in the event catalog
+            strength_data=draw_data,
+            candidate_cards=draw_pool,
+        )
+
+
+def test_valid_anchor_event_still_role_scopes(deck, draw_pool, draw_data) -> None:
+    """A valid anchor still role-scopes: value-density stays finite and ranked."""
+    recs = strength(
+        deck, list(draw_pool), anchor_event='draw-a-card', strength_data=draw_data, candidate_cards=draw_pool
+    )
+    assert recs['remora'].strength_agnostic.value_density > recs['sphere'].strength_agnostic.value_density
+
+
+# --------------------------------------------------------------------------- #
+# M2 — a NaN mana value must not launder into the `null` "not computed" sentinel.
+# NaN is truthy, so `float(x or 0.0)` lets it through -> value_density = NaN ->
+# serialises as null. The guard must treat a non-finite MV as missing (-> 0).
+# --------------------------------------------------------------------------- #
+
+
+def test_nan_mv_does_not_launder_to_null_value_density(deck, draw_data) -> None:
+    """A candidate with cmc=NaN yields a finite value_density, never the null sentinel."""
+    pool = {'nanny': {'name': 'NaN Card', 'otags': DRAW5, 'type_line': 'Enchantment', 'cmc': float('nan')}}
+    recs = strength(deck, ['nanny'], anchor_event='draw-a-card', strength_data={}, candidate_cards=pool)
+    vd = recs['nanny'].strength_agnostic.value_density
+    assert vd is not None  # not the "not computed" sentinel
+    assert math.isfinite(vd)  # and a real finite number (MV treated as 0)
+    # Round-trips clean (the null-laundering bug surfaced as a serialised null).
+    assert StrengthRecord.model_validate_json(recs['nanny'].model_dump_json()) == recs['nanny']

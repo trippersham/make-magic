@@ -25,6 +25,7 @@ the lake / bundled assets. All identity joins are by **oracle_id**, never name.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from pipeline.transforms.comparison.contracts import (
@@ -39,6 +40,20 @@ from pipeline.transforms.comparison.value_density import value_density
 # --------------------------------------------------------------------------- #
 # Candidate / deck resolution helpers.
 # --------------------------------------------------------------------------- #
+
+
+def _mv(x: Any) -> float:
+    """Coerce a mana value to a finite non-negative float; missing / non-finite ⇒ 0.0.
+
+    ``float(x or 0.0)`` is NOT enough: ``NaN`` is truthy, so it escapes the ``or`` guard and
+    launders downstream (``value_density`` ⇒ NaN ⇒ the ``null`` "not computed" sentinel). A
+    non-numeric, ``None``, ``NaN`` or ``inf`` MV is read as missing (0), never as a real cost.
+    """
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return 0.0
+    return v if math.isfinite(v) else 0.0
 
 
 def _derive_attrs(otags: list[str], assets: Any, card: dict | None = None) -> set[str]:
@@ -74,7 +89,7 @@ def _candidate_card(
         'name': meta.get('name', oracle_id),
         'otags': slugs,
         'type_line': type_line or meta.get('type_line_full', ''),
-        'cmc': float(meta.get('cmc', 0.0) or 0.0),
+        'cmc': _mv(meta.get('cmc')),
         'oracle_id': oracle_id,
         'role': None,
     }
@@ -109,17 +124,38 @@ def _commander_attrs(deck: dict) -> set[str]:
     return out
 
 
+def _commander_attrs_derived(deck: dict, assets: Any) -> set[str]:
+    """Command-zone attributes DERIVED (otag closure + synth), the same engine derivation.
+
+    Commander coupling must compare DERIVED candidate attrs against DERIVED commander attrs
+    — raw otags would false-negative (``lifegain-matters`` derives to ``lifegain``, so a raw
+    overlap misses a real coupling). This mirrors :func:`_derive_attrs` on each commander.
+    """
+    out: set[str] = set()
+    for c in deck['cards']:
+        if c.get('role') == 'commander':
+            out |= _derive_attrs(c.get('otags', []), assets, card=c)
+    return out
+
+
 def _role_attrs(anchor_event: str | None, assets: Any) -> set[str] | None:
     """The attribute family that produces ``anchor_event`` — the role scope for value-density.
 
     ``None`` (no anchor) ⇒ a whole-card density (global). The producer list is the engine's
     own catalog (``events[event]['produced_by']``), so the role scope is never a hand-list.
+
+    An unknown / typo ``anchor_event`` is a loud ``ValueError`` — NOT a silent fall-back to a
+    whole-card reading, which would invert the ranking (a 7-attr kitchen-sink card beats a
+    focused draw card). The catalog is validated against the engine's own event set.
     """
     if anchor_event is None:
         return None
-    ev = assets.events.get(anchor_event)
-    if not ev:
-        return None
+    if anchor_event not in assets.events:
+        raise ValueError(
+            f'unknown anchor_event {anchor_event!r}: not in the event catalog '
+            '(pass None for a whole-card reading, or a valid event name)'
+        )
+    ev = assets.events[anchor_event]
     return set(ev.get('produced_by', [])) | set(ev.get('consumed_by', []))
 
 
@@ -192,7 +228,7 @@ def strength(
     for oid in candidate_oracle_ids:
         card = _candidate_card(oid, card=candidate_cards.get(oid), lake=lake, meta_by_oid=meta_by_oid)
         attrs = _derive_attrs(card.get('otags', []), assets, card=card)
-        mv = float(card.get('cmc', card.get('mv', 0.0)) or 0.0)
+        mv = _mv(card.get('cmc', card.get('mv')))
 
         sd = strength_data.get(oid, StrengthData())
         vd = value_density(attrs, mv, role_attrs=role_attrs, table=value_table)
@@ -266,6 +302,7 @@ def marginal_participation(
     store: Any = None,
     combos: list[dict] | None = None,
     lake: Any = None,
+    assets: Any = None,
 ) -> MarginalParticipation:
     """Engine-participation delta of adding ``candidate_oracle_id`` to the deck.
 
@@ -286,11 +323,27 @@ def marginal_participation(
         from pipeline.transforms.strategy import corpus
 
         lake = corpus.Lake()
+    if assets is None:
+        from pipeline.transforms.strategy.assets import load_assets
+
+        assets = load_assets()
 
     deck = _as_deck(deck_or_dump, lake=lake)
+
+    # R-B — idempotence: a card already in the deck adds nothing (Commander is singleton).
+    # Re-electing with it duplicated would double-count its attrs for a bogus positive delta,
+    # so short-circuit to an all-zero / all-False reading (the anchor echo is still honoured).
+    deck_oids = {c.get('oracle_id') for c in deck['cards'] if c.get('oracle_id')}
+    if candidate_oracle_id in deck_oids:
+        return MarginalParticipation(anchor_event=anchor_event)
+
     cand = _candidate_card(candidate_oracle_id, card=candidate_card, lake=lake)
-    cand_attrs = {t.lower() for t in cand.get('otags', [])}
-    cmd_attrs = _commander_attrs(deck)
+    # R-ROOT — compare DERIVED candidate attrs against DERIVED engine objects (relay hubs,
+    # per-event producer/consumer families, commander attrs are ALL derived). Raw otags
+    # false-negative commander coupling, under-count anchorless role mass, and can never
+    # match a derived relay-hub name. This is the derivation strength() already uses.
+    cand_attrs = _derive_attrs(cand.get('otags', []), assets, card=cand)
+    cmd_attrs = _commander_attrs_derived(deck, assets)
 
     before = _iso(deck, store=store, combos=combos)
     after_deck = {**deck, 'cards': [*deck['cards'], cand]}
