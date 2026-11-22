@@ -22,16 +22,20 @@ The two layers of the design map onto two row types:
   :class:`Membership`; reasoning-owned and worth persisting.
 
 Ranking/strength is explicitly **not** computed here: it is owned by the sibling
-deck-comparison primitives. :attr:`Rationale.strength` is a reserved, optional
-forward slot for their typed strength DTO — intentionally left untyped so this
-contract does not fork or pre-empt theirs.
+deck-comparison primitives. :attr:`Rationale.strength` carries their typed
+:class:`~pipeline.transforms.comparison.contracts.StrengthRecord` DTO verbatim —
+one model, no fork. The slot stays unpopulated until that side ships its scorer
+(``ordering`` remains ``degraded_structural`` meanwhile); typing it now only
+pins the shape the generator will later receive.
 """
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from pipeline.transforms.comparison.contracts import StrengthRecord
 
 # --------------------------------------------------------------------------- #
 # Closed vocabularies — the stable string sets the contract commits to. Kept as
@@ -139,9 +143,9 @@ class Rationale(BaseModel):
     :class:`Membership` (enforced there).
 
     ``swap_out`` is a product-level reference to an in-deck card's ``oracle_id``
-    (a field, not a graph edge). ``strength`` is a reserved, OPTIONAL forward slot
-    for the sibling deck-comparison effort's typed strength DTO — left untyped on
-    purpose so this contract neither defines nor forks theirs.
+    (a field, not a graph edge). ``strength`` is an OPTIONAL slot carrying the
+    sibling deck-comparison effort's :class:`StrengthRecord` verbatim — the single
+    source of truth for ranking, owned there, embedded (never forked) here.
     """
 
     model_config = ConfigDict(extra='forbid')
@@ -157,13 +161,14 @@ class Rationale(BaseModel):
         default_factory=dict,
         description='Context reasons keyed by concern (legality / singleton / budget / does-not-want).',
     )
-    # TODO(phase 5): replace `Any` with the sibling deck-comparison strength DTO
-    # once it ships its agreed entry points. See
-    # interface-requests-to-comparison-engine.md. Kept untyped (and optional) so
-    # this contract does not define or pre-empt that model.
-    strength: Any | None = Field(
+    # The typed strength DTO is owned by the sibling comparison package and embedded
+    # here verbatim (join by oracle_id, never name). Optional + None-default because
+    # the scorer is not yet wired: v1 leaves this unpopulated and keeps
+    # `ordering='degraded_structural'`; it is set, and `ordering` flips to
+    # `strength_model`, once `strength()` / `marginal_participation()` land.
+    strength: StrengthRecord | None = Field(
         default=None,
-        description='Reserved forward slot for the deck-comparison strength DTO (unpopulated in v1).',
+        description='Typed deck-comparison StrengthRecord (owned there; unpopulated until the scorer lands).',
     )
 
 

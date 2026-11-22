@@ -12,6 +12,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
+from pipeline.transforms.comparison.contracts import StrengthAgnostic, StrengthRecord, StrengthRelative
 from pipeline.transforms.recommend.contracts import (
     Candidate,
     CardRef,
@@ -182,6 +183,36 @@ def test_rationale_swap_out_optional() -> None:
     r = Rationale(verdict='consider', confidence='medium', prose='p')
     assert r.swap_out is None
     assert r.context_flags == {}
+
+
+def test_rationale_strength_accepts_typed_record_and_round_trips() -> None:
+    """The ``strength`` slot is the sibling ``StrengthRecord`` verbatim: a typed
+    instance is accepted, survives a dump/reload, and the embedded record is itself
+    a valid ``StrengthRecord`` (one model, no fork)."""
+    record = StrengthRecord(
+        strength_relative=StrengthRelative(anchor_event='ramp', engine_participation=1.5),
+        strength_agnostic=StrengthAgnostic(edhrec_rank=42, game_changer=True),
+        confidence='high',
+    )
+    r = Rationale(verdict='strong', confidence='high', prose='p', strength=record)
+    assert isinstance(r.strength, StrengthRecord)
+    assert r.strength.strength_agnostic.edhrec_rank == 42
+    assert r.strength.rank_known is True  # derived by the sibling validator, carried through
+    reloaded = Rationale.model_validate(r.model_dump())
+    assert reloaded == r
+    assert isinstance(reloaded.strength, StrengthRecord)
+
+
+def test_rationale_strength_rejects_non_conforming_payload() -> None:
+    """Now that the slot is typed (no longer ``Any``), a dict that violates the
+    ``StrengthRecord`` shape is a loud validation error, not a silent accept."""
+    with pytest.raises(ValidationError):
+        Rationale(
+            verdict='strong',
+            confidence='high',
+            prose='p',
+            strength={'strength_agnostic': {'edhrec_rank': -1}},  # type: ignore[arg-type]  # gt=0 violated
+        )
 
 
 # --------------------------------------------------------------------------- #
