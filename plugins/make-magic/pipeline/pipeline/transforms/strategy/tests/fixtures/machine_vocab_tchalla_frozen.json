@@ -1,0 +1,22 @@
+[
+  {
+    "name": "artifact-cast-mv4",
+    "query": "oracle:/artifact\\sspell\\swith\\smana\\svalue\\s4\\sor\\sgreater/ AND otag:cast-trigger-you AND otag:repeatable-pp-counters",
+    "trigger_event": "spell-cast",
+    "produced_event": "counter-placed",
+    "source": "curated",
+    "model_id": "",
+    "authored_at": "2026-11-22T00:00:00Z",
+    "source_card_name": "T'Challa, the Black Panther",
+    "source_card_oracle_id": "ae10eb15-28e7-46d1-9a2e-85763d93febf",
+    "deck_context": "wakanda-fourever",
+    "scryfall_query": "oracle:/artifact\\sspell\\swith\\smana\\svalue\\s4\\sor\\sgreater/ AND otag:cast-trigger-you AND otag:repeatable-pp-counters",
+    "scryfall_resolved_count": 2,
+    "verified_at": "2026-11-22T00:00:00Z",
+    "breadth_warning": false,
+    "lifecycle": "verified",
+    "extraction_version": 1,
+    "derivation_version": 1,
+    "combo_variant_id": ""
+  }
+]
