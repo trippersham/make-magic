@@ -32,7 +32,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pipeline.transforms.strategy.assets import is_land
-from pipeline.transforms.strategy.combo_promotion import combo_certified_event_edges
 from pipeline.transforms.strategy.determine_strategy_substantiveness import requirement_for
 from pipeline.transforms.strategy.engine_hydration import unauthored_cards
 from pipeline.transforms.strategy.machine_vocab import (
@@ -284,13 +283,14 @@ def _characterize_engines(iso: dict, event_catalog: dict) -> list[NamedEngine]:
 
     # --- Standalone engines (not part of a cycle) ---
     for eng in standalone:
-        # Hub-less recursion (#83 MAJOR-4): a combo-certified event→event edge
-        # carries NO gate CardAttribute, so the event can be ``recursive-engine``
-        # with ``interior_node`` None (the relay-augmented path always names a gate
-        # hub; the combo path does not). The event itself still names the engine —
-        # ``_abbrev_event`` always yields a non-empty label (the slug when no abbrev
-        # is catalogued) — so the name is sensible, never blank or an exception, and
-        # the hub reads ``none`` to signal a family loop with no single-card hub.
+        # Hub-less recursion (#83 MAJOR-4): a raw event→event edge injected through the
+        # ``combo_event_edges`` seam carries NO gate CardAttribute, so the event can be
+        # ``recursive-engine`` with ``interior_node`` None (the relay-augmented path always
+        # names a gate hub; a seam edge does not). The shipped engine passes ``None`` through
+        # that seam (the combo-certified families are deferred to #90), but this branch stays
+        # defensive for the #90 re-add: ``_abbrev_event`` always yields a non-empty label (the
+        # slug when no abbrev is catalogued), so the name is sensible, never blank or an
+        # exception, and the hub reads ``none`` to signal a loop with no single-card hub.
         hub = eng['interior_node']
         members = sorted(set(eng['producers']) | set(eng['consumers']))
         events = [eng['event']]
@@ -504,16 +504,17 @@ def identify_engines(
     # 3. Run relay-augmented engine isolation.
     #
     # Superset-of-resolve (#83 MAJOR-4): the report must report at least what
-    # ``resolve()`` reports. ``resolve`` elects over the catalog edges UNION the
-    # per-deck combo-certified event→event edges, under the archetype-substantiveness
-    # gate; the relay-augmented edges already superset the catalog edges, so threading
-    # the SAME two inputs here makes the report's recursive set a superset of resolve's.
-    # Both are computed EXACTLY as ``strategy_graph.compute_facts`` does (same fids,
-    # same determiner) so the two public views can never disagree on a certified loop.
+    # ``resolve()`` reports. ``resolve`` elects over the catalog edges under the
+    # archetype-substantiveness gate; the relay-augmented edges already superset the
+    # catalog edges, so threading the SAME ``earned_archetypes`` gate here makes the
+    # report's recursive set a superset of resolve's. Both are computed EXACTLY as
+    # ``strategy_graph.compute_facts`` does (same determiner) so the two public views
+    # can never disagree on a certified loop. The 7 combo-certified families are DEFERRED
+    # to #90 (ADR 0026 §4), so ``combo_event_edges`` is ``None`` in BOTH views — resolve
+    # and the report inject zero family edges, keeping the superset property exact.
     earned_archetypes = {
         arch for arch, st in ctx.strategies.items() if requirement_for(arch, ctx.cfg).satisfied(st, ctx, arch)
     }
-    combo_event_edges = combo_certified_event_edges(ctx.win_combos, ctx.cards)
     iso = elect_engine_units_with_relay(
         ctx.nodes,
         ctx.assets.events,
@@ -522,7 +523,7 @@ def identify_engines(
         ctx.cards,
         store=store,
         earned_archetypes=earned_archetypes,
-        combo_event_edges=combo_event_edges,
+        combo_event_edges=None,
     )
 
     # 4. Name / characterize each engine.

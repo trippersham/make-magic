@@ -2,8 +2,9 @@
 
 The hermetic block drives the metric with hand-built resolve()-shaped records so
 the honest-diff logic is pinned offline. The lake-gated block reproduces the hand
-census (``research/class-a-census.md`` in the #83 plan dir): Class A == 26 at the
-Phase-3 tip, the SAME 26 decks.
+census (``research/class-a-census.md`` in the #83 plan dir) PLUS the 8 decks the
+Phase-3 combo-certified families had reconciled: with the 7 families deferred to #90,
+those 8 return to the "loops to author" queue, so Class A == 34 and Class B == 42.
 """
 
 from __future__ import annotations
@@ -146,9 +147,12 @@ def _check_lake() -> bool:
 
 _LAKE_AVAILABLE = _check_lake()
 
-#: The hand census (`research/class-a-census.md`) at the Phase-3 tip = 23 named
-#: Class-A decks; the 3 self-mill/GY decks Phase-3b reconciled (Bruvac/Phenax/Kess)
-#: are Class A again after the 3b revert (`883baff`), for 26 total. All gauntlet.
+#: The families-deferred Class-A census (gauntlet, 170 decks): 32 distinct slugs, 34
+#: total (``azorius__shorikai`` and ``rakdos__prosper`` each carry two builds). This is
+#: the hand census (`research/class-a-census.md`, 23 named + the 3 self-mill/GY decks
+#: Bruvac/Phenax/Kess) PLUS the 8 decks the Phase-3 combo-certified families reconciled
+#: and that return to Class A now that the 7 families are deferred to #90: Karador,
+#: Derevi, Sharuum, Xenagos, Veyran, Selvala, Xyris, and the second Prosper build.
 EXPECTED_CLASS_A: frozenset[str] = frozenset(
     {
         # (a) genuinely-terminal — 7 (+ the mid Shorikai build shares the slug)
@@ -175,29 +179,40 @@ EXPECTED_CLASS_A: frozenset[str] = frozenset(
         'orzhov__ketramose-the-new-dawn',
         'rakdos__prosper',
         'selesnya__hamza-guardian-of-arashin',
-        # +3 self-mill/GY decks reconciled by P3b, Class A again after the revert
+        # (c) self-mill/GY decks reconciled by P3b, Class A again after the revert — 3
         'dimir__phenax-god-of-deception',
         'grixis__kess-dissident-mage',
         'mono-blue__bruvac-the-grandiloquent',
+        # (d) decks the Phase-3 combo-certified families reconciled, returned to Class A
+        #     by the families-deferred scope reduction (#90) — 7 distinct slugs
+        #     (the 8th reconciled deck is the second ``rakdos__prosper`` build above).
+        'abzan__karador-ghost-chieftain',
+        'bant__derevi-empyrial-tactician',
+        'esper__sharuum-the-hegemon',
+        'gruul__xenagos',
+        'izzet__veyran',
+        'mono-green__selvala-heart-of-the-wilds',
+        'temur__xyris-the-writhing-storm',
     }
 )
 
 
 @pytest.mark.skipif(not _LAKE_AVAILABLE, reason='lake parquets not available')
 class TestReconciliationCensus:
-    """The metric reproduces the hand census: Class A == 26, the same decks."""
+    """The metric reproduces the families-deferred census: Class A == 34, same decks."""
 
     def test_class_a_count_and_membership(self):
         from pipeline.transforms.strategy.run import recalc_corpus
 
         m = reconciliation_metric(recalc_corpus())
-        assert m.n_class_a == 26, f'Class A drift: expected 26, got {m.n_class_a}: {sorted(m.class_a)}'
-        # The two Shorikai builds collapse to one slug in the membership set.
+        assert m.n_class_a == 34, f'Class A drift: expected 34, got {m.n_class_a}: {sorted(m.class_a)}'
+        assert m.n_class_b == 42, f'Class B drift: expected 42, got {m.n_class_b}'
+        # The two multi-build slugs collapse in the membership set.
         assert set(m.class_a) == EXPECTED_CLASS_A, (
             f'Class-A membership drift. '
             f'unexpected={sorted(set(m.class_a) - EXPECTED_CLASS_A)} '
             f'missing={sorted(EXPECTED_CLASS_A - set(m.class_a))}'
         )
-        # Exactly one duplicated slug (the two Shorikai builds), so the 26 count
-        # exceeds the 25 distinct slugs by exactly one.
-        assert len(m.class_a) - len(set(m.class_a)) == 1
+        # Two duplicated slugs (the two Shorikai builds and the two Prosper builds), so
+        # the 34 count exceeds the 32 distinct slugs by exactly two.
+        assert len(m.class_a) - len(set(m.class_a)) == 2

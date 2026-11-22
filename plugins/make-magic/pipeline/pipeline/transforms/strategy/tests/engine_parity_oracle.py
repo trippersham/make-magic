@@ -497,7 +497,31 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   ENGINE      8f45c628b2be503b… (unchanged)
 #   RESOLVE     6eed6ba71c308f80… (unchanged)
 # Proof: subagents/fix-path1-fps/outbox.md.
-FULL_CORPUS_SHA = '7b59008f70d6b003635d23e025aa52dd3e6d9b2260ee6a4d980fc2d0a51b139e'
+# Re-baselined 2026-11-22 (#83 the 7 combo-certified families DEFERRED to #90 — owner
+# decision after three adversarial reviews found every corpus false-positive concentrated
+# in the family layer: executability, quantity, role, and event-mapping bugs). The
+# combo-certified promotion of the 7 resource-dependent families (ETB/death, mana-refund,
+# cast/copy, draw-wheel, untap-mana, counter, landfall) is removed: ``resolve()`` and
+# ``engine_report()`` both pass ``combo_event_edges=None``, so ZERO family edge reaches the
+# SCC walk in either view. What SHIPS is the Phase-1 framework (true-SCC recursive-engine,
+# loop-aware admission) + the Phase-2 lifetrade catalog relays + the Phase-4 reconciliation
+# metric. The fid_event_adapter data corrections (30-pump->null, #107) STAY — correct data
+# that feeds combo_win magnitudes and the metric — but without promotion they no longer move
+# resolve/corpus output. Measured OFF(b117163)/ON (170 gauntlet + 17 fixtures, pinned lake,
+# reproduced at PYTHONHASHSEED 0 and 4242): all three composites revert BYTE-FOR-BYTE to the
+# Phase-2 (framework+lifetrade) state — the two per-deck baseline JSONs are byte-identical to
+# the Phase-2 commit 8ec1417. The ~36 combo-certified family loops are gone (deferred);
+# Class A rises 26 -> 34 (the 8 family-reconciled decks — Karador/Derevi/Sharuum/Xenagos/
+# Veyran/Selvala/Prosper/Xyris — return to the "loops to author" queue), Class B UNCHANGED at
+# 42. Framework recursion + lifetrade loops INTACT (Queza closes {lifegain, life-loss-drain,
+# draw-a-card}; celes/elenda/karlov/liesa reconcile; blink/aristocrat/proliferate P1 loops
+# remain). The 5 named FP decks (Cayth/Ezuri/Shiko/Xenagos/Zada) carry no family recursive
+# label. Drift ledger: ~/.claude/plans/trippersham/magic-tools/
+# 2026-11-19-node-admission-thematic-vs-mechanical/drift-ledger.md ("families deferred").
+#   FULL_CORPUS 7b59008f70d6b003… -> 85eba970fe1f0934…
+#   ENGINE      8f45c628b2be503b… -> 80d0116a653ffb31…
+#   RESOLVE     6eed6ba71c308f80… -> 3ebb33fd9b469926…
+FULL_CORPUS_SHA = '85eba970fe1f0934b939be08d3b1c2d8e2edc613fc43bc2816da7bb7086483bc'
 
 
 def full_corpus_sha() -> str:

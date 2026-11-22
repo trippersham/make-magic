@@ -49,8 +49,8 @@ FIX = Path(__file__).resolve().parent / 'fixtures'
 RELAY_DECKS = FIX / 'relay_decks'
 
 # The two parity-oracle SHAs that MUST NOT shift.
-EXPECTED_ENGINE_SHA = '8f45c628b2be503bf1b58321026026dd2e4219e8b10c9591b3be938db23ce40b'
-EXPECTED_RESOLVE_SHA = '6eed6ba71c308f80fe2eb624575ef76398fb830ba8749c742dc6d57d76b5a05b'
+EXPECTED_ENGINE_SHA = '80d0116a653ffb31692fefb8d6a43b2099440febc3901b361fb9fa034e2bed0f'
+EXPECTED_RESOLVE_SHA = '3ebb33fd9b469926fd06d2c63605dfe9bad462563760dae47eca9c4cb93c8c76'
 
 # Event catalog (with co-located abbrevs) for _characterize_engines unit calls.
 CATALOG_EVENTS = json.loads(EVENTS_FILE.read_text())['events']
@@ -657,28 +657,12 @@ def _resolve_recursive_events(deck: dict, combos: list[dict]) -> set[str]:
 class TestReportSupersetsResolve:
     """``identify_engines()`` must report a SUPERSET of ``resolve()``'s recursion.
 
-    The two public views elected engines with different inputs (#83 MAJOR-4):
-    ``resolve()`` threaded the per-deck combo-certified event→event edges and the
-    earned-archetype gate; the on-demand report dropped both, so a finite-combo
-    family loop (Urza's mana/spell-cast; Ozai's mana) read ``static-payoff`` in the
-    report while ``resolve()`` read ``recursive-engine``. The report is the one that
-    adds store/relay edges, so it must never report LESS than ``resolve()``.
+    The two public views must never disagree on a certified loop (#83 MAJOR-4):
+    ``resolve()`` and the on-demand report share the SAME earned-archetype gate and
+    both pass ``combo_event_edges=None`` (the 7 combo-certified families are deferred
+    to #90), while the report additionally injects store/relay edges. So the report's
+    recursive set must never be LESS than ``resolve()``'s — it is exactly a superset.
     """
-
-    def test_urza_report_marks_mana_and_spell_cast_recursive(self) -> None:
-        """Urza's combo-certified mana↔untap and mana↔spell-cast loops are recursive."""
-        combos = _fixture_combos()
-        deck = _fixture_deck('gauntlet__urza-lord-high-artificer')
-        report = identify_engines(deck, store=empty_store(), combos=combos)
-        recursive = _report_recursive_events(report)
-        assert 'mana-produced' in recursive
-        assert 'spell-cast' in recursive
-
-    def test_ozai_report_marks_mana_recursive(self) -> None:
-        """Ozai's combo-certified mana↔untap loop is recursive in the report too."""
-        combos = _fixture_combos()
-        report = identify_engines(_fixture_deck('owned__ozai'), store=empty_store(), combos=combos)
-        assert 'mana-produced' in _report_recursive_events(report)
 
     @pytest.mark.parametrize('slug', ['gauntlet__urza-lord-high-artificer', 'owned__ozai'])
     def test_report_recursion_supersets_resolve(self, slug: str) -> None:
@@ -691,10 +675,12 @@ class TestReportSupersetsResolve:
 
 
 class TestComboRecursiveWithoutHub:
-    """Hub-naming gap (#83 MAJOR-4): a combo-certified event→event edge carries NO
-    gate CardAttribute, so a recursive engine can have ``interior_node`` None. The
-    naming layer must still emit a sensible, non-blank name — never a blank or an
-    exception.
+    """Hub-naming gap (#83 MAJOR-4): a raw event→event edge injected through the
+    ``combo_event_edges`` seam carries NO gate CardAttribute, so a recursive engine
+    can have ``interior_node`` None. The shipped engine passes ``None`` through that
+    seam (the combo-certified families are deferred to #90), but the naming layer must
+    stay defensive for the re-add — emit a sensible, non-blank name, never a blank or
+    an exception.
     """
 
     def test_hubless_recursive_engine_named_gracefully(self) -> None:
@@ -702,7 +688,7 @@ class TestComboRecursiveWithoutHub:
             'engines': [
                 {
                     'event': 'mana-produced',
-                    'interior_node': None,  # combo-certified: no gate card as hub
+                    'interior_node': None,  # seam edge: no gate card as hub
                     'enabler': None,
                     'kind': 'recursive-engine',
                     'producers': ['mana-producer'],

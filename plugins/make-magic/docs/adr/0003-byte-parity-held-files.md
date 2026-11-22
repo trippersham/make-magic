@@ -798,6 +798,27 @@ re-baseline makes every *intended* change legible as such.
   0.9.0 prep). `uv run --extra dev pytest -q` green + network-free; ruff + format + pyright clean.
   Proof: `subagents/fix-path1-fps/outbox.md`.
 
+- **2026-11-22 — the 7 combo-certified families DEFERRED to #90 (#83 scope reduction, owner).**
+  An output-moving re-baseline that REMOVES the entire combo-certified family layer (ADR 0026 §4).
+  After three adversarial reviews found every corpus false-positive concentrated in that layer
+  (executability / quantity / role / event-mapping bugs), the owner deferred all 7 resource-dependent
+  families. `combo_promotion.py`, `data/combo_templates.json`, and `combo_win.unbounded_intermediate_events`
+  are deleted; `compute_facts`/`resolve()` and `engine_report` both pass `combo_event_edges=None`, so
+  ZERO family edge reaches the SCC walk. The fid-adapter data corrections (30-pump→null) STAY but,
+  without promotion, no longer move resolve/corpus output. **Behavioral-equivalence proof:** all three
+  composites revert BYTE-FOR-BYTE to the Phase-2 (framework+lifetrade) state — ENGINE
+  `8f45c628…` → `80d0116a…`, RESOLVE `6eed6ba7…` → `3ebb33fd…`, FULL_CORPUS `7b59008f…` → `85eba970…`
+  (the full 64-char values and both per-deck baseline JSONs are byte-identical to the Phase-2 commit
+  `8ec1417`, which predates `combo_promotion.py`). Measured on the pinned 170-deck gauntlet + 17
+  fixtures, reproduced at `PYTHONHASHSEED` 0 and 4242. The ~36 combo-certified family loops are gone
+  (deferred); **Class A 26 → 34, Class B 42 (unchanged)** — the 8 family-reconciled decks return to
+  the "loops to author" queue. Framework recursion + lifetrade loops INTACT (Queza closes
+  `{lifegain, life-loss-drain, draw-a-card}`). Updated: `FULL_CORPUS_SHA` + the re-baseline log in
+  `engine_parity_oracle.py`, the pinned `manifest.json` `pinned_composites`, the two baseline JSONs,
+  and the 7 per-file ENGINE/RESOLVE constants. Version stays **0.9.0** (lockstep; framework + lifetrade
+  is still the breaking change). `uv run --extra dev pytest -q` green + network-free; ruff + format +
+  pyright clean. Proof: `subagents/defer-families/outbox.md` + the drift-ledger "families deferred" section.
+
 ## Related records
 - 0001 — the knowledge-placement doctrine these files exemplify.
 - 0002 — the substantiveness model (`strategy_graph.py` is shared with this record).

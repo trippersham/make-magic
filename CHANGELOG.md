@@ -39,24 +39,29 @@ wins agree by construction, not by two drifting heuristics.
   Exquisite Blood — each a 1–2-card sub-threshold attribute) closes the recursive
   `lifegain ↔ life-loss-drain` loop. A one-sided deck does not recurse.
 
-- **Combo-certified promotion for the 7 resource-dependent families** (ETB/death-recursion,
-  mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall). These families get their
-  event→event edges only from loops the combo detector has **already certified unbounded**
-  (reusing `combo_win`'s per-fid magnitudes via `unbounded_intermediate_events`), never from
-  naive gate queries — a family edge fires iff BOTH endpoint events are certified unbounded in
-  the SAME combo. This reconciles engines with combos by construction and structurally cannot
-  manufacture the Grim-Monolith / one-shot-copy false circuits. A false carrier's event is
-  finite (routes `oneshot`), so it is never an endpoint.
-
 - **Internal engine⟷combo reconciliation metric (ADR 0026 §5).** A pipeline **quality metric**
   (`reconciliation.py`), emitted only into the corpus-run summary — never into a `resolve()`
   record. The dumb honest diff of the two loop-signals the engine already computes, read with a
   symmetric predicate (`recursive-engine` unit **or** closing commander loop): **Class A** =
   combo win but the engine sees no loop (the "loops to author" queue); **Class B** = the engine
-  sees a loop but there is no combo win. At release: Class A = 26, Class B = 42 on the 170-deck
+  sees a loop but there is no combo win. At release: Class A = 34, Class B = 42 on the 170-deck
   gauntlet.
 
 ### Deferred
+
+- **The 7 resource-dependent combo-certified families are deferred to #90** (ETB/death-recursion,
+  mana-refund, cast/copy, draw-wheel, untap-mana, counter, landfall). A promotion that gave these
+  families event→event edges from loops the combo detector had already certified unbounded was
+  built and measured, but three adversarial pre-merge reviews found every corpus false-positive
+  concentrated in this one layer: the certified-unbounded set is **necessary but not sufficient**
+  for an executable in-deck loop — it is blind to template pieces the deck lacks, to per-piece
+  quantity, to a commander-only role on a main-deck card, and to a few fid-adapter event-mapping
+  errors (Cayth, Ezuri, Shiko, Xenagos). The promotion and its template-gating are **removed**;
+  `resolve()` and the engine report inject **zero** family edges. A vetted re-add waits on the #86
+  executability / magnitude / topology work, then lands in #90. The shipped engine keeps the
+  framework recursion (Phase 1), the lifetrade catalog relays (Phase 2), and the reconciliation
+  metric (Phase 4); the ~36 combo-certified family loops are gone, so **Class A rises 26 → 34**
+  (the 8 family-reconciled decks return to the "loops to author" queue).
 
 - **Self-mill (`card-enters-graveyard`) and extra-turn families are deferred to #90.** They were
   built and reverted: the single-event self-edge shape they required is topology-erased (a real
@@ -69,9 +74,11 @@ wins agree by construction, not by two drifting heuristics.
 ### Notes
 
 - Proof-carrying re-baseline (ADR 0003): the whole #83 change ships as ONE cumulative OFF→ON
-  (ENGINE `4d3f5e6d…`→`8f45c628…`, RESOLVE `940c3881…`→`6eed6ba7…`, FULL_CORPUS
-  `ec917355…`→`17e806fa…`), reproduced identically across two fresh runs. Tier-1 output stays
-  byte-deterministic and network-free.
+  from pre-#83 `main` to the families-deferred tip — ENGINE `4d3f5e6d…`→`80d0116a…`, RESOLVE
+  `940c3881…`→`3ebb33fd…`, FULL_CORPUS `ec917355…`→`85eba970…` — reproduced identically across
+  two fresh runs (`PYTHONHASHSEED` 0 and 4242). Deferring the 7 combo-certified families reverts
+  all three composites byte-for-byte to the framework+lifetrade (Phase-2) state. Tier-1 output
+  stays byte-deterministic and network-free.
 
 ## [0.8.0] — 2026-11-19
 

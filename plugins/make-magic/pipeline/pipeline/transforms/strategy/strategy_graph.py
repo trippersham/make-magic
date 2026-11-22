@@ -30,7 +30,6 @@ from pipeline.transforms.strategy.combo import (
     combo_norm,
     combos_in_deck,
 )
-from pipeline.transforms.strategy.combo_promotion import combo_certified_event_edges
 from pipeline.transforms.strategy.combo_win import (
     _RULE_TERMINAL_EVENTS,
     combo_win_verdict,
@@ -197,14 +196,13 @@ def unified_event_graph_edges(
         for ref in spec.get('triggers', ()):
             if isinstance(ref, str) and ref in nodes:
                 add(en, ('a', ref))
-    # (3) Per-deck combo-certified event→event relay edges (ADR 0026 §4 / #83 Phase 3).
-    # These are the 7 resource-dependent families' edges, promoted from loops ``combo_win``
-    # already certified unbounded (NOT naive gate queries). Each ``(a, b)`` is a pure
-    # event→event edge; the caller passes both directions of a family pair, so the SCC
-    # closes the genuine loop and the endpoint events' engine units report
-    # ``recursive-engine``. A false carrier (Grim Monolith, a one-shot copy) never
-    # certifies its endpoint unbounded, so its edge is never in this list — the false
-    # circuits stay structurally open (see :mod:`.combo_promotion`).
+    # (3) Optional per-deck event→event edges injected directly into the SCC walk. Each
+    # ``(a, b)`` is a pure event→event edge wired alongside the catalog relays; the caller
+    # passes both directions of a pair so the SCC closes the loop and the endpoint events'
+    # engine units report ``recursive-engine``. This is the injection seam reserved for the
+    # 7 resource-dependent combo-certified families, which are DEFERRED to #90 (ADR 0026 §4);
+    # in the shipped engine every caller passes ``None`` here, so no family edge reaches the
+    # graph. The seam is kept covered so #90 re-adds a vetted family layer without re-plumbing.
     for a, b in combo_event_edges or ():
         add(('e', a), ('e', b))
     return graph_nodes, edges
@@ -289,11 +287,10 @@ def recursive_event_set(
     ``nodes``. Passing the full present set lets a lifetrade relay close its loop on
     the enabler cards alone, even when the gate attr is sub-threshold for identity.
 
-    ``combo_event_edges`` are the per-deck combo-certified event→event edges (ADR 0026
-    §4 / #83 Phase 3) for the 7 resource-dependent families — promoted from loops
-    ``combo_win`` already certified unbounded, NOT from gate queries (see
-    :mod:`.combo_promotion`). They close the genuine family loop so its endpoint events'
-    engine units flip from ``static-payoff`` to ``recursive-engine``.
+    ``combo_event_edges`` is the optional per-deck event→event injection seam reserved for
+    the 7 resource-dependent combo-certified families (ADR 0026 §4), which are DEFERRED to
+    #90. The shipped engine passes ``None``, so no family edge enters the SCC walk; only the
+    Phase-1 framework cycles and the Phase-2 lifetrade catalog relays close loops here.
     """
     graph_nodes, edges = unified_event_graph_edges(event_edges, events, nodes, relay_gate_carriers, combo_event_edges)
     recursive: set[str] = set()
@@ -396,11 +393,9 @@ def elect_engine_units(
     # admission: a lifetrade loop (Sanguine Bond's gain→drain + Exquisite Blood's
     # drain→gain) closes on the two enabler cards even when each gate attr is a
     # 1-2-card sub-threshold attr that never earns an identity node (ADR 0026 §1).
-    # Per-deck combo-certified edges (ADR 0026 §4 / #83 Phase 3) are injected into the
-    # SAME SCC walk: a family loop ``combo_win`` certified unbounded flips its endpoint
-    # events' units static-payoff -> recursive-engine. The promotion only reclassifies
-    # the KIND of units that already exist (events with producer AND consumer attrs); it
-    # admits no new node, so identity/strategy/community are untouched.
+    # ``combo_event_edges`` is the optional injection seam for the 7 combo-certified
+    # families (ADR 0026 §4), DEFERRED to #90: the shipped engine passes ``None``, so this
+    # walk closes loops only from framework cycles and lifetrade relays.
     recursive_events = recursive_event_set(event_edges, assets.events, nodes, set(attr_weight), combo_event_edges)
 
     def by_w(xs):
@@ -641,9 +636,6 @@ def compute_facts(
         verdict = combo_win_verdict(fids=fids, deck_card_names=have_norm)
         c['win'] = walk_is_win(verdict)
         c['_walk_verdict'] = verdict
-        # Retain the resolved fids for combo-certified relay promotion (ADR 0026 §4):
-        # the engine reads each WIN combo's certified-unbounded events off these fids.
-        c['_fids'] = fids
 
     win_combos = [c for c in detected if c['win']]
     # All wins come from the walk — no separate predicate/mana-sink categories
@@ -1015,17 +1007,15 @@ def compute_facts(
     # naming layer consults. ``satisfied`` reads ctx, so this runs post-ctx; the
     # resulting engine_units is then placed into the (shared) facts dict.
     earned_archetypes = {arch for arch, st in strategies.items() if requirement_for(arch, cfg).satisfied(st, ctx, arch)}
-    # Combo-certified relay promotion (ADR 0026 §4 / #83 Phase 3): the per-deck event→event
-    # edges for the 7 resource-dependent families, promoted from this deck's WIN combos that
-    # ``combo_win`` certified unbounded (reusing their fids — no re-detection, no gate query).
-    # A win combo is promoted only when the deck SATISFIES every template piece it requires
-    # (``combo_templates_satisfied`` reads ``cards``): a template-partial combo matched on its
-    # concrete pieces alone (Cayth's Persist-Creature-less variant, #83 BLOCKER 1) is not an
-    # executable loop. Injected into the one SCC walk so a genuine family loop reports
-    # ``recursive-engine``.
-    combo_event_edges = combo_certified_event_edges(win_combos, cards)
+    # The 7 resource-dependent combo-certified families (ETB/death, mana-refund, cast/copy,
+    # draw-wheel, untap-mana, counter, landfall) are DEFERRED to #90 (ADR 0026 §4): three
+    # adversarial reviews found every corpus false-positive concentrated in that family layer
+    # (executability / quantity / role / event-mapping bugs), so no combo-certified family edge
+    # is promoted into the SCC walk. ``combo_event_edges`` stays ``None`` here; the generic
+    # injection seam (``elect_engine_units``' optional arg) is retained for the #90 re-add. Only
+    # the Phase-1 framework and the Phase-2 lifetrade catalog relays close loops in this view.
     facts['engines']['engine_units'] = elect_engine_units(
-        nodes, event_edges, attr_weight, assets, cards, earned_archetypes, combo_event_edges
+        nodes, event_edges, attr_weight, assets, cards, earned_archetypes, None
     )
 
     # demoted_archetypes (ADR 0002, GENERIC -- no archetype-name branch): an archetype

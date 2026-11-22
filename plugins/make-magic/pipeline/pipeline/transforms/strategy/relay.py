@@ -207,15 +207,15 @@ def elect_engine_units_with_relay(
     Superset-of-resolve contract (#83 MAJOR-4)
     ------------------------------------------
     The on-demand report must report at least what ``resolve()`` reports: its
-    election runs over the relay-augmented store edges **union** the per-deck
-    combo-certified event→event edges, under the SAME archetype-substantiveness
-    gate ``resolve()`` applies. Both inputs are threaded straight through to the
-    inner ``elect_engine_units`` exactly as ``strategy_graph.compute_facts``
-    passes them (``augmented_edges`` plays the role of ``event_edges``, a
-    superset of resolve's catalog cross-product). The caller
-    (:func:`.engine_report.identify_engines`) computes both the same way
-    ``resolve()`` does, so a family loop ``combo_win`` certified unbounded reports
-    ``recursive-engine`` in the report too — not a lesser ``static-payoff``.
+    election runs over the relay-augmented store edges under the SAME
+    archetype-substantiveness gate ``resolve()`` applies. The gate is threaded
+    straight through to the inner ``elect_engine_units`` exactly as
+    ``strategy_graph.compute_facts`` passes it (``augmented_edges`` plays the role
+    of ``event_edges``, a superset of resolve's catalog cross-product). The caller
+    (:func:`.engine_report.identify_engines`) computes it the same way ``resolve()``
+    does and passes ``combo_event_edges=None`` in both views (the combo-certified
+    families are deferred — see ``combo_event_edges`` below), so the report's
+    recursive set is exactly a superset of resolve's.
 
     Parameters
     ----------
@@ -233,10 +233,11 @@ def elect_engine_units_with_relay(
         default) disables that grain — the backward-compatible behavior for callers
         that only want the structure-only relay walk.
     combo_event_edges
-        The per-deck combo-certified event→event edges (ADR 0026 §4 / #83 Phase 3),
-        promoted from this deck's WIN combos. ``None`` (the default) adds no combo
-        edges. Supplying them makes the report's recursive set a SUPERSET of the
-        relay-only walk, matching ``resolve()``.
+        Optional per-deck event→event injection seam for the 7 combo-certified
+        families (ADR 0026 §4), which are DEFERRED to #90. The shipped engine passes
+        ``None`` (the default), adding no combo edges; the seam is retained — and
+        exercised by ``test_relay`` — so #90 re-adds a vetted family layer without
+        re-plumbing.
 
     Returns
     -------

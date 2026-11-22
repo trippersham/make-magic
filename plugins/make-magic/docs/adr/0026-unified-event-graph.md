@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Status | Accepted (framework). Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) + Phase 3 (combo-certified promotion of the 7 resource-dependent families) + Phase 4 (internal reconciliation metric) + Phase 5 (behavioral verification + the cumulative 0.9.0 proof-carrying re-baseline) in force on branch `feat/83-unified-event-graph`. Self-mill + extra-turn DEFERRED (Phase-3b reverted → #90). Multi-phase, proof-carrying (ADR 0003); the cumulative OFF→ON re-baseline is the ADR 0003 2026-11-20 entry. |
+| Status | Accepted (framework). What SHIPS in 0.9.0 on branch `feat/83-unified-event-graph`: Phase 0 (schema) + Phase 1 (unified graph, true-SCC, loop-aware substantiveness) + Phase 2 (lifetrade gate-edges relocated to catalog relays) + Phase 4 (internal reconciliation metric). **The 7 resource-dependent combo-certified families (§4) are DEFERRED to #90** (scope reduction, owner 2026-11-22): three adversarial reviews found every corpus false-positive concentrated in that family layer (executability / quantity / role / event-mapping bugs), so the combo-certified promotion — and its `combo_promotion.py` + `combo_templates.json` template-gating — are removed; `resolve()` and `engine_report()` inject ZERO family edges. Self-mill + extra-turn were already DEFERRED (Phase-3b reverted → #90). Multi-phase, proof-carrying (ADR 0003); the families-deferred re-baseline is the ADR 0003 2026-11-22 entry. |
 | Review | **owner-approved 2026-11-19 (relay placement = `produced_by`-only confirmed).** Agent-authored from the approved design (`~/.claude/plans/trippersham/magic-tools/2026-11-19-node-admission-thematic-vs-mechanical/design.md`) + the astra-5.2 drift pressure-test (`drift-pressure-test.md`, spike `spike/83-unified-event-drift`, throwaway). Owner reads this record before Phase 1. |
 | Test | Phase 0 (schema): from `plugins/make-magic/pipeline`: `uv run --extra dev pytest pipeline/transforms/strategy/tests/test_relay_schema.py pipeline/transforms/strategy/tests/test_event_ontology.py -q`. Parity gate: `uv run python -m pipeline.transforms.strategy.tests.engine_parity_oracle` — **the P0 SHA triple is UNCHANGED** (no relay families authored, no edges added). Later phases re-baseline under ADR 0003. |
-| Code paths | [`derive_card_events.py`](../../pipeline/pipeline/transforms/strategy/derive_card_events.py) (`RelayEntry`, `SEED_MAP`, `derive_card_events`, `validate_seed_map`), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (repurposed as the provisional-edge channel, Phase 1), [`strategy_graph.py`](../../pipeline/pipeline/transforms/strategy/strategy_graph.py) (the one walk; SCC; loop-aware admission, Phase 1; `combo_event_edges` threading, Phase 3), [`combo_win.py`](../../pipeline/pipeline/transforms/strategy/combo_win.py) (`unbounded_intermediate_events` — the certified-unbounded liveness filter, Phase 3), [`combo_promotion.py`](../../pipeline/pipeline/transforms/strategy/combo_promotion.py) (the 7-family combo-certified promotion + the template-satisfaction gate, Phase 3), [`data/combo_templates.json`](../../pipeline/pipeline/transforms/strategy/data/combo_templates.json) (template-requirement predicates, 2026-11-22) |
+| Code paths | [`derive_card_events.py`](../../pipeline/pipeline/transforms/strategy/derive_card_events.py) (`RelayEntry`, `SEED_MAP`, `derive_card_events`, `validate_seed_map`), [`relay.py`](../../pipeline/pipeline/transforms/strategy/relay.py) (repurposed as the provisional-edge channel, Phase 1; `combo_event_edges` threading), [`strategy_graph.py`](../../pipeline/pipeline/transforms/strategy/strategy_graph.py) (the one walk; SCC; loop-aware admission, Phase 1; the dormant `combo_event_edges` injection seam — passed `None` while families are deferred to #90), [`engine_report.py`](../../pipeline/pipeline/transforms/strategy/engine_report.py) (the superset-of-resolve view; also passes `combo_event_edges=None`), [`reconciliation.py`](../../pipeline/pipeline/transforms/strategy/reconciliation.py) (the Phase-4 metric). The #90 re-add restores `combo_promotion.py` + `data/combo_templates.json` + the `combo_win.unbounded_intermediate_events` liveness filter (removed in the scope reduction) onto the retained `combo_event_edges` seam. |
 
 ## Context
 
@@ -93,7 +93,18 @@ Kitsa / Narset's Reversal; token/ETB false draw returns). Edge-semantic validati
   (reuse its magnitudes), **NOT** from naive gate queries. This reconciles engines⟷combos by
   construction and structurally cannot form the Grim-Monolith / one-shot-copy false circuits.
 
-  **Template-satisfaction gate (2026-11-22, #83 pre-merge review / #106 Cayth).** `combo_detect`
+  > **DEFERRED to #90 (scope reduction, owner 2026-11-22).** These 7 families do **not** ship
+  > in 0.9.0. Three adversarial reviews (`research/final-review{,-2,-3}.md`) found every corpus
+  > false-positive concentrated here: the certified-unbounded set is necessary but **not
+  > sufficient** for an executable in-deck loop — it is blind to template pieces the deck lacks,
+  > to per-piece quantity, to a commander-only role on a main-deck card, and to a handful of
+  > event-mapping errors in the fid adapter. The combo-certified promotion, the
+  > template-satisfaction gate below, `combo_promotion.py`, and `data/combo_templates.json` are
+  > **removed**; the `combo_event_edges` injection seam is retained (passed `None`) so #90 re-adds
+  > a vetted family layer — on top of the #86 executability / magnitude / topology work — without
+  > re-plumbing. The paragraph below documents the gate as the #90 re-add must restore it.
+
+  **Template-satisfaction gate (2026-11-22, #83 pre-merge review / #106 Cayth — deferred to #90).** `combo_detect`
   matches a combo on its concrete `uses` cards only and drops the `requires[].template` pieces, so
   a template-partial combo (e.g. "+ any Persist Creature") is DETECTED on a deck that lacks the
   template piece, then win-classified — but the loop is **not executable**. Promotion asserts an
@@ -239,6 +250,25 @@ The one walk consumes **catalog edges + the runtime store-backed provisional edg
   pre-#83 `main` (ENGINE `4d3f5e6d…`, RESOLVE `940c3881…`, FULL_CORPUS `ec917355…`) to the P3 tip
   (ENGINE `8f45c628…`, RESOLVE `6eed6ba7…`, FULL_CORPUS `17e806fa…`) — see the ADR 0003
   2026-11-20 entry. Version bumped 0.8.0 → **0.9.0** (lockstep).
+- **Scope reduction (2026-11-22): the 7 combo-certified families DEFERRED to #90.** After three
+  adversarial pre-merge reviews each found the corpus false-positives concentrated entirely in the
+  family layer (Cayth / Ezuri / Shiko / Xenagos + executability / quantity / role / event-mapping
+  sub-bugs), the owner deferred all 7 families (§4). The combo-certified promotion is removed:
+  `combo_promotion.py`, `data/combo_templates.json`, and `combo_win.unbounded_intermediate_events`
+  are deleted, and both public views (`compute_facts`/`resolve()` and `engine_report`) pass
+  `combo_event_edges=None`, so **zero** family edge reaches the SCC walk. What ships is Phase 1
+  (framework) + Phase 2 (lifetrade relays) + Phase 4 (metric); the fid-adapter data corrections
+  (30-pump→null, #107) stay (correct data feeding `combo_win`/the metric) but, without promotion,
+  no longer move resolve/corpus output. All three composites revert BYTE-FOR-BYTE to the Phase-2
+  (framework+lifetrade) values — ENGINE `8f45c628…→80d0116a…`, RESOLVE `6eed6ba7…→3ebb33fd…`,
+  FULL_CORPUS `7b59008f…→85eba970…` (the two per-deck baseline JSONs are byte-identical to the
+  Phase-2 commit `8ec1417`); reproduced across PYTHONHASHSEED 0 and 4242. The ~36 combo-certified
+  family loops are gone (deferred); **Class A 26 → 34, Class B 42 (unchanged)** — the 8
+  family-reconciled decks return to the "loops to author" queue. Framework recursion + lifetrade
+  INTACT (Queza closes `{lifegain, life-loss-drain, draw-a-card}`; celes/elenda/karlov/liesa
+  reconcile; blink/aristocrat/proliferate P1 loops remain). The 5 named FP decks carry no family
+  recursive label. Proof: the ADR 0003 2026-11-22 entry + the drift-ledger "families deferred"
+  section. Version stays **0.9.0** (framework + lifetrade is still the breaking change).
 - Substantiveness (ADR 0002/0004/0020) and centrality (ADR 0014) stay in their ADR-0021
   layers; this change is entirely in substantiveness.
 

@@ -4,9 +4,9 @@
   "git_commit": "327e57af1d068c0c56ef78bbfbb38e1512cf82da",
   "git_branch": "feat/strategy-engine",
   "pinned_composites": {
-    "ENGINE": "8f45c628b2be503bf1b58321026026dd2e4219e8b10c9591b3be938db23ce40b",
-    "RESOLVE": "6eed6ba71c308f80fe2eb624575ef76398fb830ba8749c742dc6d57d76b5a05b",
-    "FULL_CORPUS": "7b59008f70d6b003635d23e025aa52dd3e6d9b2260ee6a4d980fc2d0a51b139e"
+    "ENGINE": "80d0116a653ffb31692fefb8d6a43b2099440febc3901b361fb9fa034e2bed0f",
+    "RESOLVE": "3ebb33fd9b469926fd06d2c63605dfe9bad462563760dae47eca9c4cb93c8c76",
+    "FULL_CORPUS": "85eba970fe1f0934b939be08d3b1c2d8e2edc613fc43bc2816da7bb7086483bc"
   },
   "extraction_reads": [
     "raw/oracle_cards.parquet",
