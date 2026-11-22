@@ -1308,39 +1308,24 @@ def _taxonomy_path() -> Path:
     return root / 'raw' / 'oracle_tags.parquet'
 
 
-@lru_cache(maxsize=1)
-def load_taxonomy() -> dict[str, dict[str, Any]]:
-    """Load the otag taxonomy and build ``slug -> {children: [slug, ...], ...}``.
+# A tag row in the canonical ``(id, slug, description, parent_ids, child_ids)``
+# shape, with every id a tag UUID string. The hydrated parquet read and the
+# bundled-snapshot read both normalize into this tuple so the DAG they build is
+# structurally identical.
+_TagRow = tuple[str, str, str, list[str], list[str]]
 
-    Returns a dict keyed by slug.  Each value has:
-    - ``children``: list[str] — child slugs
-    - ``parents``: list[str] — parent slugs
-    - ``description``: str — tag description (for audit)
 
-    Uses DuckDB to read the parquet in-process.  Cached.
+def _build_taxonomy(rows: list[_TagRow]) -> dict[str, dict[str, Any]]:
+    """Build ``slug -> {children, parents, description}`` from canonical tag rows.
+
+    This is the one taxonomy-dict construction, shared by the hydrated-parquet
+    path and the offline-snapshot fail-open: both resolve each tag's
+    ``parent_ids``/``child_ids`` (tag UUIDs) back to slugs against the same
+    ``id -> slug`` map, so the closure structure is identical on either source.
+    Only the DAG edges and description are used downstream (not per-card
+    taggings), so the trimmed snapshot yields the same closure as the full lake.
     """
-    import duckdb
-
-    path = _taxonomy_path()
-    if not path.exists():
-        raise FileNotFoundError(f'oracle_tags.parquet not found at {path}; hydrate with `collection hydrate-lake`')
-
-    con = duckdb.connect(':memory:')
-    try:
-        rows = con.execute(
-            f'SELECT CAST(id AS VARCHAR) AS id, slug, '
-            f"COALESCE(description, '') AS description, "
-            f'parent_ids, child_ids '
-            f"FROM read_parquet('{path}')"
-        ).fetchall()
-    finally:
-        con.close()
-
-    # Build id→slug for cross-referencing UUIDs in parent_ids/child_ids.
-    id_to_slug: dict[str, str] = {}
-    for uid, slug, _desc, _pids, _cids in rows:
-        id_to_slug[uid] = slug
-
+    id_to_slug: dict[str, str] = {uid: slug for uid, slug, _desc, _pids, _cids in rows}
     taxonomy: dict[str, dict[str, Any]] = {}
     for _uid, slug, desc, parent_ids, child_ids in rows:
         parents = [id_to_slug[str(p)] for p in (parent_ids or []) if str(p) in id_to_slug]
@@ -1350,8 +1335,66 @@ def load_taxonomy() -> dict[str, dict[str, Any]]:
             'parents': parents,
             'description': desc,
         }
-
     return taxonomy
+
+
+def _parquet_rows(path: Path) -> list[_TagRow]:
+    """Read the hydrated ``oracle_tags.parquet`` DAG columns via DuckDB, in-process."""
+    import duckdb
+
+    con = duckdb.connect(':memory:')
+    try:
+        return con.execute(
+            f'SELECT CAST(id AS VARCHAR) AS id, slug, '
+            f"COALESCE(description, '') AS description, "
+            f'parent_ids, child_ids '
+            f"FROM read_parquet('{path}')"
+        ).fetchall()
+    finally:
+        con.close()
+
+
+def _snapshot_rows() -> list[_TagRow]:
+    """Read the committed offline tag snapshot into canonical tag rows.
+
+    Reuses the oracle-tags puller's ``_load_snapshot`` (the single source of truth
+    for the bundled ``data/snapshots/oracle_tags.json.gz`` path), so there is one
+    offline baseline. Purely local — no network, no live fetch. The snapshot keeps
+    the FULL tag DAG (all parent/child edges), so the derived closure matches the
+    hydrated lake exactly.
+    """
+    from pipeline.sources.oracle_tags import _load_snapshot
+
+    return [
+        (
+            str(tag['id']),
+            tag['slug'],
+            tag.get('description') or '',
+            tag.get('parent_ids') or [],
+            tag.get('child_ids') or [],
+        )
+        for tag in _load_snapshot()
+    ]
+
+
+@lru_cache(maxsize=1)
+def load_taxonomy() -> dict[str, dict[str, Any]]:
+    """Load the otag taxonomy and build ``slug -> {children: [slug, ...], ...}``.
+
+    Returns a dict keyed by slug.  Each value has:
+    - ``children``: list[str] — child slugs
+    - ``parents``: list[str] — parent slugs
+    - ``description``: str — tag description (for audit)
+
+    Reads the hydrated ``oracle_tags.parquet`` via DuckDB when present. When it is
+    absent (a fresh/unhydrated install), FAIL-OPEN to the committed offline
+    snapshot that ``sources/oracle_tags`` already ships, so the derived view —
+    the otag closure and the SEED_MAP relays — is available with no lake and no
+    account, preserving the local-first default. Cached.
+    """
+    path = _taxonomy_path()
+    rows = _parquet_rows(path) if path.exists() else _snapshot_rows()
+    return _build_taxonomy(rows)
 
 
 # ---------------------------------------------------------------------------
