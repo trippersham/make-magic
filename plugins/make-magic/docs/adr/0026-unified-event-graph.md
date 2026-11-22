@@ -253,7 +253,8 @@ per-deck runtime.
   change ships as ONE proof-carrying cumulative re-baseline from pre-#83 `main` (ENGINE
   `4d3f5e6d…`, RESOLVE `940c3881…`, FULL_CORPUS `ec917355…`). **What ships in 0.9.0 is the
   framework + lifetrade + metric: the 2026-11-22 family deferral moves the ship target to the
-  Phase-2 tip** — ENGINE `80d0116a…`, RESOLVE `3ebb33fd…`, FULL_CORPUS `85eba970…`, **Class A = 34
+  Phase-2 tip** — ENGINE `80d0116a…`, RESOLVE `3ebb33fd…`, FULL_CORPUS `85eba970…` (moved to
+  `f3efdb0d…` by the #115 election-loop fix below; ENGINE/RESOLVE and Class A/B hold), **Class A = 34
   / Class B = 42** — not the Phase-3 tip (`8f45c628…`/`6eed6ba7…`/`17e806fa…`), which was the
   built-then-deferred state. See the ADR 0003 2026-11-20 and 2026-11-22 entries. Version bumped
   0.8.0 → **0.9.0** (lockstep).
@@ -276,6 +277,17 @@ per-deck runtime.
   reconcile; blink/aristocrat/proliferate P1 loops remain). The 5 named FP decks carry no family
   recursive label. Proof: the ADR 0003 2026-11-22 entry + the drift-ledger "families deferred"
   section. Version stays **0.9.0** (framework + lifetrade is still the breaking change).
+- **Election-loop fix (2026-11-22, #115 / PR #114 review): a pure-event-cycle lifetrade loop
+  is no longer dropped.** `elect_engine_units` enumerated engine units only for events in
+  `ev_prod` (events with an admitted attr producer–consumer pair), but a lifetrade event made
+  recursive by the §1 relays alone — its only enablers the sub-threshold gate carriers Sanguine
+  Bond (`gain-to-drain`) + Exquisite Blood (`drain-to-gain`) — has no such pair, so it was in the
+  recursive SCC yet emitted no unit (a deck whose one loop was that pair returned `engines=[]`).
+  The walk now emits a `recursive-engine` unit for each event in `recursive_events - ev_prod`
+  using its live gate carriers as evidence. Exactly 3/170 gauntlet decks move — Karlov, Elenda,
+  Edgar Markov — each a genuine Sanguine Bond + Exquisite Blood loop with both gate directions
+  present; ENGINE + RESOLVE byte-identical, FULL_CORPUS `85eba970…→f3efdb0d…`, Class A/B unchanged
+  at 34/42. See the ADR 0003 2026-11-22 (#115) entry.
 - Substantiveness (ADR 0002/0004/0020) and centrality (ADR 0014) stay in their ADR-0021
   layers; this change is entirely in substantiveness.
 

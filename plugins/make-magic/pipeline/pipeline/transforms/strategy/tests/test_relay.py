@@ -537,6 +537,65 @@ class TestProvisionalAttributeStoreAugmentedEdges:
 # ---------------------------------------------------------------------------
 
 
+class TestZeroMatchStoreEntryDoesNotAlterCycle:
+    """A store entry whose query matches zero cards must not change the engine.
+
+    A store (haiku) entry can share a slug with a NATIVE CardAttribute: the native
+    attr puts the slug in ``nodes``, and without an in-deck match gate the store
+    entry's unrelated role would hijack that native node and rewrite the named cycle.
+    ``identify_engines`` only injects a store role when the entry's query actually
+    matched a card (``matched_store_attrs``), so a zero-match entry is inert.
+    """
+
+    @staticmethod
+    def _zero_match_store() -> ProvisionalAttributeStore:
+        # A store entry that SHARES the native ``draw-to-gain`` slug but carries a
+        # DIFFERENT role (``life-loss-drain → draw-a-card``) and a query that matches
+        # nothing in the Queza fixture (no proliferate cards).
+        return ProvisionalAttributeStore(
+            attributes=[
+                CardAttribute(
+                    name='draw-to-gain',
+                    query='otag:proliferate',
+                    trigger_event='life-loss-drain',
+                    produced_event='draw-a-card',
+                    provenance=Provenance(source='haiku'),
+                ),
+            ]
+        )
+
+    def test_zero_match_store_query_leaves_report_unchanged(self, relay_deck, relay_ctx) -> None:
+        from pipeline.transforms.strategy.engine_report import identify_engines
+
+        # ``draw-to-gain`` is a native node on the Queza fixture (draw↔gain cycle).
+        assert 'draw-to-gain' in relay_ctx.nodes
+
+        report_empty = identify_engines(relay_deck, store=ProvisionalAttributeStore(), combos=[])
+        report_store = identify_engines(relay_deck, store=self._zero_match_store(), combos=[])
+
+        def _sig(r):
+            return (
+                [(e.name, e.kind, tuple(e.events), tuple(e.loop_members), tuple(e.hub_attrs)) for e in r.engines],
+                r.commander_loop,
+            )
+
+        # The zero-match store entry is inert: the full engine report is unchanged.
+        assert _sig(report_store) == _sig(report_empty), 'a zero-match store entry changed the report'
+
+    def test_match_gate_suppresses_unmatched_store_role(self) -> None:
+        """The in-deck match gate is load-bearing and correct in all three states:
+        an unmatched entry is suppressed, a matched entry (or the ungated ``None``
+        default) injects. This is exactly what keeps a zero-match entry from hijacking
+        a same-slug native node's cycle."""
+        store = self._zero_match_store()
+        # ungated default (no match map) — curated miss falls through to the store.
+        assert _get_role_with_store('draw-to-gain', store, None) is not None
+        # matched set EXCLUDES the entry -> suppressed (the zero-match case).
+        assert _get_role_with_store('draw-to-gain', store, frozenset()) is None
+        # matched set INCLUDES the entry -> injected (a real in-deck match).
+        assert _get_role_with_store('draw-to-gain', store, frozenset({'draw-to-gain'})) is not None
+
+
 class TestProvisionalAttributeStoreRelayPath:
     """Machine-authored attributes flow through the relay via the store.
 
@@ -698,22 +757,137 @@ class TestSupersetInputsForwarded:
         recursive = {e['event'] for e in iso['engines'] if e['kind'] == 'recursive-engine'}
         assert {'mana-produced', 'spell-cast'} <= recursive
 
-    def test_earned_archetypes_forwarded_to_election(self, urza_ctx, assets) -> None:
-        """``earned_archetypes`` reaches the inner archetype-substantiveness gate.
+    def test_earned_archetypes_gate_bites_in_election(self, assets) -> None:
+        """``earned_archetypes`` reaches the inner archetype-substantiveness gate and
+        the gate BITES — proving the argument is consumed, not dropped.
 
-        An empty earned set gates every candidate whose SOLE basis is an (unearned)
-        archetype claim, so the ranked election set can only shrink relative to the
-        grain-disabled (None) default — proving the argument is consumed, not dropped.
+        The dropped-arg bug makes the gated and ungated calls agree (the gate never
+        runs), and an ``iso_gated <= iso_open`` assertion is satisfied by that equality
+        — so it passes in the broken world too. This needs a unit the gate actually
+        removes: a bipartite catalog unit (``crucible-of-worlds`` → ``land-enters-
+        battlefield`` → ``land-count-matters``) whose SOLE basis is the unearned
+        ``lands-matter`` archetype claim, with no commander coupling (``cards=[]``).
+        Under the ``None`` default the grain is disabled and the unit is elected; with
+        an empty earned set every claim is unearned, so the unit is excluded. Strict
+        inequality is the proof the gate bit.
         """
+        nodes = {'crucible-of-worlds', 'land-count-matters'}
+        attr_weight: defaultdict[str, float] = defaultdict(
+            float, {'crucible-of-worlds': 3.0, 'land-count-matters': 3.0}
+        )
+        cards: list[dict] = []
+        iso_open = elect_engine_units_with_relay(nodes, assets.events, attr_weight, assets, cards)
         iso_gated = elect_engine_units_with_relay(
-            urza_ctx.nodes,
-            assets.events,
-            urza_ctx.attr_weight,
-            assets,
-            urza_ctx.cards,
-            earned_archetypes=set(),
+            nodes, assets.events, attr_weight, assets, cards, earned_archetypes=set()
         )
-        iso_open = elect_engine_units_with_relay(
-            urza_ctx.nodes, assets.events, urza_ctx.attr_weight, assets, urza_ctx.cards
-        )
-        assert len(iso_gated['ranked_units']) <= len(iso_open['ranked_units'])
+        open_events = {u['event'] for u in iso_open['ranked_units']}
+        gated_events = {u['event'] for u in iso_gated['ranked_units']}
+        # Present under the grain-disabled default, elected on its (unearned) claim.
+        assert 'land-enters-battlefield' in open_events
+        assert iso_open['ranked_units'][0]['payoff_archetypes'] == ['lands-matter']
+        # Excluded when the earned set is empty — the gate removed it.
+        assert 'land-enters-battlefield' not in gated_events
+        # Strictly fewer units: the gate BIT, it did not no-op (the dropped-arg world
+        # would make these equal).
+        assert len(iso_gated['ranked_units']) < len(iso_open['ranked_units'])
+
+
+# ---------------------------------------------------------------------------
+# #115: a pure-event-cycle lifetrade loop must not be dropped by the election
+# ---------------------------------------------------------------------------
+
+
+class TestPureEventCycleLifetradeLoop:
+    """A lifetrade loop whose ONLY enablers are sub-threshold gate carriers is
+    recursive in the SCC but has no admitted attr producer-consumer pair, so the
+    per-event election skipped it and the public ``resolve()`` returned
+    ``engines=[]`` (#115). The walk now emits a ``recursive-engine`` unit for such an
+    event using its live gate carriers as evidence; removing either enabler opens the
+    loop.
+
+    The enabler pair is the real-Magic combo: Sanguine Bond (``gain-to-drain``: "you
+    gain life → opponent loses that much") + Exquisite Blood (``drain-to-gain``:
+    "opponent loses life → you gain that much"). Each is a 1-card sub-threshold attr
+    that never earns an identity node, so neither ``lifegain`` nor ``life-loss-drain``
+    gets an in-node attr producer here — the pure-event-cycle shape.
+    """
+
+    @staticmethod
+    def _sanguine() -> dict:
+        return {
+            'name': 'Sanguine Bond',
+            'oracle_id': 'sanguine-bond',
+            'type_line': 'Enchantment',
+            'oracle_text': 'Whenever you gain life, target opponent loses that much life.',
+            'otags': ['lifegain-matters', 'opponent-loses-life', 'life-total-matters-self'],
+        }
+
+    @staticmethod
+    def _exquisite() -> dict:
+        return {
+            'name': 'Exquisite Blood',
+            'oracle_id': 'exquisite-blood',
+            'type_line': 'Enchantment',
+            'oracle_text': 'Whenever an opponent loses life, you gain that much life.',
+            'otags': ['life-loss-matters', 'lifegain'],
+        }
+
+    def _yargle_deck(self, *, include: tuple[str, ...] = ('sanguine', 'exquisite')) -> dict:
+        yargle = {
+            'name': 'Yargle, Glutton of Urborg',
+            'role': 'commander',
+            'oracle_id': 'yargle',
+            'type_line': 'Legendary Creature — Frog Spirit',
+            'oracle_text': '',
+            'otags': [],
+        }
+        enablers: list[dict] = []
+        if 'sanguine' in include:
+            enablers.append(self._sanguine())
+        if 'exquisite' in include:
+            enablers.append(self._exquisite())
+        # Pad to a full 99 with basic Swamps so the deck resolves normally.
+        swamps = [
+            {
+                'name': f'Swamp #{i}',
+                'oracle_id': f'swamp-{i}',
+                'type_line': 'Basic Land — Swamp',
+                'oracle_text': '({T}: Add {B}.)',
+                'otags': [],
+            }
+            for i in range(99 - len(enablers))
+        ]
+        return {'name': 'yargle-lifetrade', 'cards': [yargle, *enablers, *swamps]}
+
+    def test_public_resolve_reports_recursive_lifetrade_engine(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        units = resolve(self._yargle_deck(), [])['facts']['engines']['engine_units']
+        recursive = {e['event'] for e in units['engines'] if e['kind'] == 'recursive-engine'}
+        # Both halves of the lifedrain loop are now reported recursive...
+        assert {'lifegain', 'life-loss-drain'} <= recursive, f'missing pure-event-cycle units: {recursive}'
+        # ...and elected (not just enumerated) — the deck no longer reports engines=[].
+        ranked = {u['event'] for u in units['ranked_units']}
+        assert {'lifegain', 'life-loss-drain'} <= ranked
+
+    def test_pure_event_cycle_unit_uses_live_gate_carrier_as_evidence(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        units = resolve(self._yargle_deck(), [])['facts']['engines']['engine_units']
+        by_event = {e['event']: e for e in units['engines']}
+        # life-loss-drain is produced by Sanguine Bond's gain-to-drain gate...
+        assert by_event['life-loss-drain']['producers'] == ['gain-to-drain']
+        assert by_event['life-loss-drain']['consumers'] == []
+        # ...lifegain by Exquisite Blood's drain-to-gain gate — the live carriers.
+        assert by_event['lifegain']['producers'] == ['drain-to-gain']
+        assert by_event['lifegain']['consumers'] == []
+
+    def test_loop_opens_when_either_enchantment_removed(self) -> None:
+        from pipeline.transforms.strategy import resolve
+
+        for keep in (('sanguine',), ('exquisite',)):
+            units = resolve(self._yargle_deck(include=keep), [])['facts']['engines']['engine_units']
+            recursive = {e['event'] for e in units['engines'] if e['kind'] == 'recursive-engine'}
+            assert not ({'lifegain', 'life-loss-drain'} & recursive), (
+                f'the lifetrade loop should open with only {keep[0]}; got recursive={recursive}'
+            )

@@ -841,6 +841,33 @@ re-baseline makes every *intended* change legible as such.
   is still the breaking change). `uv run --extra dev pytest -q` green + network-free; ruff + format +
   pyright clean. Proof: `subagents/defer-families/outbox.md` + the drift-ledger "families deferred" section.
 
+- **2026-11-22 — pure-event-cycle lifetrade loop no longer dropped by the election (#115, PR #114
+  review).** An output-moving correction that ADDS back genuine recursive labels the election loop
+  was silently dropping. The Phase-2 lifetrade relays make an event recursive through event→event
+  edges alone (`recursive_event_set` / the unified SCC), but `elect_engine_units` enumerated engine
+  units only for events in `ev_prod` — events carrying an admitted attr producer–consumer pair. A
+  lifetrade event whose only enablers are sub-threshold gate carriers (Sanguine Bond `gain-to-drain`
+  + Exquisite Blood `drain-to-gain`) has no such pair, so it was recursive in the SCC yet never
+  emitted a unit; a deck whose one loop was that pair returned `engines=[]`. The fix emits a
+  `recursive-engine` unit for each event in `recursive_events - ev_prod`, using its live gate
+  carriers as evidence (a pure structural event-loop — no archetype claim; removing either enabler
+  opens the SCC and drops the unit). **Behavioral-equivalence proof:** measured OFF/ON on the pinned
+  170-deck gauntlet + 17 fixtures, reproduced at `PYTHONHASHSEED` 0 and 4242 — exactly **3/170**
+  gauntlet decks move, each a genuine Sanguine Bond + Exquisite Blood lifedrain loop where ONE
+  lifetrade event lacked an attr producer–consumer pair and was being dropped: **Karlov of the Ghost
+  Council** (`life-loss-drain`), **Elenda, the Dusk Rose** (`life-loss-drain`), **Edgar Markov**
+  (`mardu__celes-rune-knight` slug; `lifegain`). All three carry BOTH gate directions (the SCC is a
+  real closed cycle), so the labels are correct, not false positives. Liesa — the 4th Phase-2
+  split-brain deck — already carried both lifetrade events in `ev_prod`, so nothing was dropped and
+  it does NOT move. 0 false lifetrade recursion elsewhere; 0 win-combo changes; **reconciliation Class
+  A 34 / Class B 42 UNCHANGED** (all 3 already had a loop at the metric grain, consistent with the
+  2026-11-20 entry's note that Karlov/Elenda/Celes were already outside Class A). The 17 hermetic
+  fixtures carry no lifetrade enabler PAIR, so **ENGINE + RESOLVE are byte-IDENTICAL**; only
+  `FULL_CORPUS_SHA` moves `85eba970…` → `f3efdb0d…` (updated in `engine_parity_oracle.py`'s re-baseline
+  log + constant and the pinned `manifest.json` `pinned_composites`; the two per-deck baseline JSONs
+  are byte-unchanged). NOT a version bump (folds into the 0.9.0 prep). `uv run --extra dev pytest -q`
+  green + network-free; ruff + format + pyright clean. Proof: `subagents/fix-pr114-review/outbox.md`.
+
 ## Related records
 - 0001 — the knowledge-placement doctrine these files exemplify.
 - 0002 — the substantiveness model (`strategy_graph.py` is shared with this record).

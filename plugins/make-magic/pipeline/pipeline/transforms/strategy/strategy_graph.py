@@ -418,17 +418,58 @@ def elect_engine_units(
                 'producers': by_w(P),
                 'consumers': by_w(C),
                 'payoff_archetypes': archs(C),
-                # EVENT-NODE MASS (ADR 0026 W3 — owner-confirmation pending at the
-                # Phase-1 gate): events are first-class NODES for cycle detection
-                # but carry ZERO intrinsic mass. A unit's mass stays the node-
-                # weighted CardAttribute neighbourhood ``Σ attr_weight`` over its
-                # producer | consumer ATTRS — the ADR 0014 criterion is UNCHANGED.
-                # Events have no card carriers, so any intrinsic event weight would
-                # be an invented constant that distorts the election; zero is the
-                # deterministic, defensible default. See outbox Open Questions.
+                # EVENT-NODE MASS (ADR 0026 W3 — owner-confirmed 2026-11-19, option
+                # (a): events carry ZERO intrinsic mass; the decision is recorded in
+                # ADR 0003 and the drift ledger). Events are first-class NODES for
+                # cycle detection, but a unit's mass is the node-weighted CardAttribute
+                # neighbourhood ``Σ attr_weight`` over its producer | consumer ATTRS —
+                # the ADR 0014 criterion is held. Events have no card carriers, so any
+                # intrinsic event weight would be an invented constant that distorts the
+                # election; zero is the deterministic, defensible default.
                 'mass': round(sum(attr_weight[a] for a in P | C), 1),
             }
         )
+
+    # PURE-EVENT-CYCLE loops (ADR 0026 §1 / #115): a catalog relay loop can make an
+    # event RECURSIVE through event→event edges alone, with NO admitted attr
+    # producer-consumer pair on that event — so the event never enters ``ev_prod`` and
+    # the per-event enumeration above skips it. The real Magic case is a lifetrade loop
+    # whose only enablers are sub-threshold gate carriers: Sanguine Bond (``gain-to-
+    # drain``) + Exquisite Blood (``drain-to-gain``) close the ``lifegain`` /
+    # ``life-loss-drain`` cycle, but each gate is a 1-2-card attr that never earns an
+    # identity node, so ``lifegain`` / ``life-loss-drain`` have no in-node attr producer
+    # and would be dropped, leaving a deck whose one loop is real reporting ``engines=[]``. Emit a
+    # ``recursive-engine`` unit for each such event, using its LIVE gate carriers (the
+    # relay enablers present in the deck — the same ``≥1 carrier`` liveness the SCC walk
+    # used) as the producer evidence. The unit makes no archetype claim (no attr
+    # consumers), so it is admitted as a pure structural event-loop; removing either
+    # enabler kills a relay, the SCC opens, and the unit is no longer emitted. Mass stays
+    # the node-weighted ``Σ attr_weight`` over the gate carriers (ADR 0014 unchanged;
+    # a dead gate carrier contributes 0 via the defaultdict).
+    gate_carriers_present = set(attr_weight)
+    for ev in sorted(recursive_events - set(ev_prod)):
+        spec = assets.events.get(ev, {})
+        live_gates = by_w(
+            ref.gate
+            for ref in spec.get('produced_by', ())
+            if isinstance(ref, RelayEntry) and ref.gate in gate_carriers_present
+        )
+        if not live_gates:
+            continue
+        hub = live_gates[0]
+        engines.append(
+            {
+                'event': ev,
+                'interior_node': hub,
+                'enabler': hub,
+                'kind': 'recursive-engine',
+                'producers': live_gates,
+                'consumers': [],
+                'payoff_archetypes': [],
+                'mass': round(sum(attr_weight[a] for a in live_gates), 1),
+            }
+        )
+
     # MASS ELECTION (ADR 0014): node-weighted event-neighborhood mass is the
     # authoritative engine signal. Each unit's mass m(U) = Σ attr_weight over
     # producers | consumers is already computed as e['mass']. Order by mass

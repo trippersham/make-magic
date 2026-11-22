@@ -521,7 +521,29 @@ def composite_sha(per_deck: dict[str, str]) -> str:
 #   FULL_CORPUS 7b59008f70d6b003… -> 85eba970fe1f0934…
 #   ENGINE      8f45c628b2be503b… -> 80d0116a653ffb31…
 #   RESOLVE     6eed6ba71c308f80… -> 3ebb33fd9b469926…
-FULL_CORPUS_SHA = '85eba970fe1f0934b939be08d3b1c2d8e2edc613fc43bc2816da7bb7086483bc'
+# Re-baselined 2026-11-22 (#115 — the election loop dropped a pure-event-cycle lifetrade
+# loop; ADR 0003 output-moving re-baseline). The Phase-2 lifetrade relays make an event
+# RECURSIVE through event→event edges alone (``recursive_event_set``), but ``elect_engine_
+# units`` enumerated units only for events in ``ev_prod`` — events carrying an admitted attr
+# producer-consumer pair. A lifetrade event whose only enablers are sub-threshold gate
+# carriers (Sanguine Bond ``gain-to-drain`` + Exquisite Blood ``drain-to-gain``) has NO such
+# pair, so it was recursive in the SCC yet never emitted a unit — a deck whose one loop was
+# that pair reported ``engines=[]``. The fix emits a ``recursive-engine`` unit for each event
+# in ``recursive_events - ev_prod`` using its LIVE gate carriers as evidence (pure structural
+# event-loop, no archetype claim; removing either enabler opens the SCC and drops the unit).
+# Measured OFF/ON (170 gauntlet + 17 fixtures, pinned lake, reproduced at PYTHONHASHSEED 0 and
+# 4242): exactly 3/170 gauntlet decks move — karlov/elenda/edgar-markov(celes slug), each a
+# genuine Sanguine Bond + Exquisite Blood lifedrain loop where ONE lifetrade event lacked an
+# attr producer-consumer pair and was being dropped (liesa, the 4th Phase-2 split-brain deck,
+# already carried both events in ``ev_prod``, so nothing was dropped there — it does NOT move).
+# 0 false lifetrade recursion; 0 win-combo changes; reconciliation Class A 34 / Class B 42
+# UNCHANGED (all 3 already had a loop at the metric grain). The 17 hermetic fixtures carry no
+# lifetrade enabler PAIR, so ENGINE + RESOLVE are BYTE-IDENTICAL; only FULL_CORPUS moves.
+# Proof: subagents/fix-pr114-review/outbox.md.
+#   FULL_CORPUS 85eba970fe1f0934… -> f3efdb0daacd354f…
+#   ENGINE      80d0116a653ffb31… (UNCHANGED)
+#   RESOLVE     3ebb33fd9b469926… (UNCHANGED)
+FULL_CORPUS_SHA = 'f3efdb0daacd354f312f864a8a8f3ff8e35a0c1ef05932c002d07230b042baf7'
 
 
 def full_corpus_sha() -> str:
