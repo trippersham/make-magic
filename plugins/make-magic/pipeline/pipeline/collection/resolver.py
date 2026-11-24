@@ -183,14 +183,27 @@ def _land_card(data: dict[str, Any]) -> None:
         tmp.write_text(json.dumps([row]), encoding='utf-8')
         try:
             with store.connect() as conn:
-                # List columns pinned to VARCHAR[] on BOTH sides so the read_parquet
-                # target and the read_json source can't disagree on element type (#50).
-                sel = _land_projection()
                 if store.table_exists(*_ORACLE_CARDS):
                     path = store.StorePaths.resolve().parquet_path(*_ORACLE_CARDS, create=False)
-                    # Materialize existing rows into an in-memory table first so the
-                    # later COPY can safely overwrite the same file (no read-while-write).
-                    conn.execute(f"CREATE TEMP TABLE _land AS SELECT {sel} FROM read_parquet('{path}')")
+                    # Preserve EVERY column the bulk wrote — the widened presentation
+                    # fields, `legality_commander`, any future column — not just the
+                    # resolver's read subset `_CARD_COLUMNS`. Rebuilding the table from a
+                    # fixed subset silently drops the rest from the whole table on the next
+                    # live land; dropping `legality_commander` that way defeats the legality
+                    # gate for every card. So read the table's own columns + types and
+                    # round-trip all of them, list columns pinned to VARCHAR[] on both the
+                    # read_parquet target and the read_json insert so their element types
+                    # can never disagree (#50).
+                    described = conn.execute(f"DESCRIBE SELECT * FROM read_parquet('{path}')").fetchall()
+                    existing = [(str(r[0]), str(r[1])) for r in described]
+
+                    def _col_type(name: str, parquet_type: str) -> str:
+                        return 'VARCHAR[]' if name in _LIST_COLUMNS else parquet_type
+
+                    land_sel = ', '.join(f'CAST({n} AS {_col_type(n, t)}) AS {n}' for n, t in existing)
+                    # Materialize existing rows first so the later write can overwrite the
+                    # same file safely (no read-while-write).
+                    conn.execute(f"CREATE TEMP TABLE _land AS SELECT {land_sel} FROM read_parquet('{path}')")
                     oid = row.get('oracle_id')
                     if oid is not None:
                         dup = conn.execute(
@@ -198,10 +211,26 @@ def _land_card(data: dict[str, Any]) -> None:
                         ).fetchone()
                         if dup is not None:
                             return
-                    conn.execute(f"INSERT INTO _land SELECT {sel} FROM read_json('{tmp}')")
+                    # Align the live row to the table's columns, casting each to the table's
+                    # own type: a column the row lacks (e.g. `legality_commander` when
+                    # Scryfall omits legalities) inserts a typed NULL, so the column — and
+                    # every existing row's value in it — survives the round-trip.
+                    new_desc = conn.execute(f"DESCRIBE SELECT * FROM read_json('{tmp}')").fetchall()
+                    new_cols = {str(r[0]) for r in new_desc}
+                    insert_sel = ', '.join(
+                        (
+                            f'CAST({n} AS {_col_type(n, t)}) AS {n}'
+                            if n in new_cols
+                            else f'CAST(NULL AS {_col_type(n, t)}) AS {n}'
+                        )
+                        for n, t in existing
+                    )
+                    conn.execute(f"INSERT INTO _land SELECT {insert_sel} FROM read_json('{tmp}')")
                     store.write_parquet(conn, conn.table('_land'), *_ORACLE_CARDS)
                 else:
-                    new_rel = conn.read_json(str(tmp)).select(sel)
+                    # No bulk yet: create the table from the single live row at the stable
+                    # `_CARD_COLUMNS` projection, list columns pinned to VARCHAR[] (#50).
+                    new_rel = conn.read_json(str(tmp)).select(_land_projection())
                     store.write_parquet(conn, new_rel, *_ORACLE_CARDS)
         finally:
             tmp.unlink(missing_ok=True)
@@ -236,6 +265,11 @@ def _project_scryfall(card: dict[str, Any]) -> dict[str, Any]:
         'image_normal': image_uris.get('normal'),
         'scryfall_uri': card.get('scryfall_uri'),
         'set_name': card.get('set_name'),
+        # Mirror `sources.scryfall_bulk._project`: a landed live card carries its own
+        # commander legality so it matches the widened bulk schema (the legality gate
+        # reads this column straight from the parquet). Absent on the row when Scryfall
+        # omits legalities; the landing below preserves the column for every other row.
+        'legality_commander': (card.get('legalities') or {}).get('commander'),
     }
 
 
@@ -261,12 +295,18 @@ class DuckDBCardResolver:
         *,
         client: httpx.Client | None = None,
         min_interval: float = _MIN_INTERVAL,
+        live_fallback: bool = True,
     ) -> None:
         self._client = client
         self._owns_client = client is None
         self._min_interval = min_interval  # tests pass 0.0 to skip pacing sleeps
         self._last_request = 0.0
         self._mem: dict[str, Card | None] = {}
+        # ``live_fallback=False`` makes the resolver STRICTLY lake-only: a bulk miss
+        # returns a name-only card (None here) and NEVER issues a Scryfall fetch or lands
+        # a row. Read-only / offline callers (e.g. `collection recommend`) pass this so
+        # they do no network and no durable lake write.
+        self._live_fallback = live_fallback
 
     def _get_client(self) -> httpx.Client:
         if self._client is None:
@@ -277,9 +317,41 @@ class DuckDBCardResolver:
         if name in self._mem:
             return self._mem[name]
         card = self._resolve_from_lake(name)
-        if card is None:
+        if card is None and self._live_fallback:
             card = self._resolve_live(name)
         self._mem[name] = card
+        return card
+
+    def get_card_by_oracle_id(self, oracle_id: str) -> Card | None:
+        """Resolve a card by its durable ``oracle_id`` — lake-only, exact.
+
+        Preferred over :meth:`get_card` when the caller already holds an oracle_id: a
+        name lookup can mis-hit an ambiguous name (a ``Card // Card`` art row, a
+        reprint) and silently swap the card's identity + rules text, corrupting graph
+        analysis and singleton detection. Returns None on a lake miss (the caller may
+        then fall back to the name) or an absent lake; never fetches live or writes.
+        """
+        if not oracle_id:
+            return None
+        key = f'\x00oid:{oracle_id}'  # NUL-prefixed so it can never collide with a name
+        if key in self._mem:
+            return self._mem[key]
+        card: Card | None = None
+        try:
+            if store.table_exists(*_ORACLE_CARDS):
+                with store.connect(read_only=True) as conn:
+                    path = store.StorePaths.resolve().parquet_path(*_ORACLE_CARDS, create=False)
+                    rel = conn.read_parquet(str(path))
+                    cols = ', '.join(_CARD_COLUMNS)
+                    esc = _sql_escape(str(oracle_id))
+                    row = rel.filter(f"CAST(oracle_id AS VARCHAR) = '{esc}'").select(cols).limit(1).fetchone()
+                    if row is not None:
+                        record: dict[str, Any] = dict(zip(_CARD_COLUMNS, row, strict=True))
+                        card = _card_from_row(record, self._otags_for(conn, record.get('oracle_id')))
+        except Exception as exc:
+            log.warning('card-dim: oracle_id lookup for %r failed (%s); None.', oracle_id, exc)
+            card = None
+        self._mem[key] = card
         return card
 
     # -- lake read (offline-first) ---------------------------------------- #

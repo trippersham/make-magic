@@ -240,6 +240,52 @@ def test_resolves_plain_card_offline(lake: Path) -> None:
     assert card.set_name == 'Commander 2021'
 
 
+def test_get_card_by_oracle_id_resolves_exact(lake: Path) -> None:
+    """Resolving by oracle_id returns exactly that card (lake-only, no network)."""
+    resolver = DuckDBCardResolver(client=_BoomClient())
+    card = resolver.get_card_by_oracle_id('llanowar-oid')
+    assert card is not None
+    assert card.oracle_id == 'llanowar-oid'
+    assert card.name == 'Llanowar Elves'
+
+
+def test_get_card_by_oracle_id_beats_ambiguous_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Two lake rows can share a NAME with different oracle_ids (a playable card and a
+    `Card // Card` art row). A name lookup may pick the wrong one; resolving by the
+    durable oracle_id returns the intended card, not its namesake (#119 M3)."""
+    root = tmp_path / 'data'
+    monkeypatch.setenv(store.ENV_DATA_DIR, str(root))
+    playable = _empty_list_card('Ashen Reaper', 'playable-oid')
+    playable['oracle_text'] = 'the real card'
+    art = _empty_list_card('Ashen Reaper', 'art-card-oid')
+    art['oracle_text'] = 'art card'
+    _write_layer([playable, art], 'raw', 'oracle_cards')
+
+    resolver = DuckDBCardResolver(client=_BoomClient())
+    by_oid = resolver.get_card_by_oracle_id('playable-oid')
+    assert by_oid is not None
+    assert by_oid.oracle_id == 'playable-oid'  # exact, never the art-card namesake
+    assert by_oid.oracle_text == 'the real card'
+
+
+def test_get_card_by_oracle_id_miss_returns_none(lake: Path) -> None:
+    """A miss (or empty id) returns None so the caller can fall back to the name."""
+    resolver = DuckDBCardResolver(client=_BoomClient())
+    assert resolver.get_card_by_oracle_id('no-such-oid') is None
+    assert resolver.get_card_by_oracle_id('') is None
+
+
+def test_live_fallback_disabled_is_lake_only(lake: Path) -> None:
+    """A lake-only resolver (``live_fallback=False``) never fetches or lands on a bulk
+    miss: a missed name returns None with ZERO network, so a read-only / offline caller
+    (``collection recommend``) issues no network and no durable lake write (#119)."""
+    resolver = DuckDBCardResolver(client=_BoomClient(), live_fallback=False)
+    # A _BoomClient raises on ANY request, so reaching the live fallback would error.
+    assert resolver.get_card('No Such Card In The Lake') is None
+    # A lake-present card still resolves offline.
+    assert resolver.get_card('Sol Ring') is not None
+
+
 def test_power_toughness_stay_strings(lake: Path) -> None:
     card = DuckDBCardResolver(client=_BoomClient()).get_card('Llanowar Elves')
     assert card is not None
@@ -308,6 +354,92 @@ def test_land_card_into_json_list_typed_bulk(tmp_path: Path, monkeypatch: pytest
     assert card.keywords == ['Flying', 'Lifelink']
     # The pre-existing all-empty rows still read as clean empty lists.
     assert DuckDBCardResolver(client=_BoomClient()).get_card('Alpha').colors == []
+
+
+def _card_with_legality(name: str, oid: str, legal: str) -> dict[str, Any]:
+    """An oracle_cards row carrying the widened `legality_commander` column."""
+    row = _empty_list_card(name, oid)
+    row['legality_commander'] = legal
+    return row
+
+
+def _read_oracle_legalities(root: Path) -> dict[str, str | None]:
+    """name -> legality_commander, read straight from the landed parquet."""
+    import duckdb
+
+    oracle_path = root / 'raw' / 'oracle_cards.parquet'
+    con = duckdb.connect(':memory:')
+    try:
+        cols = {str(r[0]) for r in con.execute(f"DESCRIBE SELECT * FROM read_parquet('{oracle_path}')").fetchall()}
+        assert 'legality_commander' in cols, 'the live land dropped the legality_commander column'
+        return dict(con.execute(f"SELECT name, legality_commander FROM read_parquet('{oracle_path}')").fetchall())
+    finally:
+        con.close()
+
+
+def test_land_card_preserves_legality_commander_for_existing_rows(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A live land rebuilds the WHOLE oracle_cards table. Rebuilding from the resolver's
+    # fixed read subset (`_CARD_COLUMNS`, which omits legality_commander) erased the
+    # column — and every row's stored commander-legality — on the first landing, silently
+    # defeating the legality gate the recommend verb relies on (#119). Landing must
+    # preserve the widened column for the rows that already have it.
+    root = tmp_path / 'data'
+    monkeypatch.setenv(store.ENV_DATA_DIR, str(root))
+    _write_layer(
+        [_card_with_legality('Alpha', 'a', 'legal'), _card_with_legality('Banned Thing', 'b', 'banned')],
+        'raw',
+        'oracle_cards',
+    )
+
+    # Land a brand-new live card that itself carries a commander legality.
+    resolver_mod._land_card(
+        {
+            'oracle_id': 'live-oid',
+            'name': 'Live Legal',
+            'cmc': 2.0,
+            'mana_cost': '{1}{W}',
+            'type_line': 'Creature',
+            'colors': ['W'],
+            'color_identity': ['W'],
+            'produced_mana': [],
+            'keywords': [],
+            'oracle_text': 'z',
+            'legalities': {'commander': 'legal'},
+        }
+    )
+
+    legalities = _read_oracle_legalities(root)
+    assert legalities['Alpha'] == 'legal'  # existing status survived the rebuild
+    assert legalities['Banned Thing'] == 'banned'  # the ban gate's signal is intact
+    assert legalities['Live Legal'] == 'legal'  # the landed card carries its own
+
+
+def test_land_card_without_legalities_keeps_existing_column(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # A live card whose payload omits `legalities` still must not drop the column from
+    # the rows that have it: the absent field inserts a typed NULL, the column survives.
+    root = tmp_path / 'data'
+    monkeypatch.setenv(store.ENV_DATA_DIR, str(root))
+    _write_layer([_card_with_legality('Banned Thing', 'b', 'banned')], 'raw', 'oracle_cards')
+
+    resolver_mod._land_card(
+        {
+            'oracle_id': 'live-oid',
+            'name': 'No Legality Live',
+            'cmc': 1.0,
+            'mana_cost': '{1}',
+            'type_line': 'Artifact',
+            'colors': [],
+            'color_identity': [],
+            'produced_mana': [],
+            'keywords': [],
+            'oracle_text': 'z',
+        }
+    )
+
+    legalities = _read_oracle_legalities(root)
+    assert legalities['Banned Thing'] == 'banned'  # preserved despite the live row's gap
 
 
 def test_resolves_dfc_front_face_name_with_otags(lake: Path) -> None:

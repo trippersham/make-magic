@@ -38,6 +38,22 @@ _skip_no_lake = pytest.mark.skipif(not LAKE_AVAILABLE, reason='lake parquets not
 FIX = Path(__file__).resolve().parent / 'fixtures'
 
 
+def test_lake_search_honors_data_dir_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """``_lake_search`` resolves the lake through the env-aware root (so a
+    ``MAKE_MAGIC_DATA_DIR`` override can't split retrieval onto a different lake than
+    the recommend precondition check and the judgment enricher read — #119). Proven
+    hermetically: with the env pointed at an empty dir, the miss names THAT dir, not a
+    hardcoded home path."""
+    from pipeline import store
+    from pipeline.transforms.strategy.engine_hydration import _lake_search
+
+    root = tmp_path / 'isolated-lake'
+    monkeypatch.setenv(store.ENV_DATA_DIR, str(root))
+    with pytest.raises(FileNotFoundError) as exc:
+        _lake_search('otag:ramp')
+    assert str(root) in str(exc.value)
+
+
 def _load_relay_fixture() -> dict:
     return json.loads((FIX / 'relay_decks' / 'relay__queza-lichs-mastery.json').read_text())
 

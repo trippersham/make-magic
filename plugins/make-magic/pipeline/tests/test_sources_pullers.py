@@ -354,6 +354,41 @@ def test_scryfall_bulk_streams_and_projects(data_dir: Path, monkeypatch: pytest.
     assert row['set_name'] == 'Foundations'
 
 
+def test_scryfall_bulk_projects_commander_legality(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A Scryfall row's ``legalities.commander`` lands in the flat ``legality_commander`` column.
+
+    The recommendation ban-gate reads this column offline, so ingestion must flatten
+    Scryfall's per-format ``legalities`` dict down to the one commander entry. A card
+    without ``legalities`` projects NULL (the enricher degrades that to allow + flag).
+    """
+    cards = [
+        {
+            'oracle_id': 'o1',
+            'name': 'Black Lotus',
+            'type_line': 'Artifact',
+            'legalities': {'commander': 'banned', 'vintage': 'restricted'},
+        },
+        {
+            'oracle_id': 'o2',
+            'name': 'Sol Ring',
+            'type_line': 'Artifact',
+            'legalities': {'commander': 'legal'},
+        },
+        {'oracle_id': 'o3', 'name': 'No Legalities', 'type_line': 'Artifact'},
+    ]
+    monkeypatch.setattr(scryfall_bulk, '_fetch_meta', lambda c: ('http://x/uri', '2026-07-26T00:00:00+00:00'))
+    monkeypatch.setattr(scryfall_bulk, '_stream_cards', lambda c, uri, cap: iter(cards[:cap] if cap else cards))
+
+    scryfall_bulk.sync(client=httpx.Client(), max_cards=3)
+    with store.connect() as conn:
+        rel = store.read_parquet(conn, 'raw', 'oracle_cards')
+        assert 'legality_commander' in rel.columns
+        by_name = {r[0]: r[1] for r in rel.project('name, legality_commander').fetchall()}
+    assert by_name['Black Lotus'] == 'banned'
+    assert by_name['Sol Ring'] == 'legal'
+    assert by_name['No Legalities'] is None  # absent legalities -> NULL, not a crash
+
+
 def test_scryfall_bulk_stream_decoder_parses_gzipped_jsonl() -> None:
     # Exercise the real streaming decoder over chunked GZIPPED JSONL (Scryfall's current format).
     import gzip
