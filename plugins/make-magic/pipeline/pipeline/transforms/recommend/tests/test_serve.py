@@ -72,7 +72,7 @@ def test_recommend_composes_generate_into_judge(load_deck) -> None:
             'oid-banned': {'color_identity': ['B'], 'legalities': {'commander': 'banned'}},
         }
     )
-    result = recommend(deck, search_client=make_fixture_search_client(cards), enrich=enrich)
+    result = recommend(deck, search_client=make_fixture_search_client(cards), enrich=enrich, rank=False)
 
     assert isinstance(result, RecommendationResult)
     assert result.ordering == 'degraded_structural'
@@ -97,7 +97,7 @@ def test_recommend_default_target_ref_is_deck(load_deck) -> None:
     deck = load_deck(WORLD_RECLAIMER)
     cards = [_card('oid-ok', 'Fixture Recursion', ['recursion-land'], ['B'])]
     enrich = _enricher({'oid-ok': {'color_identity': ['B'], 'legalities': {'commander': 'legal'}}})
-    result = recommend(deck, search_client=make_fixture_search_client(cards), enrich=enrich)
+    result = recommend(deck, search_client=make_fixture_search_client(cards), enrich=enrich, rank=False)
     assert result.target_ref == (deck.get('uuid') or deck.get('name'))
 
 
@@ -114,7 +114,7 @@ def test_target_scopes_to_fewer_anchors(load_deck) -> None:
     cards = [_card('oid-multi', 'Multi Anchor', ['recursion-land'], ['B'])]
     enrich = _enricher({'oid-multi': {'color_identity': ['B'], 'legalities': {'commander': 'legal'}}})
 
-    bare = recommend(deck, search_client=make_fixture_search_client(cards), enrich=enrich)
+    bare = recommend(deck, search_client=make_fixture_search_client(cards), enrich=enrich, rank=False)
     bare_cand = _accepted_id(bare, 'oid-multi')
     assert bare_cand is not None
     assert len(bare_cand.anchors) >= 2
@@ -126,6 +126,7 @@ def test_target_scopes_to_fewer_anchors(load_deck) -> None:
         target='land-enters-battlefield',
         search_client=make_fixture_search_client(cards),
         enrich=enrich,
+        rank=False,
     )
     assert scoped.target_ref == 'land-enters-battlefield'
     scoped_cand = _accepted_id(scoped, 'oid-multi')
@@ -146,6 +147,7 @@ def test_target_with_no_matching_anchor_drops_candidate(load_deck) -> None:
         target='a-strategy-this-card-does-not-touch',
         search_client=make_fixture_search_client(cards),
         enrich=enrich,
+        rank=False,
     )
     assert _accepted_id(result, 'oid-multi') is None
     assert result.candidates == []
@@ -164,7 +166,7 @@ def test_does_not_want_rejects_through_recommend(load_deck) -> None:
         deck,
         search_client=make_fixture_search_client(cards),
         enrich=enrich,
-        does_not_want=['recursion-land'],  # matches the anchor's attribute
+        does_not_want=['recursion-land'],  # matches the anchor's attribute        rank=False,
     )
     assert _accepted_id(result, 'oid-ok') is None
     rejected = _rejected_id(result, 'oid-ok')
@@ -188,6 +190,7 @@ def test_target_scope_does_not_bypass_does_not_want(load_deck) -> None:
         search_client=make_fixture_search_client(cards),
         enrich=enrich,
         does_not_want=['recursion-land'],
+        rank=False,
     )
     assert _accepted_id(result, 'oid-multi') is None  # NOT accepted despite the target scope
     rejected = _rejected_id(result, 'oid-multi')
@@ -205,6 +208,7 @@ def test_membership_tags_pass_through(load_deck) -> None:
         enrich=enrich,
         inventory_lookup=lambda oid: oid == 'oid-ok',
         chase_lookup=lambda _oid: False,
+        rank=False,
     )
     cand = _accepted_id(result, 'oid-ok')
     assert cand is not None
@@ -215,11 +219,53 @@ def test_budget_without_price_source_notes_inert(load_deck) -> None:
     deck = load_deck(WORLD_RECLAIMER)
     cards = [_card('oid-ok', 'Fixture Recursion', ['recursion-land'], ['B'])]
     enrich = _enricher({'oid-ok': {'color_identity': ['B'], 'legalities': {'commander': 'legal'}}})
-    result = recommend(deck, search_client=make_fixture_search_client(cards), enrich=enrich, budget=5.0)
+    result = recommend(deck, search_client=make_fixture_search_client(cards), enrich=enrich, budget=5.0, rank=False)
     # A budget with no price_lookup cannot filter; the result says so rather than
     # silently ignoring the ceiling, and no card is budget-rejected.
     assert any('budget' in n and 'inactive' in n for n in result.notes)
     assert _accepted_id(result, 'oid-ok') is not None
+
+
+def test_ranking_flows_through_recommend(load_deck) -> None:
+    # Phase 5: with rank=True (default) and an injected scorer, recommend() orders the
+    # survivors strongest-first, embeds each StrengthRecord, and flips ordering to
+    # strength_model — offline, via the fixture strength_fn (no lake / cache).
+    from pipeline.transforms.comparison.contracts import StrengthAgnostic, StrengthRecord, StrengthRelative
+
+    deck = load_deck(WORLD_RECLAIMER)
+    cards = [
+        _card('oid-weak', 'Weak Fit', ['recursion-land'], ['B']),
+        _card('oid-strong', 'Strong Fit', ['recursion-land'], ['B']),
+    ]
+    enrich = _enricher(
+        {
+            'oid-weak': {'color_identity': ['B'], 'legalities': {'commander': 'legal'}},
+            'oid-strong': {'color_identity': ['B'], 'legalities': {'commander': 'legal'}},
+        }
+    )
+    records = {
+        'oid-weak': StrengthRecord(
+            strength_relative=StrengthRelative(engine_participation=0.0),
+            strength_agnostic=StrengthAgnostic(edhrec_rank=None),
+        ),
+        'oid-strong': StrengthRecord(
+            strength_relative=StrengthRelative(engine_participation=2.0),
+            strength_agnostic=StrengthAgnostic(edhrec_rank=25, game_changer=True),
+        ),
+    }
+
+    def _strength_fn(_deck, oids, **_kw):
+        return {oid: records[oid] for oid in oids if oid in records}
+
+    result = recommend(deck, search_client=make_fixture_search_client(cards), enrich=enrich, strength_fn=_strength_fn)
+
+    assert result.ordering == 'strength_model'
+    ids = [c.card.oracle_id for c in result.candidates]
+    assert ids[0] == 'oid-strong'  # ranked ahead of the weaker fit
+    strong = _accepted_id(result, 'oid-strong')
+    assert strong is not None and strong.rationale is not None
+    assert strong.rationale.strength is not None  # embedded StrengthRecord
+    assert strong.rationale.verdict == 'strong'  # plan-serving + game_changer
 
 
 def test_budget_with_price_source_filters(load_deck) -> None:
@@ -232,6 +278,7 @@ def test_budget_with_price_source_filters(load_deck) -> None:
         enrich=enrich,
         budget=5.0,
         price_lookup=lambda _oid: 42.0,  # over the ceiling
+        rank=False,
     )
     assert _accepted_id(result, 'oid-pricey') is None
     rejected = _rejected_id(result, 'oid-pricey')
@@ -262,14 +309,14 @@ def test_recommendation_schema_is_valid() -> None:
 @pytest.mark.integration
 @pytest.mark.skipif(not LAKE_AVAILABLE, reason='requires a hydrated lake')
 def test_real_lake_recommend_end_to_end(load_deck) -> None:
-    # Against the real lake, the whole composition runs: a non-empty, judged result
-    # whose accepted candidates all carry a degraded rationale and whose ordering is
-    # the labelled structural fallback.
+    # Against the real lake the whole composition runs INCLUDING Phase-5 ranking: a
+    # non-empty judged+ranked result, every accepted candidate carries a rationale with
+    # the sibling's StrengthRecord embedded, and the ordering is the strength model.
     result = recommend(load_deck(WORLD_RECLAIMER))
-    assert result.ordering == 'degraded_structural'
+    assert result.ordering == 'strength_model'
     assert result.candidates
     assert all(c.rationale is not None for c in result.candidates)
-    assert all(c.rationale is not None and c.rationale.verdict != 'strong' for c in result.candidates)
+    assert all(c.rationale is not None and c.rationale.strength is not None for c in result.candidates)
 
 
 @pytest.mark.integration

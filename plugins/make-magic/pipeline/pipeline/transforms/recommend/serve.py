@@ -44,6 +44,7 @@ from pipeline.transforms.recommend.generate import (
     generate_candidates,
 )
 from pipeline.transforms.recommend.judgment import EnrichFn, PriceLookup, judge
+from pipeline.transforms.recommend.rank import StrengthFn, rank_result
 from pipeline.transforms.strategy.assets import StrategyAssets
 from pipeline.transforms.strategy.config import StrategyConfig
 from pipeline.transforms.strategy.engine_hydration import SearchClient
@@ -119,15 +120,22 @@ def recommend(
     assets: StrategyAssets | None = None,
     cfg: StrategyConfig | None = None,
     saturation: SaturationConfig = DEFAULT_SATURATION,
+    rank: bool = True,
+    strength_fn: StrengthFn | None = None,
+    strength_data: dict | None = None,
+    candidate_cards: dict[str, dict] | None = None,
+    combo_oracle_ids: set[str] | None = None,
 ) -> RecommendationResult:
     """Recommend cards for a deck: compose Phase 3 generation into Phase 4a judgment.
 
     Generates the structurally-fitting candidate pool from the deck's anchors, judges
-    it (enrichment + one ordered hard-gate pass + a degraded rationale), then — when a
-    ``target`` is given — narrows the judged result to that instance. The returned
-    :class:`RecommendationResult` carries the accepted ``candidates`` (each with its
-    anchors + a transparent ``rationale``) and the hard-gated ``rejected`` set (each
-    naming the deciding gate; an already-in-deck card is silently excluded, not
+    it (enrichment + one ordered hard-gate pass + a degraded rationale), narrows it to
+    ``target`` when given, then (Phase 5, ``rank=True``) ORDERS the survivors by the
+    comparison engine's ``strength()``, embedding each :class:`StrengthRecord` and
+    unlocking the ``strong`` verdict. The returned :class:`RecommendationResult` carries
+    the accepted ``candidates`` strongest-first (``ordering='strength_model'``), each
+    with its anchors + a transparent ``rationale``, and the hard-gated ``rejected`` set
+    (each naming the deciding gate; an already-in-deck card is silently excluded, not
     rejected) — the one contract the app, skills, agent callers, and the CLI consume.
 
     Parameters
@@ -149,6 +157,13 @@ def recommend(
     inventory_lookup, chase_lookup
         Optional ``oracle_id -> bool`` membership stores; when injected a candidate
         is tagged ``inventory`` / ``chase`` accordingly.
+    rank, strength_fn, strength_data, candidate_cards, combo_oracle_ids
+        Phase-5 ranking seam. ``rank=True`` (default) orders the survivors via
+        ``strength_fn`` (default: the comparison engine's ``strength()``) and flips
+        ``ordering`` to ``strength_model``; ``rank=False`` keeps generation's
+        ``degraded_structural`` order. ``strength_data`` / ``candidate_cards`` /
+        ``combo_oracle_ids`` pass through to the scorer so the offline suite ranks a
+        fixture pool without a lake or the Scryfall strength cache.
 
     Raises
     ------
@@ -183,6 +198,20 @@ def recommend(
     )
     if target is not None:
         judged = _scope_to_target(judged, target)
+
+    # Phase 5: rank the accepted survivors by the comparison engine's strength()
+    # (axis-A fit gating axis-B power), embed each StrengthRecord, unlock `strong`, and
+    # flip `ordering` to `strength_model`. `rank=False` returns the raw structural pool
+    # (`degraded_structural`) for a caller that wants generation's order untouched.
+    if rank:
+        judged = rank_result(
+            judged,
+            deck,
+            strength_fn=strength_fn,
+            strength_data=strength_data,
+            candidate_cards=candidate_cards,
+            combo_oracle_ids=combo_oracle_ids,
+        )
 
     if budget is not None and price_lookup is None:
         judged = judged.model_copy(update={'notes': [*judged.notes, _BUDGET_INERT_NOTE.format(budget=budget)]})
