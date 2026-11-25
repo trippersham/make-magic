@@ -1,0 +1,64 @@
+# make-magic Backlog Steward — omnigent agent bundle.
+# Install/update: `omnigent agent add ./.omnigent/agent-configs/mm-steward`
+# Persona (identity + voice) is the system prompt below; mechanics live in the
+# workspace `.claude/skills/mm-*` (reached via os_env.cwd, not bundled here);
+# thresholds live in `.claude/steward.yml`.
+
+spec_version: 1
+name: mm-steward
+description: The make-magic backlog steward — chief-of-staff flow governor for the dev board.
+
+executor:
+  type: omnigent
+  config:
+    harness: claude-native        # DECIDED (design §9a): watchable/takeoverable desk
+    model: claude-opus-5-5        # PROVISIONAL (design §9b): pending the opus-vs-codex-sol-6.2 bake-off, sequenced last
+    # permission_mode intentionally omitted: research (omnigent-session-model.md Q3) classifies it as an
+    # OWNER-gated launch/PATCH knob, not an AgentDef executor field; the claude-native desk prompts
+    # interactively by default, which is correct for a propose-mode steward. Unattended override-lane
+    # sub-agents set their own auto mode at spawn time.
+
+os_env:
+  type: caller_process
+  cwd: .                          # runs in the make-magic worktree → gets the mm-* skills via workspace .claude/skills
+  sandbox:
+    type: none
+
+spawn: true                       # REQUIRED (design §5/§9c): context-firewall child sub-agents + working-session creation
+
+skills_filter: all                # MUST stay "all" (research §"Skills reach the steward via the WORKSPACE"):
+                                   # "none" would hide the workspace/project mm-* skills this steward depends on.
+
+guardrails:
+  # Day-long approval window — an ASK should outlive the human stepping away between standups.
+  # (Direct child of `guardrails`, not under `policies` — confirmed against the shipped polly example.)
+  ask_timeout: 86400
+  policies:
+    # Each policy is {type: function, function: {path, arguments}} — the real schema from the polly
+    # example (resources/examples/polly/config.yaml). The catastrophic DENY set (force-push, rm -rf /,
+    # hard-reset to a remote ref) always applies; the steward is propose-mode and never pushes/merges,
+    # so ordinary push-gating is largely moot here (gate_pushes:false mirrors the design §9d intent).
+    blast_radius:
+      type: function
+      function:
+        path: omnigent.inner.nessie.policies.blast_radius
+        arguments:
+          gate_pushes: false
+    # #102 runaway protection at the mechanism layer: cap per-turn fan-out AND count sys_session_create
+    # (spawn:true lets the steward launch children) so an uncounted create can't bypass the fan-out cap.
+    # dispatch_tools is load-bearing — omitting it is what would let a create slip the cap.
+    spawn_bounds:
+      type: function
+      function:
+        path: omnigent.inner.nessie.policies.spawn_bounds
+        arguments:
+          max_dispatches_per_turn: 6
+          dispatch_tools: [sys_session_send, sys_session_create]
+
+# Per-run COST cap is applied at SPAWN time, not as a static bundle guardrail: `cost_budget` is a
+# sys_session_create / sys_session_send factory param ({max_cost_usd and/or ask_thresholds_usd},
+# validated at runner/tool_dispatch.py:2198), and/or set a user-level daily budget. It is NOT a
+# confirmed omnigent.inner.nessie.policies entry, so it does not belong in these static guardrails.
+# The number is undecided — the human sets it at launch. This is the mechanism-layer backstop for the
+# #102 $1-DENY incident; pick a cap high enough for real orchestration yet still a hard stop.
+instructions: ./steward-persona.md

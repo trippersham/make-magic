@@ -13,6 +13,11 @@ This file is the one always-on contract. Read it first. Everything the repo map 
 | `.claude/rules/pipeline.md` | constraints for the Python package |
 | `.claude/rules/changes.md` | constraints for workflow and CI edits and the git flow |
 | `.claude/skills/mm-change/SKILL.md` | the branch, check, commit, PR, and merge procedure |
+| `.claude/skills/mm-steward-dev-flow/` | the flow-PM steward orchestrator the standing session runs: primary constraint, governor, three-valve overview, roll-up, and routing to the three sub-skills |
+| `.claude/skills/mm-flow-metrics/` | the steward measure layer: clock-free aging, cycle, lead, throughput, and CFD derived at query time from an append-only event log, with the board-read and flow-store scripts and their tests |
+| `.claude/skills/mm-flow-sessions/` | the steward session substrate: the omnigent session verbs and the many-to-many session-to-issue map classifier and its tests, under the #102 cost contract |
+| `.claude/skills/mm-finish-session/` | the per-session finish action: reconcile one working session, file unfiled work as tickets, archive the session, and update the board |
+| `.omnigent/agent-configs/` | the steward agent bundle (an omnigent agent definition, distinct from the .claude skills): under mm-steward, the config yaml plus the chief-of-staff system prompt that carries only the steward's identity and voice and delegates every mechanic to the mm-steward-dev-flow skill |
 | `.claude/settings.json` | the marketplace reference this repo enables |
 | `scripts/check` | the one check that local, CI, and the pre-commit hook all run |
 | `scripts/install-hooks` | installs the pre-commit hook that runs the check |
