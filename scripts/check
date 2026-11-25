@@ -63,6 +63,11 @@ done
 for f in .claude/rules/*.md; do
   [ -f "$f" ] && md_targets+=("$f")
 done
+for skill in mm-steward-dev-flow mm-flow-metrics mm-flow-sessions mm-finish-session; do
+  for f in ".claude/skills/$skill/SKILL.md" .claude/skills/$skill/references/*.md; do
+    [ -f "$f" ] && md_targets+=("$f")
+  done
+done
 if [ "${#md_targets[@]}" -gt 0 ]; then
   lint_markdown --enable-extensions front-matter,markdown-tables --disable-rules md013,md033,md041 scan "${md_targets[@]}"
 else
